@@ -102,7 +102,8 @@ export class Storyboard {
       chapter: this.chapter,
       keep: !!o.keep,
       // warstwa: kolor (kredka, zakreślacz, wypełnienie) domyślnie pod konturami
-      z: o.z ?? (['crayon', 'liquid', 'highlight', 'fill'].includes(kind) ? -1 : 0),
+      // ciecz faluje cały czas — osobna warstwa nad kolorami, żeby nie psuła bufora
+      z: o.z ?? (kind === 'liquid' ? -0.5 : ['crayon', 'highlight', 'fill'].includes(kind) ? -1 : 0),
       hand: useHand,
       visible: kind !== 'clear',
       ambient: !!o.ambient,
@@ -273,6 +274,8 @@ export class Storyboard {
    * Dowolne rysowanie: fn(sk, p, t) — p to postęp tego kroku.
    * Ręka prowadzi rysunek, jeśli podasz o.trace(p) => {x, y, tool?} (opcjonalnie o.from/o.to, o.tool).
    * Animacja otoczenia, która niczego nie rysuje (np. para nad narysowanym kubkiem): o.ambient = true.
+   * Wskazówka: elementy, które animują się bez końca, daj na osobną warstwę (np. z: 1) —
+   * wtedy nie przerywają buforowania ukończonych kresek pod nimi.
    */
   custom(fn, o = {}) {
     const hand = o.trace && {
@@ -485,25 +488,32 @@ export class Storyboard {
       while (k < g.items.length && settled(g.items[k])) k++;
       const withPaper = gi === 0 && this.paper;
       if (canCache && (k > 0 || withPaper)) {
-        const key = `${visibleChapter}|${k}|${sk.boil}|${camKey}|${W}x${H}|${base.a.toFixed(4)},${base.e.toFixed(1)},${base.f.toFixed(1)}`;
+        // klucz bez liczby elementów: gdy przybywa ukończonych elementów, tylko je dorysowujemy
+        const key = `${visibleChapter}|${sk.boil}|${camKey}|${W}x${H}|${base.a.toFixed(4)},${base.e.toFixed(1)},${base.f.toFixed(1)}`;
         const slots = (this.caches[gi] ??= []);
-        const c = (slots[slot] ??= { canvas: document.createElement('canvas'), key: null });
-        if (c.key !== key) {
+        const c = (slots[slot] ??= { canvas: document.createElement('canvas'), key: null, k: 0 });
+        if (c.key !== key || c.k > k) {
           c.canvas.width = W;
           c.canvas.height = H;
+          c.k = 0;
+          c.fresh = true;
+        }
+        if (c.fresh || c.k < k) {
           const cc = c.canvas.getContext('2d');
           cc.setTransform(base);
           sk.ctx = cc;
           try {
-            if (withPaper) sk.paper(this.w, this.h);
+            if (c.fresh && withPaper) sk.paper(this.w, this.h);
             cc.save();
             applyCam(cc);
-            for (let i = 0; i < k; i++) drawItem(g.items[i]);
+            for (let i = c.k; i < k; i++) drawItem(g.items[i]);
             cc.restore();
           } finally {
             sk.ctx = ctx;
           }
           c.key = key;
+          c.k = k;
+          c.fresh = false;
         }
         ctx.save();
         ctx.setTransform(1, 0, 0, 1, 0, 0);

@@ -74,7 +74,7 @@ export function buildHero() {
   const steamPlan = StrokePlan.of(steamBase);
   sb.custom((sk, p, t) => {
     sk.strokes(steamAt(t), p, { w: 1.6, color: 'inkSoft', alpha: 0.6, seed: 70, plan: steamPlan });
-  }, { dur: 0.6, color: 'inkSoft', trace: (p) => steamPlan.at(p).tip });
+  }, { dur: 0.6, color: 'inkSoft', trace: (p) => steamPlan.at(p).tip, z: 1 }); // faluje bez końca — osobna warstwa
 
   // --- 5. v1: pierwsza, kanciasta wersja
   sb.write('v1', 466, 356, { size: 46, color: 'pen' });
@@ -94,7 +94,7 @@ export function buildHero() {
   sb.write('v3', 900, 288, { size: 46, color: 'pen' });
   sb.custom((sk, p, t) => {
     drawMascot(sk, { ...MINI, p, wave: p >= 1 ? 0.5 + 0.5 * Math.sin(t * 6) : 0 });
-  }, { dur: MINI.dur, trace: (p) => mascotTrace(MINI, p) });
+  }, { dur: MINI.dur, trace: (p) => mascotTrace(MINI, p), z: 1 });
   const st = star(1110, 290, 28, 12, 5, { seed: 8 });
   sb.pen(st, pen('ink', 2.2, 81));
   sb.crayon(st, { color: 'ochre', spacing: 5, w: 7, seed: 81, dur: 0.35 });
