@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Silnik — rysowanie scrollem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .intro { min-height: 70svh; display: grid; place-content: center; text-align: center; padding: 0 16px; }
+    .intro h1 { font-family: var(--title); font-weight: 400; font-size: clamp(48px, 7vw, 96px); margin: 0; }
+    .track { display: grid; grid-template-columns: 1.2fr 1fr; gap: clamp(16px, 4vw, 64px); padding: 0 clamp(16px, 4vw, 64px); }
+    .sticky { position: sticky; top: 0; height: 100svh; display: flex; align-items: center; }
+    .sticky canvas { width: 100%; max-height: 92svh; }
+    .steps { padding: 30svh 0 40svh; }
+    .step { min-height: 75svh; transition: opacity .3s; opacity: .35; }
+    .step.on { opacity: 1; }
+    .step .num { color: var(--pen); font-size: 34px; }
+    .step h2 { font-family: var(--title); font-weight: 400; font-size: clamp(32px, 3.4vw, 48px); margin: 0 0 6px; }
+    .step p { color: var(--ink-soft); margin: 0; max-width: 32ch; }
+    .outro { min-height: 60svh; display: grid; place-content: center; text-align: center; color: var(--ink-soft); }
+    @media (max-width: 800px) {
+      .track { grid-template-columns: 1fr; }
+      .sticky { height: 46svh; z-index: 2; background: var(--paper); border-bottom: 2px solid var(--line); }
+      .steps { padding-top: 10svh; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="top"><a href="../index.html">← galeria</a><a href="hero.html">tablica</a><a href="explainer.html">explainer</a></nav>
+  <header class="intro"><h1>Agent krok po kroku</h1><p>przewijaj — rysunek buduje się razem z listą ↓</p></header>
+
+  <section class="track" id="track">
+    <div class="sticky"><canvas id="c" aria-label="Diagram agenta rysowany podczas przewijania"></canvas></div>
+    <div class="steps" id="steps"></div>
+  </section>
+  <footer class="outro"><p>„What I cannot create, I do not understand.” — Richard Feynman</p></footer>
+
+  <script type="module">
+    import { Player, scrollDrive } from '../src/index.js';
+    import { buildScrollDiagram, STEPS } from './scenes/diagram.js';
+
+    const steps = document.getElementById('steps');
+    steps.innerHTML = STEPS.map((s, i) => `<article class="step"><div class="num">${i + 1}</div><h2>${s.title}</h2><p>${s.text}</p></article>`).join('');
+
+    const sb = buildScrollDiagram();
+    const player = new Player(document.getElementById('c'), sb.scene(), { trigger: 'manual' });
+    window.__player = player;
+
+    // granice kroków na osi czasu -> podświetlenie aktywnego opisu
+    const marks = STEPS.map((_, i) => sb.tl.start(`step${i}`));
+    const items = [...steps.children];
+    // kawałkami liniowo: i-ty opis na ekranie <=> i-ty fragment rysunku
+    const keys = [...marks, sb.duration];
+    const map = (q) => {
+      const x = q * STEPS.length;
+      const i = Math.min(STEPS.length - 1, Math.floor(x));
+      return keys[i] + (keys[i + 1] - keys[i]) * (x - i);
+    };
+    scrollDrive(player, document.getElementById('track'), {
+      smooth: 0.15,
+      map,
+      onProgress: () => {
+        const t = player.t;
+        let active = 0;
+        marks.forEach((m, i) => { if (t >= m - 0.05) active = i; });
+        items.forEach((el, i) => el.classList.toggle('on', i === active));
+      },
+    });
+  </script>
+</body>
+</html>

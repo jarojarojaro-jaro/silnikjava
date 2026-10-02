@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Silnik — explainer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="top"><a href="../index.html">← galeria</a><a href="hero.html">tablica</a><a href="scroll.html">scroll</a></nav>
+  <main class="wrap">
+    <div class="card"><canvas id="c" aria-label="Rysowany film: jak działa agent AI"></canvas></div>
+    <div class="controls">
+      <button class="btn" id="play">❚❚ pauza</button>
+      <input type="range" id="seek" min="0" max="1" step="0.001" value="0" aria-label="Przewijanie" />
+      <span class="time" id="time"></span>
+      <select class="btn" id="speed" aria-label="Prędkość">
+        <option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option>
+      </select>
+      <button class="btn" id="rec">● nagraj WebM</button>
+    </div>
+  </main>
+
+  <script type="module">
+    import { Player, recordWebM, download } from '../src/index.js';
+    import { buildExplainer } from './scenes/explainer.js';
+
+    const scene = buildExplainer().scene();
+    const $ = (id) => document.getElementById(id);
+    let scrubbing = false;
+    const player = new Player($('c'), scene, {
+      trigger: 'view',
+      delay: 0.4,
+      onTime: (t) => {
+        $('time').textContent = `${Math.min(t, scene.duration).toFixed(1)} / ${scene.duration.toFixed(1)} s`;
+        if (!scrubbing) $('seek').value = Math.min(1, t / scene.duration);
+      },
+    });
+    window.__player = player;
+
+    const syncBtn = () => ($('play').textContent = player.playing ? '❚❚ pauza' : '▶ odtwórz');
+    $('play').onclick = () => { player.toggle(); syncBtn(); };
+    $('seek').oninput = (e) => { scrubbing = true; player.pause(); player.seek(e.target.value * scene.duration); syncBtn(); };
+    $('seek').onchange = () => (scrubbing = false);
+    $('speed').onchange = (e) => (player.o.speed = Number(e.target.value));
+    addEventListener('keydown', (e) => { if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); $('play').click(); } });
+    $('rec').onclick = async (e) => {
+      e.target.disabled = true;
+      const blob = await recordWebM(player, { fps: 30, onProgress: (p) => (e.target.textContent = `● ${Math.round(p * 100)}%`) });
+      download(blob, 'explainer.webm');
+      e.target.textContent = '● nagraj WebM';
+      e.target.disabled = false;
+      syncBtn();
+    };
+  </script>
+</body>
+</html>

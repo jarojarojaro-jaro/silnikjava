@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Silnik — scena Tablica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="top"><a href="../index.html">← galeria</a><a href="explainer.html">explainer</a><a href="scroll.html">scroll</a></nav>
+  <section class="hero">
+    <div>
+      <h1>Silnik<br /><span class="accent">Studio
+        <svg class="scribble" viewBox="0 0 100 14" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M2 6 L7 6.4 L12 6.8 L17 7.7 L22 9 L27 8.2 L32 8.3 L37 7.2 L42 6.3 L47 5.5 L52 6 L57 7.2 L62 7.4 L67 8 L72 8.1 L77 8 L82 6.6 L87 6.2 L92 5.5 L97 6.2"
+            pathLength="1" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg></span></h1>
+      <p class="tag">Rysowane animacje<br />w czystym JS</p>
+      <div class="controls">
+        <button class="btn" id="replay">↺ od nowa</button>
+        <button class="btn" id="rec">● nagraj WebM</button>
+        <span class="time" id="time"></span>
+      </div>
+    </div>
+    <canvas id="c" aria-label="Rysowana tablica: maskotka rysuje kolejne wersje v1, v2, v3"></canvas>
+  </section>
+
+  <script type="module">
+    import { Player, recordWebM, download } from '../src/index.js';
+    import { heroScene } from './scenes/hero.js';
+
+    const player = new Player(document.getElementById('c'), heroScene, {
+      trigger: 'view',
+      delay: 0.3,
+      onTime: (t) => (document.getElementById('time').textContent = `${t.toFixed(2)} s`),
+    });
+    window.__player = player; // dla tools/render.mjs
+
+    setTimeout(() => document.querySelector('.scribble').classList.add('drawn'), 1200);
+    document.getElementById('replay').onclick = () => { player.seek(0); player.play(); };
+    document.getElementById('rec').onclick = async (e) => {
+      e.target.disabled = true;
+      const blob = await recordWebM(player, { fps: 30, onProgress: (p) => (e.target.textContent = `● ${Math.round(p * 100)}%`) });
+      download(blob, 'tablica.webm');
+      e.target.textContent = '● nagraj WebM';
+      e.target.disabled = false;
+    };
+  </script>
+</body>
+</html>
