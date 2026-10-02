@@ -1,0 +1,60 @@
+{
+  "version": "0.1",
+  "meta": {
+    "title": "Jak działa agent AI?",
+    "lang": "pl",
+    "aspect": "16:9",
+    "tempo": "normal",
+    "narration": "captions"
+  },
+  "chapters": [
+    {
+      "id": "petla",
+      "title": { "text": "Jak działa agent AI?", "align": "center", "underline": true },
+      "layout": { "type": "row", "items": ["obs", "llm", "act"], "density": "loose" },
+      "elements": [
+        { "id": "obs", "type": "box", "label": "obserwacja", "role": "input", "size": "m" },
+        { "id": "llm", "type": "box", "label": "LLM", "role": "main", "size": "l" },
+        { "id": "act", "type": "box", "label": "akcja", "role": "output", "size": "m" },
+        { "id": "a_obs_llm", "type": "arrow", "from": "obs", "to": "llm" },
+        { "id": "a_llm_act", "type": "arrow", "from": "llm", "to": "act" },
+        { "id": "a_back", "type": "arrow", "from": "act", "to": "obs", "style": "dashed", "route": "below", "label": "wynik wraca jako nowa obserwacja" },
+        { "id": "n_think", "type": "note", "text": "myśli krok po kroku", "near": "llm", "side": "below", "role": "alert" },
+        { "id": "m_llm", "type": "mark", "target": "llm", "style": "circle", "role": "alert" }
+      ],
+      "beats": [
+        { "say": "Agent zaczyna od obserwacji: co widzi, co dostał.", "show": ["obs"] },
+        { "say": "Obserwacja trafia do modelu językowego.", "show": ["a_obs_llm", "llm"] },
+        { "say": "Model wybiera akcję: narzędzie, komendę, odpowiedź.", "show": ["a_llm_act", "act"] },
+        { "say": "A wynik akcji wraca jako nowa obserwacja.", "show": ["a_back"] },
+        { "say": "Najważniejsze dzieje się w środku: model myśli krok po kroku.", "camera": { "focus": "llm" }, "show": ["n_think", "m_llm"] },
+        { "say": "I tak w kółko, aż zadanie będzie skończone.", "camera": "reset" }
+      ]
+    },
+    {
+      "id": "stop",
+      "title": { "text": "Kiedy pętla się kończy?", "align": "left", "underline": false },
+      "layout": { "type": "checklist", "items": ["chk"], "slot": "right" },
+      "elements": [
+        {
+          "id": "chk",
+          "type": "checklist",
+          "reveal": "item",
+          "items": [
+            { "text": "zadanie wykonane", "mark": "check", "role": "main" },
+            { "text": "brak postępu", "mark": "check", "role": "alert" },
+            { "text": "limit kroków", "mark": "check", "role": "alert" }
+          ]
+        },
+        { "id": "kleks", "type": "mascot", "character": "kleks", "emotion": "happy", "action": "wave" },
+        { "id": "b_done", "type": "bubble", "from": "kleks", "text": "gotowe!" }
+      ],
+      "beats": [
+        { "say": "Pętla kończy się, gdy zadanie jest wykonane…", "show": ["chk"] },
+        { "say": "…gdy agent przestaje robić postęp…", "show": ["chk"] },
+        { "say": "…albo gdy skończy mu się limit kroków.", "show": ["chk"] },
+        { "say": "Wtedy agent oddaje wynik.", "show": ["kleks", "b_done"], "hold": 1.5 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,367 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://silnikjava.local/scene-spec/0.1/schema.json",
+  "title": "Specyfikacja filmu objaśniającego (scene-spec 0.1, SZKIC)",
+  "description": "Wysokopoziomowy opis filmu: rozdziały -> elementy z id -> kroki (beats). Bez współrzędnych i bez sekund: layout, routing strzałek, kolory, ziarna i czasy liczy kompilator (spec -> Storyboard) według style guide'u. Schemat celowo używa tylko anyOf/enum/const/$ref i additionalProperties:false, żeby nadawał się do structured outputs; limity długości/liczności (maxLength, maxItems, minimum...) SDK usuwa ze schematu wysyłanego do API i sprawdza po stronie klienta, a linter i tak waliduje je ponownie.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "meta", "chapters"],
+  "properties": {
+    "version": { "const": "0.1" },
+    "meta": { "$ref": "#/$defs/meta" },
+    "chapters": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 8,
+      "items": { "$ref": "#/$defs/chapter" }
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,23}$",
+      "description": "Krótki identyfikator elementu, unikalny w całym filmie (np. llm, obs, chk_stop)."
+    },
+    "role": {
+      "description": "Znaczenie koloru, nie kolor. Mapowanie na paletę robi motyw (theme). main=pojęcie centralne (max 1 na kadr), input=wejście/kontekst, output=wynik/efekt, alert=problem/ostrzeżenie/akcent, extra=trzecia kategoria (pamięć, zewnętrzne), neutral=bez wypełnienia.",
+      "enum": ["main", "input", "output", "alert", "extra", "neutral"]
+    },
+    "size": { "enum": ["s", "m", "l"] },
+    "side": { "enum": ["above", "below", "left", "right"] },
+    "iconName": {
+      "description": "Ikona z biblioteki rysunków (rośnie z czasem; linter odrzuca nazwy spoza katalogu).",
+      "enum": [
+        "terminal", "globe", "file", "files", "folder", "database", "cloud", "server",
+        "gear", "lightbulb", "user", "users", "chat", "mail", "lock", "key",
+        "search", "book", "clock", "chart", "check", "cross", "star", "warning",
+        "brain", "robot", "code", "magnet", "scissors", "question"
+      ]
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "lang"],
+      "properties": {
+        "title": { "type": "string", "maxLength": 60 },
+        "lang": { "enum": ["pl", "en", "de", "es", "fr"] },
+        "aspect": { "enum": ["16:9", "1:1", "9:16"], "default": "16:9" },
+        "tempo": {
+          "description": "Mnożnik wszystkich domyślnych czasów: calm 1.25, normal 1.0, brisk 0.8.",
+          "enum": ["calm", "normal", "brisk"],
+          "default": "normal"
+        },
+        "theme": { "enum": ["paper", "blackboard"], "default": "paper" },
+        "narration": {
+          "description": "voice = beats.say idzie do TTS i wyznacza czas kroku; captions = tylko napisy; none = say ignorowane w renderze (zostaje jako notatka reżyserska).",
+          "enum": ["voice", "captions", "none"],
+          "default": "captions"
+        },
+        "seed": { "type": "integer", "minimum": 0, "description": "Ziarno wariantu; ta sama specyfikacja z innym seed daje inne drgania kreski, ten sam layout." }
+      }
+    },
+
+    "title": {
+      "anyOf": [
+        { "type": "string", "maxLength": 32 },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text"],
+          "properties": {
+            "text": { "type": "string", "maxLength": 32 },
+            "align": { "enum": ["center", "left"], "default": "center" },
+            "underline": { "type": "boolean", "default": true }
+          }
+        }
+      ]
+    },
+
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "description": "row: węzły w poziomie (proces, przepływ) | column: w pionie | grid: siatka cols x n | cycle: węzły na okręgu (pętla) | hub: center + promienie | checklist: jedna lista na lewej 2/3 kadru | compare: dwie kolumny z nagłówkami | timeline: oś z punktami | statement: jedno duże zdanie/liczba na środku | free: komórki siatki 12x6 (tylko gdy nic innego nie pasuje).",
+          "enum": ["row", "column", "grid", "cycle", "hub", "checklist", "compare", "timeline", "statement", "free"]
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 6,
+          "items": { "$ref": "#/$defs/id" },
+          "description": "Kolejność węzłów w układzie. Domyślnie: wszystkie elementy układalne (box, icon, checklist, text) w kolejności deklaracji."
+        },
+        "center": { "$ref": "#/$defs/id", "description": "hub: węzeł środkowy." },
+        "cols": { "type": "integer", "minimum": 2, "maximum": 3 },
+        "columns": {
+          "description": "compare: dokładnie dwie kolumny.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["header", "items"],
+            "properties": {
+              "header": { "type": "string", "maxLength": 18 },
+              "role": { "$ref": "#/$defs/role" },
+              "items": { "type": "array", "maxItems": 4, "items": { "$ref": "#/$defs/id" } }
+            }
+          }
+        },
+        "density": { "enum": ["tight", "normal", "loose"], "default": "normal" },
+        "slot": {
+          "description": "Miejsce zarezerwowane na postać; layout ściska scenę do pozostałej części kadru.",
+          "enum": ["none", "right", "left"],
+          "default": "none"
+        }
+      }
+    },
+
+    "box": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "label"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "box" },
+        "label": { "type": "string", "maxLength": 16, "description": "1-2 słowa. Dłuższe => skrót albo note." },
+        "role": { "$ref": "#/$defs/role" },
+        "size": { "$ref": "#/$defs/size" },
+        "shape": { "enum": ["rect", "ellipse", "cloud", "cylinder", "doc"], "default": "rect" },
+        "icon": { "$ref": "#/$defs/iconName" }
+      }
+    },
+    "icon": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "name"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "icon" },
+        "name": { "$ref": "#/$defs/iconName" },
+        "label": { "type": "string", "maxLength": 16 },
+        "role": { "$ref": "#/$defs/role" },
+        "size": { "$ref": "#/$defs/size" }
+      }
+    },
+    "text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "text"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "text" },
+        "text": { "type": "string", "maxLength": 48, "description": "Samodzielne zdanie/liczba (layout statement albo węzeł bez ramki)." },
+        "size": { "$ref": "#/$defs/size" },
+        "role": { "$ref": "#/$defs/role" }
+      }
+    },
+    "checklist": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "items"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "checklist" },
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["text"],
+            "properties": {
+              "text": { "type": "string", "maxLength": 24 },
+              "mark": { "enum": ["check", "cross", "empty"], "default": "check" },
+              "role": { "$ref": "#/$defs/role" }
+            }
+          }
+        },
+        "reveal": {
+          "description": "item = każda pozycja to osobny krok (pokazywana kolejnymi show: id), all = cała lista w jednym kroku.",
+          "enum": ["item", "all"],
+          "default": "item"
+        }
+      }
+    },
+    "arrow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "from", "to"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "arrow" },
+        "from": { "$ref": "#/$defs/id" },
+        "to": { "$ref": "#/$defs/id" },
+        "style": { "enum": ["solid", "dashed"], "default": "solid" },
+        "route": {
+          "description": "auto: najkrótsza droga między brzegami z lekkim łukiem | below/above: objazd pod/nad układem (pętla zwrotna) | direct: prosto.",
+          "enum": ["auto", "direct", "below", "above"],
+          "default": "auto"
+        },
+        "label": { "type": "string", "maxLength": 40 },
+        "role": { "$ref": "#/$defs/role" }
+      }
+    },
+    "note": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "text", "near"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "note" },
+        "text": { "type": "string", "maxLength": 32 },
+        "near": { "$ref": "#/$defs/id" },
+        "side": { "$ref": "#/$defs/side" },
+        "role": { "$ref": "#/$defs/role" }
+      }
+    },
+    "mark": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "target", "style"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "mark" },
+        "target": { "$ref": "#/$defs/id" },
+        "style": { "enum": ["circle", "underline", "highlight", "cross", "star", "liquid"] },
+        "role": { "$ref": "#/$defs/role" }
+      }
+    },
+    "mascot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "character"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "mascot" },
+        "character": { "enum": ["kleks"] },
+        "emotion": { "enum": ["neutral", "happy", "thinking", "surprised", "confused", "sad"], "default": "neutral" },
+        "action": { "enum": ["idle", "wave", "point", "look"], "default": "idle" },
+        "look_at": { "$ref": "#/$defs/id" }
+      }
+    },
+    "bubble": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "from", "text"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "const": "bubble" },
+        "from": { "$ref": "#/$defs/id", "description": "id postaci, która mówi." },
+        "text": { "type": "string", "maxLength": 20 },
+        "kind": { "enum": ["say", "think"], "default": "say" }
+      }
+    },
+
+    "element": {
+      "anyOf": [
+        { "$ref": "#/$defs/box" },
+        { "$ref": "#/$defs/icon" },
+        { "$ref": "#/$defs/text" },
+        { "$ref": "#/$defs/checklist" },
+        { "$ref": "#/$defs/arrow" },
+        { "$ref": "#/$defs/note" },
+        { "$ref": "#/$defs/mark" },
+        { "$ref": "#/$defs/mascot" },
+        { "$ref": "#/$defs/bubble" }
+      ]
+    },
+
+    "camera": {
+      "anyOf": [
+        { "enum": ["reset", "keep"] },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["focus"],
+          "properties": {
+            "focus": {
+              "anyOf": [
+                { "$ref": "#/$defs/id" },
+                { "type": "array", "minItems": 1, "maxItems": 3, "items": { "$ref": "#/$defs/id" } }
+              ]
+            },
+            "zoom": {
+              "description": "Brak = dopasuj kadr do elementów z marginesem (zoom liczony, ograniczony do 1..2.2).",
+              "type": "number",
+              "minimum": 1,
+              "maximum": 2.2
+            }
+          }
+        }
+      ]
+    },
+
+    "beat": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "say": {
+          "type": "string",
+          "maxLength": 120,
+          "description": "Jedno zdanie lektora/napisu (<= ~15 słów). Czas kroku = max(czas rysowania, czas mówienia)."
+        },
+        "show": {
+          "type": "array",
+          "maxItems": 4,
+          "items": { "$ref": "#/$defs/id" },
+          "description": "Elementy rysowane w tym kroku, w podanej kolejności. Dla checklist z reveal=item każde wystąpienie id odsłania kolejną pozycję."
+        },
+        "camera": { "$ref": "#/$defs/camera" },
+        "update": {
+          "type": "array",
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id"],
+            "properties": {
+              "id": { "$ref": "#/$defs/id" },
+              "emotion": { "enum": ["neutral", "happy", "thinking", "surprised", "confused", "sad"] },
+              "action": { "enum": ["idle", "wave", "point", "look"] },
+              "look_at": { "$ref": "#/$defs/id" }
+            }
+          }
+        },
+        "hold": {
+          "description": "Dodatkowa pauza po kroku [s]; zwykle pomijać — reguły tempa dodają pauzy same.",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3
+        }
+      }
+    },
+
+    "chapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "elements"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "$ref": "#/$defs/title" },
+        "layout": { "$ref": "#/$defs/layout" },
+        "elements": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 14,
+          "items": { "$ref": "#/$defs/element" }
+        },
+        "beats": {
+          "description": "Brak = każdy element jest osobnym krokiem w kolejności deklaracji (bez narracji).",
+          "type": "array",
+          "maxItems": 12,
+          "items": { "$ref": "#/$defs/beat" }
+        },
+        "end": {
+          "description": "clear = starcie tablicy po rozdziale (domyślnie, poza ostatnim) | keep = następny rozdział dorysowuje na tym samym kadrze.",
+          "enum": ["clear", "keep"],
+          "default": "clear"
+        }
+      }
+    }
+  }
+}

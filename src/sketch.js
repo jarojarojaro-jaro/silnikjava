@@ -7,7 +7,9 @@
 // danego czasu t. Dzięki temu można dowolnie przewijać, zapętlać i eksportować.
 
 import { clamp, hash, noise1, rng } from './math.js';
-import { resample, pathLength, bounds } from './paths.js';
+import { resample, bounds, pathInfo } from './paths.js';
+import { StrokePlan } from './hand.js';
+import { textGeometry, hasDOM, IMG_SCALE } from './handwriting.js';
 
 export const PALETTE = {
   paper: '#f7f3ea',
@@ -75,34 +77,40 @@ export class Sketch {
   // -------------------------------------------------------------- pióro
 
   /**
-   * Kreska piórem. Zwraca położenie końcówki ({x,y,angle}) — tam można postawić ołówek.
+   * Kreska piórem. Zwraca położenie końcówki ({x,y,angle,done}) — tam można postawić ołówek.
    * @param {number[][]} pts ścieżka
-   * @param {number} p postęp 0..1
+   * @param {number} p postęp 0..1 (ułamek długości; dla ruchu "jak ręka" użyj strokes/StrokePlan)
    * @param {object} o w (grubość), color, jitter, seed, still (bez drgania),
    *                   alpha, taper (px zwężenia końców), dash ([kreska, przerwa]),
-   *                   sketchy (druga, blada kreska obok — efekt szkicu)
+   *                   sketchy (druga, blada kreska obok — efekt szkicu),
+   *                   pressure (0..1 — ile pogrubiać na zakrętach, domyślnie 0.35)
    */
   pen(pts, p = 1, o = {}) {
     if (p <= 0 || !pts || pts.length < 2) return null;
     const { ctx } = this;
     const step = o.step ?? 2.5;
-    const r = o.resample === false ? pts : resample(pts, step);
-    const n = r.length;
+    const info = pathInfo(pts, step);
+    const { r, n, curv } = info;
     if (n < 2) return null;
     const w = o.w ?? 3.2;
     const jitter = o.jitter ?? 1.1;
     const seed = o.seed ?? 3;
     const boil = o.still ? 0 : this.boil;
-    const L = (n - 1) * step;
+    const L = info.len;
     const taper = o.taper ?? Math.min(26, L * 0.3);
-    const last = p >= 1 ? n - 1 : Math.max(1, Math.floor((n - 1) * p));
+    const pressure = o.pressure ?? 0.35;
+    // ułamkowy indeks końca: ostatni odcinek dorysowujemy częściowo — płynny ruch końcówki
+    const f = p >= 1 ? n - 1 : Math.max(0.0001, (n - 1) * p);
+    const last = Math.ceil(f);
 
     const base = seed * 13.17 + boil * 7.31;
-    const J = (i) => {
-      const q = r[i];
-      const k = (i * step) / 40;
-      return [q[0] + noise1(base + k) * jitter, q[1] + noise1(base + 61.3 + k) * jitter];
+    const J = (i, k = 1) => {
+      const q = i >= n - 1 ? r[n - 1] : r[i];
+      const qq = k < 1 ? [q[0] + (r[i + 1][0] - q[0]) * k, q[1] + (r[i + 1][1] - q[1]) * k] : q;
+      const u = ((i + (k < 1 ? k : 0)) * step) / 40;
+      return [qq[0] + noise1(base + u) * jitter, qq[1] + noise1(base + 61.3 + u) * jitter];
     };
+    const pt = (i) => (i <= Math.floor(f) ? J(i) : J(Math.floor(f), f - Math.floor(f)));
 
     ctx.save();
     ctx.strokeStyle = this.col(o.color);
@@ -111,24 +119,26 @@ export class Sketch {
     if (o.alpha != null) ctx.globalAlpha *= o.alpha;
 
     const dash = o.dash;
-    let prev = J(0);
+    let prev = pt(0);
     for (let i = 1; i <= last; i += 2) {
       const end = Math.min(last, i + 1);
       const d = i * step;
       if (dash && d % (dash[0] + dash[1]) > dash[0]) {
-        prev = J(end);
+        prev = pt(end);
         continue;
       }
       ctx.beginPath();
       ctx.moveTo(prev[0], prev[1]);
       for (let k = i; k <= end; k++) {
-        prev = J(k);
+        prev = pt(k);
         ctx.lineTo(prev[0], prev[1]);
       }
-      // nacisk: zwężenie na końcach + lekkie wahania jak przy prawdziwym piórze
+      // nacisk: zwężenie na końcach, więcej tuszu na zakrętach (ręka tam zwalnia),
+      // lekkie wahania jak przy prawdziwym piórze
       const press = taper > 0 ? Math.min(1, d / taper + 0.3, (L - d) / taper + 0.3) : 1;
+      const bend = 1 + pressure * Math.min(1, curv[Math.min(i, n - 1)] * 8);
       const wob = 0.84 + 0.26 * noise1(seed * 3.7 + d * 0.02);
-      ctx.lineWidth = Math.max(0.4, w * press * wob);
+      ctx.lineWidth = Math.max(0.4, w * press * wob * bend);
       ctx.stroke();
     }
     ctx.restore();
@@ -136,47 +146,35 @@ export class Sketch {
     if (o.sketchy) {
       this.pen(pts, p, { ...o, sketchy: false, seed: seed + 101, w: w * 0.45, alpha: (o.alpha ?? 1) * 0.45, jitter: jitter * 2.2 });
     }
-    const a = r[last], b = r[Math.max(0, last - 1)];
+    const a = pt(last), b = pt(Math.max(0, last - 1));
     return { x: a[0], y: a[1], angle: Math.atan2(a[1] - b[1], a[0] - b[0]), done: p >= 1 };
   }
 
   /**
-   * Kilka kresek rysowanych po kolei jednym ruchem ręki (wspólny postęp
-   * dzielony proporcjonalnie do długości). Zwraca końcówkę aktywnej kreski.
+   * Kilka kresek rysowanych po kolei jak przez rękę: każda kreska ma swój
+   * profil prędkości, między kreskami ołówek się podnosi (StrokePlan).
+   * Postęp p jest proporcjonalny do czasu. Zwraca końcówkę (z `lift`) albo null po zakończeniu.
    */
   strokes(list, p = 1, o = {}) {
-    const lens = list.map((s) => Math.max(1, pathLength(s)));
-    const total = lens.reduce((a, b) => a + b, 0);
-    let acc = 0;
-    let tip = null;
+    if (p <= 0 || !list.length) return null;
+    const plan = o.plan ?? StrokePlan.of(list);
+    const st = plan.at(p);
     list.forEach((s, i) => {
-      const a = acc / total;
-      const b = (acc + lens[i]) / total;
-      acc += lens[i];
-      const local = clamp((p - a) / Math.max(1e-6, b - a));
-      const t = this.pen(s, local, { ...o, seed: (o.seed ?? 1) + 17 * i });
-      if (t && local < 1) tip = t;
+      if (st.progress[i] > 0) this.pen(s, st.progress[i], { ...o, seed: (o.seed ?? 1) + 17 * i });
     });
-    return tip;
+    return p >= 1 ? null : st.tip;
   }
 
-  /** Strzałka: kreska, a gdy dojdzie do końca — grot. */
+  /** Strzałka: kreska, potem dwa ramiona grota (z podniesieniem ołówka między nimi). */
   arrow(pts, p = 1, o = {}) {
-    const bodyP = clamp(p / 0.82);
-    const tip = this.pen(pts, bodyP, o);
-    const hp = clamp((p - 0.82) / 0.18);
-    if (hp > 0) {
-      const r = resample(pts, 3);
-      const e = r[r.length - 1];
-      const s = r[Math.max(0, r.length - 6)];
-      const ang = Math.atan2(e[1] - s[1], e[0] - s[0]);
-      const size = o.head ?? 16;
-      const h1 = [[e[0] + Math.cos(ang + 2.6) * size, e[1] + Math.sin(ang + 2.6) * size], e];
-      const h2 = [e, [e[0] + Math.cos(ang - 2.6) * size, e[1] + Math.sin(ang - 2.6) * size]];
-      this.pen(h1, clamp(hp * 2), { ...o, seed: (o.seed ?? 1) + 5, taper: 6 });
-      this.pen(h2, clamp(hp * 2 - 1), { ...o, seed: (o.seed ?? 1) + 6, taper: 6 });
-    }
-    return tip;
+    const parts = arrowParts(pts, o.head ?? 16);
+    if (p <= 0) return null;
+    const plan = StrokePlan.of(parts);
+    const st = plan.at(p);
+    parts.forEach((s, i) => {
+      if (st.progress[i] > 0) this.pen(s, st.progress[i], { ...o, seed: (o.seed ?? 1) + (i ? 4 + i : 0), taper: i ? 6 : o.taper });
+    });
+    return p >= 1 ? null : st.tip;
   }
 
   // -------------------------------------------------------------- kredka
@@ -188,45 +186,19 @@ export class Sketch {
    * @param {object} o color, alpha, spacing (odstęp kresek), w (grubość), angle, seed, grain
    */
   crayon(poly, p = 1, o = {}) {
-    if (p <= 0 || !poly || poly.length < 3) return;
+    if (p <= 0 || !poly || poly.length < 3) return null;
     const { ctx } = this;
     this.#ensureLayer();
     const lc = this.layerCtx;
-    const gap = o.spacing ?? 10;
-    const angle = o.angle ?? -0.6;
     const seed = o.seed ?? 5;
     const width = o.w ?? 14;
-    const b = bounds(poly);
-    const R = Math.hypot(b.w, b.h) / 2 + width;
-    const ca = Math.cos(angle), sa = Math.sin(angle);
-    const rand = rng(seed);
-
-    // zygzak w układzie obróconym o `angle`
-    const zig = [];
-    const rows = Math.ceil((2 * R) / gap);
-    for (let i = 0; i <= rows; i++) {
-      const off = -R + i * gap + (rand() - 0.5) * gap * 0.45;
-      const [s0, s1] = i % 2 ? [R, -R] : [-R, R];
-      zig.push([b.cx + s0 * ca - off * sa, b.cy + s0 * sa + off * ca]);
-      const off2 = off + gap / 2;
-      zig.push([b.cx + s1 * ca - off2 * sa, b.cy + s1 * sa + off2 * ca]);
-    }
-    const path = resample(zig, 7);
-    const count = Math.floor(path.length * clamp(p));
-    if (count < 2) return;
-
-    // obszar w pikselach urządzenia
+    const z = zigzag(poly, o);
+    const count = Math.floor(z.path.length * clamp(p));
+    if (count < 2) return null;
+    const box = this.#deviceBox(z.b, width);
+    if (!box) return null;
+    const [x0, y0, x1, y1] = box;
     const T = ctx.getTransform();
-    const corners = [[b.x, b.y], [b.x + b.w, b.y], [b.x, b.y + b.h], [b.x + b.w, b.y + b.h]].map(([x, y]) => [
-      T.a * x + T.c * y + T.e,
-      T.b * x + T.d * y + T.f,
-    ]);
-    const pad = 4 + width * Math.max(Math.abs(T.a), Math.abs(T.d));
-    const x0 = Math.max(0, Math.floor(Math.min(...corners.map((c) => c[0])) - pad));
-    const y0 = Math.max(0, Math.floor(Math.min(...corners.map((c) => c[1])) - pad));
-    const x1 = Math.min(this.layer.width, Math.ceil(Math.max(...corners.map((c) => c[0])) + pad));
-    const y1 = Math.min(this.layer.height, Math.ceil(Math.max(...corners.map((c) => c[1])) + pad));
-    if (x1 <= x0 || y1 <= y0) return;
 
     lc.save();
     lc.setTransform(1, 0, 0, 1, 0, 0);
@@ -242,8 +214,8 @@ export class Sketch {
     lc.lineWidth = width;
     lc.beginPath();
     for (let i = 0; i < count; i++) {
-      const wv = 2.2 * noise1(seed + i * 0.17);
-      const [x, y] = path[i];
+      const wv = z.wave[i];
+      const [x, y] = z.path[i];
       i ? lc.lineTo(x + wv, y - wv) : lc.moveTo(x, y);
     }
     lc.stroke();
@@ -268,6 +240,28 @@ export class Sketch {
     ctx.globalAlpha *= o.alpha ?? 0.85;
     ctx.drawImage(this.layer, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
     ctx.restore();
+    return p >= 1 ? null : crayonTip(z, p, seed);
+  }
+
+  /** Gdzie jest ręka przy kolorowaniu kredką (bez rysowania) — jedzie zygzakiem wewnątrz konturu. */
+  crayonTrace(poly, p, o = {}) {
+    return crayonTrace(poly, p, o);
+  }
+
+  /** Prostokąt w pikselach urządzenia obejmujący bbox (w układzie bieżącej transformacji) + margines. */
+  #deviceBox(b, margin) {
+    const T = this.ctx.getTransform();
+    const xs = [], ys = [];
+    for (const [x, y] of [[b.x, b.y], [b.x + b.w, b.y], [b.x, b.y + b.h], [b.x + b.w, b.y + b.h]]) {
+      xs.push(T.a * x + T.c * y + T.e);
+      ys.push(T.b * x + T.d * y + T.f);
+    }
+    const pad = 4 + margin * Math.max(Math.abs(T.a), Math.abs(T.d));
+    const x0 = Math.max(0, Math.floor(Math.min(...xs) - pad));
+    const y0 = Math.max(0, Math.floor(Math.min(...ys) - pad));
+    const x1 = Math.min(this.layer.width, Math.ceil(Math.max(...xs) + pad));
+    const y1 = Math.min(this.layer.height, Math.ceil(Math.max(...ys) + pad));
+    return x1 > x0 && y1 > y0 ? [x0, y0, x1, y1] : null;
   }
 
   #ensureLayer() {
@@ -365,12 +359,112 @@ export class Sketch {
   // -------------------------------------------------------------- pismo
 
   /**
-   * Pismo odręczne pojawiające się litera po literze (każda litera "dopisywana"
-   * od lewej). Litery lekko tańczą — każda ma własny przechył i wysokość.
-   * Zwraca pozycję końcówki pisaka.
-   * @param {object} o size, font ('hand'|'title'|'mono'|CSS), color, align, alpha, bold, lineHeight
+   * Pismo odręczne pisane prawdziwymi kreskami liter (szkielet glifów, kolejność
+   * jak u człowieka, pauzy między słowami). Postęp p jest proporcjonalny do czasu.
+   * Zwraca pozycję grafitu {x,y,angle,lift} albo null po zakończeniu.
+   * @param {object} o size, font ('hand'|'title'|'mono'|CSS), color, align, alpha,
+   *                   weight, lineHeight, still, speed (px/s ręki), mode ('strokes'|'wipe'),
+   *                   fit (czas [s], w którym tekst ma być napisany — tempo ręki dopasowane)
    */
   write(text, x, y, p = 1, o = {}) {
+    if (p <= 0) return null;
+    if (o.mode === 'wipe' || !hasDOM()) return this.#writeWipe(text, x, y, p, o);
+    const { ctx } = this;
+    const geo = this.#textGeo(text, o);
+    const color = this.col(o.color, 'ink');
+    const st = p >= 1 ? null : geo.planFor(o.fit).at(p);
+    // całe słowo lekko "drga" razem z kreskami
+    const jx = o.still ? 0 : noise1(this.boil * 1.7 + geo.size) * 0.45;
+    const jy = o.still ? 0 : noise1(this.boil * 2.3 + 7) * 0.45;
+    const images = geo.image(color);
+
+    ctx.save();
+    if (o.alpha != null) ctx.globalAlpha *= o.alpha;
+    ctx.translate(x + jx, y + jy);
+    const drawImages = (g) => geo.lines.forEach((ln, i) => {
+      const im = images[i];
+      g.drawImage(im, ln.dx - ln.pad, ln.dy - ln.asc, im.width / IMG_SCALE, im.height / IMG_SCALE);
+    });
+    if (!st) {
+      drawImages(ctx);
+      ctx.restore();
+      return null;
+    }
+    // maska z kresek do aktualnego postępu, przez nią prześwituje glif
+    this.#ensureLayer();
+    const lc = this.layerCtx;
+    const b = { x: Math.min(...geo.lines.map((l) => l.dx - l.pad)), y: -geo.size * 1.05, w: geo.width + geo.size, h: geo.lines[geo.lines.length - 1].dy + geo.size * 1.5 };
+    b.w = Math.max(...geo.lines.map((l) => l.dx + l.width + l.pad)) - b.x;
+    const box = this.#deviceBox(b, 2);
+    if (box) {
+      const [x0, y0, x1, y1] = box;
+      lc.save();
+      lc.setTransform(1, 0, 0, 1, 0, 0);
+      lc.clearRect(x0, y0, x1 - x0, y1 - y0);
+      lc.setTransform(ctx.getTransform());
+      lc.strokeStyle = '#000';
+      lc.fillStyle = '#000';
+      lc.lineCap = 'round';
+      lc.lineJoin = 'round';
+      const mw = geo.weight * 1.8 + 1.5;
+      lc.lineWidth = mw;
+      geo.strokes.forEach((s, i) => {
+        const q = st.progress[i];
+        if (q <= 0) return;
+        if (s.length < 2) {
+          lc.beginPath();
+          lc.arc(s[0][0], s[0][1], mw * 0.75, 0, Math.PI * 2);
+          lc.fill();
+          return;
+        }
+        const r = pathInfo(s, 1.5).r;
+        const f = q * (r.length - 1);
+        const k = Math.floor(f);
+        lc.beginPath();
+        lc.moveTo(r[0][0], r[0][1]);
+        for (let j = 1; j <= k; j++) lc.lineTo(r[j][0], r[j][1]);
+        if (k < r.length - 1) lc.lineTo(r[k][0] + (r[k + 1][0] - r[k][0]) * (f - k), r[k][1] + (r[k + 1][1] - r[k][1]) * (f - k));
+        lc.stroke();
+      });
+      lc.globalCompositeOperation = 'source-in';
+      drawImages(lc);
+      lc.restore();
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(this.layer, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
+      ctx.restore();
+    }
+    ctx.restore();
+    const t = st.tip;
+    return t && { x: x + t.x, y: y + t.y, angle: t.angle, lift: t.lift };
+  }
+
+  /** Gdzie jest ręka przy pisaniu (bez rysowania). */
+  writeTrace(text, x, y, p, o = {}) {
+    if (o.mode === 'wipe' || !hasDOM()) {
+      const size = o.size ?? 32;
+      const w = String(text).length * size * 0.45;
+      const x0 = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w : x;
+      return { x: x0 + w * clamp(p), y: y - size * 0.25, angle: 0, lift: 0 };
+    }
+    const t = this.#textGeo(text, o).planFor(o.fit).at(clamp(p)).tip;
+    return t && { x: x + t.x, y: y + t.y, angle: t.angle, lift: t.lift };
+  }
+
+  /** Naturalny czas pisania tekstu [s] (z modelu ręki). */
+  writeTime(text, o = {}) {
+    if (o.mode === 'wipe' || !hasDOM()) return String(text).length / 14;
+    return this.#textGeo(text, o).plan.total;
+  }
+
+  #textGeo(text, o) {
+    const size = o.size ?? 32;
+    const fontCss = `${o.weight ?? ''} ${size}px ${this.font(o.font)}`.trim();
+    return textGeometry(text, { fontCss, size, align: o.align, lineHeight: o.lineHeight, seed: hashString(String(text)) + (o.seed ?? 0), speed: o.speed });
+  }
+
+  /** Stary tryb: litera odsłaniana prostokątem (gdy brak DOM albo mode: 'wipe'). */
+  #writeWipe(text, x, y, p, o) {
     if (p <= 0) return null;
     const { ctx } = this;
     const size = o.size ?? 32;
@@ -428,24 +522,27 @@ export class Sketch {
    */
   pencil(x, y, o = {}) {
     const { ctx } = this;
-    const size = o.size ?? 1;
+    const lift = clamp(o.lift ?? 0);
+    const size = (o.size ?? 1) * (1 + 0.07 * lift); // uniesiony ołówek jest bliżej "kamery"
     const t = this.time;
-    // ręka lekko "pracuje"
-    const ang = (o.angle ?? -1.05) + (o.still ? 0 : noise1(t * 2.1) * 0.06);
+    // ręka lekko "pracuje"; `lean` przechyla ołówek w stronę ruchu
+    const ang = (o.angle ?? -1.05) + (o.lean ?? 0) + (o.still ? 0 : noise1(t * 2.1) * 0.06);
     const len = 120 * size;
     const wd = 13 * size;
     ctx.save();
     ctx.translate(x, y);
-    ctx.rotate(ang);
     if (o.alpha != null) ctx.globalAlpha *= o.alpha;
-    // cień
+    // cień na kartce — im wyżej ołówek, tym dalej i bardziej rozmyty
     ctx.save();
-    ctx.globalAlpha *= 0.12;
+    ctx.rotate(ang);
+    ctx.globalAlpha *= 0.12 * (1 - 0.4 * lift);
     ctx.fillStyle = '#000';
     ctx.beginPath();
-    ctx.ellipse(len * 0.55, wd * 1.4, len * 0.45, wd * 0.45, 0, 0, Math.PI * 2);
+    ctx.ellipse(len * 0.55 + lift * 10, wd * (1.4 + lift * 1.6), len * 0.45, wd * (0.45 + 0.2 * lift), 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
+    ctx.translate(0, -lift * 12);
+    ctx.rotate(ang);
     const cone = 24 * size;
     // drewno
     ctx.fillStyle = '#f0d3a8';
@@ -519,6 +616,103 @@ export function loadFonts(fonts, timeout = 2500) {
   const sample = 'Aa Ąą Ćć Ęę Łł Óó Śś Żż 0123';
   const loads = Object.values(fonts).map((f) => document.fonts.load(`32px ${f}`, sample).catch(() => null));
   return Promise.race([Promise.all(loads), new Promise((r) => setTimeout(r, timeout))]);
+}
+
+// ------------------------------------------------------------------ geometria pędzli (z cache)
+
+const arrowCache = new WeakMap();
+
+/** Strzałka jako trzy kreski: trzon i dwa ramiona grota (cache po ścieżce). */
+export function arrowParts(pts, size = 16) {
+  let m = arrowCache.get(pts);
+  if (m?.has(size)) return m.get(size);
+  const r = resample(pts, 3);
+  const e = r[r.length - 1];
+  const s = r[Math.max(0, r.length - 6)];
+  const ang = Math.atan2(e[1] - s[1], e[0] - s[0]);
+  const parts = [
+    pts,
+    [[e[0] + Math.cos(ang + 2.6) * size, e[1] + Math.sin(ang + 2.6) * size], [e[0], e[1]]],
+    [[e[0], e[1]], [e[0] + Math.cos(ang - 2.6) * size, e[1] + Math.sin(ang - 2.6) * size]],
+  ];
+  if (!m) arrowCache.set(pts, (m = new Map()));
+  m.set(size, parts);
+  return parts;
+}
+
+const zigCache = new WeakMap();
+
+/** Zygzak kreskowania kredki dla konturu (cache po konturze i parametrach). */
+function zigzag(poly, o) {
+  const gap = o.spacing ?? 10;
+  const angle = o.angle ?? -0.6;
+  const seed = o.seed ?? 5;
+  const width = o.w ?? 14;
+  const key = `${gap}|${angle}|${seed}|${width}`;
+  let m = zigCache.get(poly);
+  if (m?.has(key)) return m.get(key);
+  const b = bounds(poly);
+  const R = Math.hypot(b.w, b.h) / 2 + width;
+  const ca = Math.cos(angle), sa = Math.sin(angle);
+  const rand = rng(seed);
+  const zig = [];
+  const rows = Math.ceil((2 * R) / gap);
+  for (let i = 0; i <= rows; i++) {
+    const off = -R + i * gap + (rand() - 0.5) * gap * 0.45;
+    const [s0, s1] = i % 2 ? [R, -R] : [-R, R];
+    zig.push([b.cx + s0 * ca - off * sa, b.cy + s0 * sa + off * ca]);
+    const off2 = off + gap / 2;
+    zig.push([b.cx + s1 * ca - off2 * sa, b.cy + s1 * sa + off2 * ca]);
+  }
+  const path = resample(zig, 7);
+  const wave = Float32Array.from(path, (_, i) => 2.2 * noise1(seed + i * 0.17));
+  // ślad ręki: zamiast skakać po całym zygzaku (dziesiątki przejść na sekundę),
+  // ręka sunie środkiem kolorowanego pasa — średnia punktów wewnątrz konturu
+  // z okna ±1 rzędu kreskowania
+  const W = Math.max(3, Math.round((2 * R) / 7));
+  const n = path.length;
+  const cx = new Float64Array(n + 1), cy = new Float64Array(n + 1), cnt = new Float64Array(n + 1);
+  path.forEach((pt, i) => {
+    const ins = pointInPoly(pt, poly) ? 1 : 0;
+    cx[i + 1] = cx[i] + pt[0] * ins;
+    cy[i + 1] = cy[i] + pt[1] * ins;
+    cnt[i + 1] = cnt[i] + ins;
+  });
+  const env = path.map((_, i) => {
+    const a = Math.max(0, i - W), e = Math.min(n, i + W + 1);
+    const c = cnt[e] - cnt[a];
+    return c > 0 ? [(cx[e] - cx[a]) / c, (cy[e] - cy[a]) / c] : null;
+  });
+  const z = { b, path, wave, env, W, angle };
+  if (!m) zigCache.set(poly, (m = new Map()));
+  m.set(key, z);
+  return z;
+}
+
+/** Pozycja ręki przy kolorowaniu kredką (bez rysowania). */
+export function crayonTrace(poly, p, o = {}) {
+  return crayonTip(zigzag(poly, o), p, o.seed ?? 5);
+}
+
+function crayonTip(z, p, seed) {
+  const n = z.path.length;
+  let i = Math.min(n - 1, Math.max(0, Math.floor(n * clamp(p)) - 1));
+  // najbliższy punkt pasa z treścią (na brzegach zygzak bywa poza konturem)
+  let e = z.env[i];
+  for (let k = 1; !e && k < n; k++) e = z.env[i - k] ?? z.env[i + k];
+  if (!e) return { x: z.b.cx, y: z.b.cy, angle: 0, lift: 0 };
+  // drobne drganie ręki wzdłuż kierunku kreskowania (jeden ruch tam-z-powrotem na dwa rzędy)
+  const osc = 9 * Math.sin((i / z.W) * Math.PI) + noise1(seed + i * 0.05) * 1.5;
+  return { x: e[0] + Math.cos(z.angle) * osc, y: e[1] + Math.sin(z.angle) * osc, angle: z.angle, lift: 0 };
+}
+
+function pointInPoly([x, y], poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
 }
 
 // ------------------------------------------------------------------ tekstury

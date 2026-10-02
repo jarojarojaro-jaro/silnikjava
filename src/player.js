@@ -68,7 +68,8 @@ export class Player {
       this.io.observe(canvas);
     }
     // gotowość czcionek — po ich wczytaniu przerysowujemy klatkę
-    this.ready = loadFonts(this.sk.fonts).then(() => { this.dirty = true; });
+    this.sk.fontsReady = false;
+    this.ready = loadFonts(this.sk.fonts).then(() => { this.sk.fontsReady = true; this.dirty = true; });
     this.unsub = subscribe((now) => this.#tick(now));
     if (this.o.trigger === 'mount') this.#start();
     else this.render();
