@@ -1,8 +1,8 @@
 // Film objaśniający "Jak działa agent AI?" złożony deklaratywnie ze Storyboardu.
 // Każda linijka to jeden krok — ołówek sam wędruje od kreski do kreski.
 
-import { Storyboard, rect, line, curve, ellipse, polygon, clamp } from '../../src/index.js';
-import { drawMascot } from './mascot.js';
+import { Storyboard, rect, line, curve, ellipse, polygon } from '../../src/index.js';
+import { drawMascot, mascotPhases, mascotTrace } from './mascot.js';
 
 export function buildExplainer() {
   const sb = new Storyboard({ w: 1280, h: 720 });
@@ -55,11 +55,11 @@ export function buildExplainer() {
   });
 
   // maskotka wychodzi zza krawędzi i mówi "gotowe!"
+  const KLEKS = { x: 960, y: 450, scale: 1.1, seed: 9 };
   sb.custom((sk, p, t) => drawMascot(sk, {
-    x: 960, y: 450, scale: 1.1, seed: 9,
-    draw: clamp(p * 1.6), fill: clamp(p * 2 - 0.8), detail: clamp(p * 2.5 - 1.5),
-    wave: t > 0 && p >= 1 ? 0.5 + 0.5 * Math.sin(t * 5) : 0,
-  }), { dur: 2.4, pencil: true });
+    ...KLEKS, ...mascotPhases(p),
+    wave: p >= 1 ? 0.5 + 0.5 * Math.sin(t * 5) : 0,
+  }), { dur: 2.6, trace: (p) => mascotTrace(KLEKS, p) });
   const bubble = polygon([[0, 0], [190, -6], [200, 70], [60, 76], [30, 108], [36, 74], [-6, 70]], { seed: 80, wobble: 4 });
   sb.pop(1010, 200, (sk) => {
     sk.fill(bubble, '#fffdf7');

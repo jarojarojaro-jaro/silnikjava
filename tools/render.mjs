@@ -9,19 +9,12 @@
 // Wymaga: playwright (npm i -D playwright) i ffmpeg dla --mp4.
 // Dodatkowe flagi Chromium: zmienna CHROMIUM_ARGS (np. za proxy z własnym CA).
 
-import { createServer } from 'node:http';
-import { readFile, mkdir, writeFile, rm } from 'node:fs/promises';
-import { extname, join, resolve, relative } from 'node:path';
+import { mkdir, writeFile, rm } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { parseArgs, openPlayer } from './lib/page.mjs';
 
-const args = process.argv.slice(2);
-const page = args.find((a) => !a.startsWith('--'));
-const opt = (name, def) => {
-  const i = args.indexOf(`--${name}`);
-  if (i < 0) return def;
-  const v = args[i + 1];
-  return v === undefined || v.startsWith('--') ? true : v;
-};
+const { page, opt } = parseArgs(process.argv);
 if (!page) {
   console.log('użycie: node tools/render.mjs <strona.html> [--out dir] [--fps 30] [--duration s] [--from s] [--width 1280] [--every n] [--mp4] [--sheet]');
   process.exit(1);
@@ -32,54 +25,7 @@ const out = resolve(opt('out', 'out/frames'));
 const every = Number(opt('every', 1));
 const from = Number(opt('from', 0));
 
-let chromium;
-try {
-  ({ chromium } = await import('playwright'));
-} catch {
-  console.error('Brak pakietu "playwright". Zainstaluj: npm i -D playwright');
-  process.exit(1);
-}
-
-// prosty serwer statyczny (moduły ES nie działają z file://)
-const root = resolve('.');
-const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
-const server = createServer(async (req, res) => {
-  try {
-    const p = join(root, decodeURIComponent(new URL(req.url, 'http://x').pathname));
-    if (relative(root, p).startsWith('..')) throw new Error('poza katalogiem');
-    const body = await readFile(p);
-    res.writeHead(200, { 'content-type': MIME[extname(p)] ?? 'application/octet-stream' });
-    res.end(body);
-  } catch {
-    res.writeHead(404);
-    res.end();
-  }
-});
-await new Promise((r) => server.listen(0, '127.0.0.1', r));
-const url = `http://127.0.0.1:${server.address().port}/${page}`;
-
-const extra = (process.env.CHROMIUM_ARGS ?? '').split(' ').filter(Boolean);
-// Chromium sam czyta HTTPS_PROXY ze środowiska i omija proxy dla 127.0.0.1
-const browser = await chromium.launch({ args: extra });
-const tab = await browser.newPage({ viewport: { width, height: Math.round((width * 9) / 16) }, deviceScaleFactor: 1 });
-tab.on('pageerror', (e) => console.error('błąd strony:', e.message));
-tab.on('console', (m) => m.type() === 'error' && console.error('konsola:', m.text()));
-tab.on('requestfailed', (r) => console.error('nieudane żądanie:', r.url(), r.failure()?.errorText));
-await tab.goto(url, { waitUntil: 'load' });
-await tab.waitForFunction(() => window.__player, null, { timeout: 10000 });
-await tab.evaluate(() => window.__player.ready);
-
-// canvas renderujemy w docelowej rozdzielczości niezależnie od układu strony
-const dims = await tab.evaluate((w) => {
-  const p = window.__player;
-  p.pause();
-  const c = p.canvas;
-  Object.assign(c.style, { position: 'fixed', left: '0', top: '0', zIndex: '9999', maxWidth: 'none', aspectRatio: 'auto' });
-  c.style.width = `${w}px`;
-  c.style.height = `${Math.round((w * p.scene.h) / p.scene.w)}px`;
-  p.resize();
-  return { duration: p.duration, w: c.width, h: c.height };
-}, width);
+const { tab, dims, close } = await openPlayer(page, { width });
 const duration = Number(opt('duration', dims.duration + 1));
 
 await rm(out, { recursive: true, force: true });
@@ -97,8 +43,7 @@ for (let i = 0; i <= total; i += every) {
   if (k % 30 === 0) process.stdout.write(`\r  ${k} / ${Math.floor(total / every) + 1}`);
 }
 process.stdout.write('\n');
-await browser.close();
-server.close();
+await close();
 
 if (opt('mp4', false)) {
   const mp4 = `${out}.mp4`;

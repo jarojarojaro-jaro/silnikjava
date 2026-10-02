@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   clamp, prog, noise1, rng, ease, catmull, resample, pathLength, pointAt, line, rect, ellipse,
-  svgPath, bounds, Timeline, Storyboard,
+  svgPath, bounds, Timeline, Storyboard, StrokePlan, minJerk, travelTime, thin, traceSkeleton,
 } from '../src/index.js';
 
 const close = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) <= eps, `${a} ≈ ${b}`);
@@ -99,17 +99,22 @@ test('Timeline: sekwencja, with, after, gap, at', () => {
 // atrapa Sketch — zapisuje wywołania zamiast rysować
 function mockSketch() {
   const calls = [];
-  const ctx = { save() {}, restore() {}, translate() {}, scale() {} };
+  const ctx = { save() {}, restore() {}, translate() {}, scale() {}, getTransform: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }), canvas: { width: 0, height: 0 } };
   const rec = (name) => (...a) => {
     calls.push([name, ...a]);
-    return name === 'pen' && a[1] > 0 && a[1] < 1 ? { x: 1, y: 2 } : null;
+    return null;
   };
-  return { ctx, calls, paper: rec('paper'), pen: rec('pen'), crayon: rec('crayon'), write: rec('write'), fill: rec('fill'), pencil: rec('pencil'), arrow: rec('arrow'), strokes: rec('strokes') };
+  return {
+    ctx, calls, boil: 0,
+    paper: rec('paper'), pen: rec('pen'), crayon: rec('crayon'), write: rec('write'), fill: rec('fill'),
+    pencil: rec('pencil'), arrow: rec('arrow'), strokes: rec('strokes'),
+    writeTrace: (text, x, y, p) => ({ x: x + 100 * p, y, angle: 0, lift: 0 }),
+  };
 }
 
 test('Storyboard: czasy kroków, opcje pędzla nie mieszają się z czasem', () => {
-  const sb = new Storyboard({ w: 100, h: 100 });
-  sb.pen([[0, 0], [650, 0]]) // 1 s przy domyślnej prędkości
+  const sb = new Storyboard({ w: 100, h: 100, handGaps: false });
+  sb.pen([[0, 0], [650, 0]], { dur: 1 })
     .crayon([[0, 0], [10, 0], [10, 10]], { dur: 0.5, spacing: 9 })
     .wait(0.25)
     .write('abc', 0, 0, { dur: 1 });
@@ -120,20 +125,39 @@ test('Storyboard: czasy kroków, opcje pędzla nie mieszają się z czasem', () 
   close(sb.duration, 2.75);
 });
 
-test('Storyboard: ołówek tylko podczas rysowania, kredka pod konturem', () => {
+test('Storyboard: naturalne czasy i przerwa na przelot ołówka', () => {
   const sb = new Storyboard({ w: 100, h: 100 });
-  sb.pen([[0, 0], [650, 0]], { dur: 1 });
-  sb.crayon([[0, 0], [10, 0], [10, 10]], { dur: 1 });
+  sb.pen([[0, 0], [600, 0]]);
+  sb.pen([[0, 300], [10, 300]]); // daleko od końca poprzedniej kreski
+  const [a, b] = [...sb.tl.segments.values()];
+  assert.ok(a.dur > 0.5 && a.dur < 1.2, `czas kreski 600 px: ${a.dur}`);
+  const gap = b.start - (a.start + a.dur);
+  close(gap, travelTime(Math.hypot(600, 300)), 1e-9);
+  assert.ok(b.dur < a.dur, 'krótka kreska krócej');
+});
+
+test('Storyboard: ręka ciągła, bez skoków; kredka pod konturem', () => {
+  const sb = new Storyboard({ w: 800, h: 600 });
+  sb.pen([[100, 100], [400, 100]]);
+  sb.crayon([[100, 100], [400, 100], [400, 300], [100, 300]]);
+  sb.write('tekst', 450, 200);
+  sb.wait(0.5).arrow([[500, 400], [700, 450]]);
   let sk = mockSketch();
-  sb.draw(sk, 0.5);
-  assert.ok(sk.calls.some((c) => c[0] === 'pencil'));
-  sk = mockSketch();
-  sb.draw(sk, 1.5);
+  sb.draw(sk, 1.2);
   const names = sk.calls.map((c) => c[0]);
-  assert.ok(names.indexOf('crayon') < names.indexOf('pen'), 'kredka rysowana przed konturem');
-  sk = mockSketch();
-  sb.draw(sk, 5);
-  assert.ok(!sk.calls.some((c) => c[0] === 'pencil'));
+  assert.ok(names.indexOf('crayon') < names.indexOf('strokes'), 'kredka rysowana przed konturem');
+  const hand = sb.handTrack(sk);
+  const first = sb.items.reduce((m, it) => Math.min(m, it.seg.start), Infinity);
+  let prev = null;
+  let maxStep = 0;
+  for (let t = first; t <= sb.duration; t += 1 / 60) {
+    const p = hand.at(t);
+    assert.ok(p, `ręka widoczna w t=${t.toFixed(2)}`);
+    if (prev) maxStep = Math.max(maxStep, Math.hypot(p.x - prev.x, p.y - prev.y));
+    prev = p;
+  }
+  assert.ok(maxStep < 60, `największy skok ręki ${maxStep.toFixed(1)} px/klatkę`);
+  assert.equal(hand.at(sb.duration + 5), null, 'po filmie ręka schodzi z kadru');
 });
 
 test('Storyboard: clear() ukrywa poprzedni rozdział, keep zostaje', () => {
@@ -144,7 +168,7 @@ test('Storyboard: clear() ukrywa poprzedni rozdział, keep zostaje', () => {
   sb.pen([[0, 9], [10, 9]], { dur: 0.5, name: 'nowy' });
   const sk = mockSketch();
   sb.draw(sk, sb.duration);
-  const ys = sk.calls.filter((c) => c[0] === 'pen').map((c) => c[1][0][1]);
+  const ys = sk.calls.filter((c) => c[0] === 'strokes').map((c) => c[1][0][0][1]);
   assert.deepEqual(ys.sort(), [5, 9]);
 });
 
@@ -156,4 +180,43 @@ test('Storyboard: kamera interpoluje do celu', () => {
   close(m.x, 75);
   close(m.zoom, 1.5);
   assert.deepEqual(sb.cameraAt(3), { x: 50, y: 50, zoom: 2 });
+});
+
+test('StrokePlan: postęp rośnie monotonicznie, ołówek unosi się między kreskami', () => {
+  const plan = new StrokePlan([rect(0, 0, 200, 100), line(260, 0, 400, 60)]);
+  let prev = [0, 0];
+  let lifted = false;
+  for (let p = 0; p <= 1.0001; p += 0.01) {
+    const st = plan.at(p);
+    st.progress.forEach((v, i) => assert.ok(v >= prev[i] - 1e-9, 'postęp nie cofa się'));
+    prev = st.progress;
+    if (st.tip.lift > 0.5) lifted = true;
+  }
+  assert.ok(lifted, 'między kreskami ołówek w powietrzu');
+  assert.deepEqual(plan.at(1).progress, [1, 1]);
+  // początek kreski wolniejszy niż środek (minimum jerk)
+  const L = (p) => plan.at(p).progress[0];
+  assert.ok(L(0.05) < L(0.3) - L(0.25), 'powolny start');
+});
+
+test('minJerk: 0→0, 1→1, symetryczny', () => {
+  close(minJerk(0), 0);
+  close(minJerk(1), 1);
+  close(minJerk(0.5), 0.5);
+});
+
+test('szkielet: gruba kreska -> linia 1 px, kształt L -> łamana z końcami', () => {
+  const w = 40, h = 40;
+  const img = new Uint8Array(w * h);
+  for (let y = 5; y < 35; y++) for (let x = 5; x < 12; x++) img[y * w + x] = 1; // pion
+  for (let y = 28; y < 35; y++) for (let x = 5; x < 35; x++) img[y * w + x] = 1; // poziom
+  thin(img, w, h);
+  let n = 0;
+  for (const v of img) n += v;
+  assert.ok(n > 30 && n < 75, `pikseli szkieletu: ${n}`);
+  const strokes = traceSkeleton(img, w, h);
+  const long = strokes.filter((s) => s.pts.length > 10);
+  assert.ok(long.length >= 1 && long.length <= 2, `kresek: ${long.length}`);
+  const total = long.reduce((a, s) => a + s.pts.length, 0);
+  assert.ok(total > 35, 'kreski pokrywają oba ramiona');
 });

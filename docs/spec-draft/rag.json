@@ -1,0 +1,83 @@
+{
+  "version": "0.1",
+  "meta": {
+    "title": "Czym jest RAG?",
+    "lang": "pl",
+    "aspect": "16:9",
+    "tempo": "normal",
+    "narration": "voice",
+    "seed": 7
+  },
+  "chapters": [
+    {
+      "id": "problem",
+      "title": { "text": "Model nie zna Twoich plików", "align": "left", "underline": true },
+      "layout": { "type": "row", "items": ["q", "llm"], "slot": "right" },
+      "elements": [
+        { "id": "q", "type": "icon", "name": "chat", "label": "pytanie", "role": "input" },
+        { "id": "llm", "type": "box", "label": "LLM", "role": "main", "size": "l", "icon": "brain" },
+        { "id": "a_q_llm", "type": "arrow", "from": "q", "to": "llm" },
+        { "id": "n_old", "type": "note", "text": "wiedza sprzed roku", "near": "llm", "side": "below", "role": "alert" },
+        { "id": "kleks", "type": "mascot", "character": "kleks", "emotion": "confused", "action": "look", "look_at": "llm" },
+        { "id": "b_huh", "type": "bubble", "from": "kleks", "text": "a mój regulamin?", "kind": "think" }
+      ],
+      "beats": [
+        { "say": "Zadajesz modelowi pytanie o firmowy regulamin.", "show": ["q", "a_q_llm", "llm"] },
+        { "say": "Ale model zna tylko to, czego nauczył się podczas treningu.", "show": ["n_old"] },
+        { "say": "Twoich dokumentów nigdy nie widział.", "show": ["kleks", "b_huh"] }
+      ]
+    },
+    {
+      "id": "potok",
+      "title": "Najpierw szukaj, potem pisz",
+      "layout": { "type": "row", "items": ["q2", "search", "docs", "llm2", "ans"], "density": "tight" },
+      "elements": [
+        { "id": "q2", "type": "icon", "name": "chat", "label": "pytanie", "role": "input", "size": "s" },
+        { "id": "search", "type": "box", "label": "wyszukiwarka", "role": "extra", "icon": "search", "size": "s" },
+        { "id": "docs", "type": "icon", "name": "files", "label": "3 fragmenty", "role": "input", "size": "s" },
+        { "id": "llm2", "type": "box", "label": "LLM", "role": "main", "size": "m" },
+        { "id": "ans", "type": "icon", "name": "check", "label": "odpowiedź", "role": "output", "size": "s" },
+        { "id": "a1", "type": "arrow", "from": "q2", "to": "search" },
+        { "id": "a2", "type": "arrow", "from": "search", "to": "docs" },
+        { "id": "a3", "type": "arrow", "from": "docs", "to": "llm2" },
+        { "id": "a4", "type": "arrow", "from": "llm2", "to": "ans" },
+        { "id": "a_q_llm2", "type": "arrow", "from": "q2", "to": "llm2", "route": "above", "style": "dashed", "label": "pytanie też idzie do modelu" },
+        { "id": "m_docs", "type": "mark", "target": "docs", "style": "highlight", "role": "output" },
+        { "id": "n_cite", "type": "note", "text": "ze źródłami!", "near": "ans", "side": "below", "role": "alert" }
+      ],
+      "beats": [
+        { "say": "RAG odwraca kolejność: najpierw szukamy.", "show": ["q2", "a1", "search"] },
+        { "say": "Wyszukiwarka wybiera kilka pasujących fragmentów dokumentów.", "show": ["a2", "docs", "m_docs"] },
+        { "say": "Fragmenty i pytanie trafiają razem do modelu.", "show": ["a3", "llm2", "a_q_llm2"] },
+        { "say": "Model pisze odpowiedź na ich podstawie.", "show": ["a4", "ans"] },
+        { "say": "I może pokazać, skąd ją wziął.", "camera": { "focus": ["ans", "n_cite"] }, "show": ["n_cite"] },
+        { "camera": "reset", "hold": 0.6 }
+      ]
+    },
+    {
+      "id": "porownanie",
+      "title": "Bez RAG i z RAG",
+      "layout": {
+        "type": "compare",
+        "columns": [
+          { "header": "bez RAG", "role": "alert", "items": ["c_guess", "c_old"] },
+          { "header": "z RAG", "role": "main", "items": ["c_facts", "c_src"] }
+        ]
+      },
+      "elements": [
+        { "id": "c_guess", "type": "icon", "name": "question", "label": "zgaduje", "role": "alert" },
+        { "id": "c_old", "type": "icon", "name": "clock", "label": "stara wiedza", "role": "alert" },
+        { "id": "c_facts", "type": "icon", "name": "book", "label": "Twoje dane", "role": "main" },
+        { "id": "c_src", "type": "icon", "name": "check", "label": "cytuje źródła", "role": "output" },
+        { "id": "x_guess", "type": "mark", "target": "c_guess", "style": "cross", "role": "alert" },
+        { "id": "s_src", "type": "mark", "target": "c_src", "style": "star", "role": "output" }
+      ],
+      "beats": [
+        { "say": "Bez RAG model zgaduje…", "show": ["c_guess", "x_guess"] },
+        { "say": "…i opiera się na starej wiedzy.", "show": ["c_old"] },
+        { "say": "Z RAG odpowiada na podstawie Twoich danych…", "show": ["c_facts"] },
+        { "say": "…i potrafi wskazać źródło.", "show": ["c_src", "s_src"], "hold": 1.2 }
+      ]
+    }
+  ]
+}

@@ -319,3 +319,51 @@ function arcTo(x1, y1, rx, ry, phi, large, sweep, x2, y2, step, push) {
     push(c * ex - s * ey + cx, s * ex + c * ey + cy);
   }
 }
+
+// ---------------------------------------------------------------- analiza (z cache)
+
+const infoCache = new WeakMap();
+
+/**
+ * Analiza ścieżki liczona raz i zapamiętywana (WeakMap po tablicy punktów):
+ * równomiernie spróbkowane punkty `r`, długość `len`, krzywizna w punktach
+ * `curv` oraz `warp` — skumulowany, znormalizowany czas przejścia ręki
+ * (ręka zwalnia na zakrętach: v ≈ 1 / (1 + 6·κ^0.66), wzorowane na prawie 2/3 potęgi).
+ * `effLen` — długość "efektywna" (ile px przy pełnej prędkości zajmuje przejście).
+ */
+export function pathInfo(pts, step = 2.5) {
+  let byStep = infoCache.get(pts);
+  if (byStep?.has(step)) return byStep.get(step);
+  const r = resample(pts, step);
+  const n = r.length;
+  const curv = new Float32Array(n);
+  for (let i = 1; i < n - 1; i++) {
+    const a = Math.atan2(r[i][1] - r[i - 1][1], r[i][0] - r[i - 1][0]);
+    const b = Math.atan2(r[i + 1][1] - r[i][1], r[i + 1][0] - r[i][0]);
+    let d = Math.abs(b - a);
+    if (d > Math.PI) d = 2 * Math.PI - d;
+    curv[i] = d / step;
+  }
+  // wygładzenie krzywizny (okno ±3 punkty)
+  const sm = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    let s = 0, c = 0;
+    for (let k = Math.max(0, i - 3); k <= Math.min(n - 1, i + 3); k++) { s += curv[k]; c++; }
+    sm[i] = s / c;
+  }
+  const warp = new Float32Array(n);
+  let acc = 0;
+  for (let i = 1; i < n; i++) {
+    const v = 1 / (1 + 6 * Math.pow(sm[i], 0.66));
+    acc += step / v;
+    warp[i] = acc;
+  }
+  if (acc > 0) for (let i = 1; i < n; i++) warp[i] /= acc;
+  const info = { r, n, step, len: (n - 1) * step, effLen: acc, curv: sm, warp };
+  if (!byStep) {
+    byStep = new Map();
+    infoCache.set(pts, byStep);
+  }
+  byStep.set(step, info);
+  return info;
+}

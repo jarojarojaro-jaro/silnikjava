@@ -2,7 +2,7 @@
 // silnika złożyć postać: kontur (pióro) -> zasłonięcie tła -> kredka ->
 // detale (oczy, kropki, uśmiech) + animacja idle (oddech, mruganie, wzrok).
 
-import { catmull, curve, ellipse, clamp, noise1, hash } from '../../src/index.js';
+import { catmull, curve, ellipse, clamp, noise1, hash, lerp, StrokePlan, crayonTrace } from '../../src/index.js';
 
 const BODY = catmull(
   [[0, -150], [26, -104], [64, -48], [84, 14], [74, 78], [36, 116], [-34, 117], [-74, 80], [-86, 16], [-66, -48], [-28, -104]],
@@ -10,6 +10,33 @@ const BODY = catmull(
   true,
 );
 const SPOTS = [[-46, -30, 7], [-58, 8, 5], [44, 60, 8], [56, 30, 5], [-20, 90, 6], [22, 96, 4], [0, -92, 6], [-14, -64, 4]];
+const ARM_L = curve([[-82, 30], [-112, 66], [-104, 104]], 10);
+const FEET = [curve([[-34, 116], [-40, 136], [-18, 138]], 6), curve([[34, 115], [40, 136], [18, 138]], 6)];
+const armR = (raise) => curve([[80, 20], [118 + raise * 6, -8 - raise * 20], [138 + raise * 4, -46 - raise * 30]], 10);
+// kontur w spoczynku — stała tablica, więc plan ruchu ręki liczy się raz
+const OUTLINE = [BODY, ARM_L, armR(0), ...FEET];
+const CRAYON = (seed) => ({ color: 'teal', alpha: 0.6, spacing: 10, w: 16, angle: -0.9, seed: seed + 3 });
+
+/** Fazy rysowania postaci po kolei (jak ręka): kontur -> przelot -> kredka -> przelot -> oczy i detale. */
+export function mascotPhases(p) {
+  return { draw: clamp(p / 0.45), fill: clamp((p - 0.5) / 0.28), detail: clamp((p - 0.82) / 0.18) };
+}
+
+const OUT_END = () => StrokePlan.of(OUTLINE).at(1).tip;
+const DETAIL_AT = (d) => ({ x: lerp(-36, 36, d), y: -6 + Math.sin(d * Math.PI * 4) * 12, angle: 0, lift: 0 });
+
+/** Gdzie jest ręka, gdy rysuje postać z postępem p (bez rysowania) — do Storyboard.custom({ trace }). */
+export function mascotTrace({ x, y, scale = 1, seed = 1 }, p) {
+  const ph = mascotPhases(p);
+  const hop = (a, b, q) => ({ x: lerp(a.x, b.x, q), y: lerp(a.y, b.y, q) - Math.sin(Math.PI * q) * 20, angle: 0, lift: Math.sin(Math.PI * q) });
+  let l;
+  if (p < 0.45) l = StrokePlan.of(OUTLINE).at(ph.draw).tip;
+  else if (p < 0.5) l = hop(OUT_END(), crayonTrace(BODY, 0, CRAYON(seed)), (p - 0.45) / 0.05);
+  else if (p < 0.78) l = crayonTrace(BODY, ph.fill, CRAYON(seed));
+  else if (p < 0.82) l = hop(crayonTrace(BODY, 1, CRAYON(seed)), DETAIL_AT(0), (p - 0.78) / 0.04);
+  else l = DETAIL_AT(ph.detail);
+  return { x: x + l.x * scale, y: y + l.y * scale, angle: l.angle, lift: l.lift ?? 0 };
+}
 
 /**
  * @param {import('../../src/index.js').Sketch} sk
@@ -26,15 +53,11 @@ export function drawMascot(sk, o) {
   sk.group({ x, y, sx: scale * (1 + breathe), sy: scale * (1 - breathe), rotate: still ? 0 : Math.sin(t * 1.3) * 0.015 }, () => {
     const w = 3.4 / scale ** 0.4;
     // 1) kontur ciała + ręce + nóżki jednym ruchem
-    const armL = curve([[-82, 30], [-112, 66], [-104, 104]], 10);
     const raise = clamp(o.wave ?? 0);
-    const armR = curve([[80, 20], [118 + raise * 6, -8 - raise * 20], [138 + raise * 4, -46 - raise * 30]], 10);
-    const feet = [curve([[-34, 116], [-40, 136], [-18, 138]], 6), curve([[34, 115], [40, 136], [18, 138]], 6)];
+    const outline = raise > 0 ? [BODY, ARM_L, armR(raise), ...FEET] : OUTLINE;
     if (draw > 0.25) sk.occlude(BODY);
-    if (fill > 0) {
-      sk.crayon(BODY, fill, { color: 'teal', alpha: 0.6, spacing: 10, w: 16, angle: -0.9, seed: seed + 3 });
-    }
-    tip = sk.strokes([BODY, armL, armR, ...feet], clamp(draw), { w, color: 'pen', seed: seed + 10, jitter: 1 });
+    if (fill > 0) sk.crayon(BODY, fill, CRAYON(seed));
+    tip = sk.strokes(outline, clamp(draw), { w, color: 'pen', seed: seed + 10, jitter: 1, plan: StrokePlan.of(OUTLINE) });
 
     // 2) detale
     if (detail > 0) {

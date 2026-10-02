@@ -22,7 +22,7 @@ Otwórz `http://localhost:8080` — galeria z trzema demami:
 
 | demo | co pokazuje |
 | --- | --- |
-| `examples/hero.html` | scena ręcznie zaprogramowana na `Timeline` (maskotka, v1→v2→v3, nić poza kadr, idle) |
+| `examples/hero.html` | nagłówek w stylu stentor.studio: jedna ręka prowadzi główny wątek, tło dorysowuje się równolegle, maskotka śledzi ołówek wzrokiem |
 | `examples/explainer.html` | film ze `Storyboard`: kamera, ścieranie, odtwarzacz z suwakiem, nagrywanie WebM |
 | `examples/scroll.html` | diagram budujący się podczas przewijania (sticky canvas + lista) |
 
@@ -49,9 +49,11 @@ Otwórz `http://localhost:8080` — galeria z trzema demami:
 </script>
 ```
 
-Ołówek sam podąża za aktualnie rysowaną kreską i przelatuje łukiem do początku
-następnej. Czas każdego kroku liczy się z długości kreski (domyślnie 650 px/s)
-albo z `dur`.
+Ołówek ma ciągłą trajektorię przez cały film (`HandTrack`). Prowadzi kreski,
+koloruje kredką, pisze litery, przelatuje łukiem do kolejnego elementu, czeka
+obok rysunku i na końcu schodzi z kadru. Czas kroku wynika z modelu ręki: każda
+kreska ma powolny start i koniec, ręka zwalnia na zakrętach, a między kreskami
+podnosi ołówek. Można też podać czas wprost przez `dur`.
 
 ## Architektura
 
@@ -62,12 +64,17 @@ src/
                  line/rect/ellipse/circle/arc/polygon/star/wave/spiral, svgPath(d)
   sketch.js      Sketch — pędzle: pen, strokes, arrow, crayon, fill, liquid,
                  highlight, dot, write, pencil, paper, group, occlude
+  hand.js        model ręki: StrokePlan (profil prędkości, podnoszenie ołówka),
+                 HandTrack (ciągła trajektoria ołówka przez cały film)
+  handwriting.js pismo kreskami: szkielet glifów (Zhang–Suen) -> kreski w
+                 kolejności pisania -> odsłanianie maską wzdłuż kresek
   timeline.js    Timeline — nazwane odcinki czasu (at / with / after / gap / ease)
   storyboard.js  Storyboard — deklaratywny scenariusz filmu + kamera + rozdziały
   player.js      Player (canvas, DPR, rAF, start w kadrze, idle, reduced motion),
                  scrollDrive (czas sceny = pozycja scrolla)
   record.js      recordWebM, snapshot, download
 tools/render.mjs render klatka po klatce (Playwright) -> PNG / MP4 (ffmpeg)
+tools/audit.mjs  pomiar: czas renderu klatki, teleporty i znikanie ołówka
 ```
 
 **Zasada:** scena jest czystą funkcją czasu. `draw(sk, t)` rysuje wszystko od
@@ -100,13 +107,13 @@ new Player(canvas, scene, { trigger: 'view' });
 | metoda | opis | ważne opcje |
 | --- | --- | --- |
 | `pen(pts, p, o)` | kreska z naciskiem, zwraca końcówkę `{x,y,angle,done}` | `w`, `color`, `jitter`, `seed`, `taper`, `dash:[on,off]`, `sketchy`, `still` |
-| `strokes(list, p, o)` | kilka kresek jednym ruchem (postęp wg długości) | jak `pen` |
-| `arrow(pts, p, o)` | kreska + grot na końcu | `head` |
+| `strokes(list, p, o)` | kilka kresek jak ręka: profil prędkości, podnoszenie ołówka; zwraca końcówkę z `lift` | jak `pen`, `plan` |
+| `arrow(pts, p, o)` | trzon + dwa ramiona grota (osobne ruchy ręki) | `head` |
 | `crayon(poly, p, o)` | zamalowanie zygzakiem z ziarnem | `color`, `alpha`, `spacing`, `w`, `angle`, `grain` |
 | `liquid(poly, level, o)` | napełnianie od dołu z falą | `color`, `alpha`, `wave`, `speed` |
 | `highlight(pts, width, p, o)` | zakreślacz (`multiply`) | `color`, `alpha` |
-| `write(text, x, y, p, o)` | pismo litera po literze, zwraca pozycję pisaka | `size`, `font` (`hand`/`title`/`mono`/CSS), `align`, `color`, `\n` |
-| `pencil(x, y, o)` | rysujący ołówek z grafitem w (x,y) | `angle`, `size`, `color` |
+| `write(text, x, y, p, o)` | pismo prawdziwymi kreskami liter (kropki i ogonki na końcu słowa), zwraca pozycję pisaka | `size`, `font` (`hand`/`title`/`mono`/CSS), `align`, `color`, `\n`, `fit`, `mode: 'wipe'` |
+| `pencil(x, y, o)` | rysujący ołówek z grafitem w (x,y) | `angle`, `lean`, `lift` (0..1, uniesienie), `size`, `color` |
 | `fill`, `occlude`, `dot`, `paper`, `group` | wypełnienia, zasłanianie tła, kropki, papier, układ lokalny | |
 
 Kolory: nazwy z palety (`ink`, `pen`, `teal`, `sky`, `ochre`, `coral`, `plum`,
@@ -116,8 +123,18 @@ Kolory: nazwy z palety (`ink`, `pen`, `teal`, `sky`, `ochre`, `coral`, `plum`,
 ### Storyboard — kroki
 
 `pen`, `strokes`, `arrow`, `crayon`, `fill`, `liquid`, `highlight`, `write`,
-`dot`, `pop(x, y, fn)` (wyskakuje z przestrzeleniem), `custom(fn(sk, p, t))`,
+`dot`, `pop(x, y, fn)` (wyskakuje z przestrzeleniem), `custom(fn(sk, p, t), { trace })`,
 `wait(s)`, `mark(name)`, `camera({x,y,zoom}, {dur})`, `clear({dur})`.
+
+Ręka prowadzi kroki `pen`, `strokes`, `arrow`, `crayon`, `write` i `highlight`.
+Kroki `custom` prowadzi, jeśli podasz `trace(p) => {x, y}` (przykład:
+`mascotTrace` w `examples/scenes/mascot.js`). Elementy tła, które mają się
+dorysować równolegle bez ręki, oznacz `pencil: false` i ustaw `with`.
+
+Opcje storyboardu: `handGaps` (przerwa na przelot ołówka przed kolejnym
+elementem, domyślnie włączona), `speed` (tempo ręki w px/s), `cache` (bufor
+ukończonych elementów, przerysowywany tylko przy zmianie klatki drgania lub
+ruchu kamery), `idle`, `fps`.
 
 Opcje czasu w każdym kroku: `dur`, `at` (sekunda albo nazwa kroku), `with`
 (razem z krokiem), `after`, `gap` (przesunięcie, może być ujemne), `ease`,
@@ -145,6 +162,14 @@ Sterowanie scrollem:
 const player = new Player(canvas, scene, { trigger: 'manual' });
 scrollDrive(player, document.querySelector('#sekcja'), { smooth: 0.15 });
 ```
+
+## Pomiar jakości ruchu
+
+```bash
+node tools/audit.mjs examples/explainer.html   # czas klatki, widoczność ołówka, teleporty
+```
+
+Wyniki przed i po przebudowie ręki są w [docs/PLAN.md](docs/PLAN.md).
 
 ## Eksport wideo
 
