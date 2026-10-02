@@ -4,8 +4,8 @@
 export * from './math.js';
 export * as paths from './paths.js';
 export * from './paths.js';
-export { Sketch, PALETTE, BOIL_FPS, loadFonts, arrowParts, crayonTrace } from './sketch.js';
-export { StrokePlan, HandTrack, HAND, minJerk, drawTime, liftTime, travelTime } from './hand.js';
+export { Sketch, PALETTE, BOIL_FPS, BOIL_CYCLE, loadFonts, arrowParts, crayonTrace } from './sketch.js';
+export { StrokePlan, HandTrack, Sequence, HAND, minJerk, drawTime, liftTime, travelTime, minDuration } from './hand.js';
 export { textGeometry, thin, trace as traceSkeleton } from './handwriting.js';
 export { Timeline } from './timeline.js';
 export { Storyboard } from './storyboard.js';

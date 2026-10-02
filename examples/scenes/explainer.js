@@ -2,13 +2,13 @@
 // Każda linijka to jeden krok — ołówek sam wędruje od kreski do kreski.
 
 import { Storyboard, rect, line, curve, ellipse, polygon } from '../../src/index.js';
-import { drawMascot, mascotPhases, mascotTrace } from './mascot.js';
+import { drawMascot, mascotTrace } from './mascot.js';
 
 export function buildExplainer() {
   const sb = new Storyboard({ w: 1280, h: 720 });
 
   // ---------------------------------------------------------- rozdział 1: pętla agenta
-  sb.write('Jak działa agent AI?', 640, 100, { size: 72, font: 'title', align: 'center', color: 'ink', dur: 1.4 });
+  sb.write('Jak działa agent AI?', 640, 100, { size: 72, font: 'title', align: 'center', color: 'ink' });
   sb.highlight(line(390, 112, 890, 108, { seed: 2 }), 18, { dur: 0.5, color: 'ochre' });
   sb.wait(0.3);
 
@@ -43,7 +43,7 @@ export function buildExplainer() {
   sb.wait(0.8);
 
   // ---------------------------------------------------------- rozdział 2: kiedy stop
-  sb.clear({ dur: 1 });
+  sb.clear();
   sb.write('Kiedy pętla się kończy?', 80, 120, { size: 64, font: 'title', color: 'ink' });
   const items = ['zadanie wykonane', 'brak postępu', 'limit kroków'];
   items.forEach((txt, i) => {
@@ -55,17 +55,15 @@ export function buildExplainer() {
   });
 
   // maskotka wychodzi zza krawędzi i mówi "gotowe!"
-  const KLEKS = { x: 960, y: 450, scale: 1.1, seed: 9 };
+  const KLEKS = { x: 960, y: 450, scale: 1.1, seed: 9, dur: 4.6 };
   sb.custom((sk, p, t) => drawMascot(sk, {
-    ...KLEKS, ...mascotPhases(p),
+    ...KLEKS, p,
     wave: p >= 1 ? 0.5 + 0.5 * Math.sin(t * 5) : 0,
-  }), { dur: 2.6, trace: (p) => mascotTrace(KLEKS, p) });
-  const bubble = polygon([[0, 0], [190, -6], [200, 70], [60, 76], [30, 108], [36, 74], [-6, 70]], { seed: 80, wobble: 4 });
-  sb.pop(1010, 200, (sk) => {
-    sk.fill(bubble, '#fffdf7');
-    sk.pen(bubble, 1, { color: 'ink', w: 2.6, seed: 80 });
-    sk.write('gotowe!', 96, 50, 1, { size: 44, align: 'center', color: 'pen' });
-  }, { dur: 0.5 });
+  }), { dur: KLEKS.dur, trace: (p) => mascotTrace(KLEKS, p) });
+  // dymek rysowany ołówkiem, potem napis
+  const bubble = polygon([[1010, 200], [1200, 194], [1210, 270], [1070, 276], [1040, 308], [1046, 274], [1004, 270]], { seed: 80, wobble: 4 });
+  sb.pen(bubble, { color: 'ink', w: 2.6, seed: 80 });
+  sb.write('gotowe!', 1106, 250, { size: 44, align: 'center', color: 'pen' });
   sb.wait(1.5);
   return sb;
 }

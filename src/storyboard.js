@@ -6,37 +6,45 @@
 //   sb.pen(rect(200, 250, 220, 140), { color: 'ink' });
 //   sb.arrow(line(430, 320, 600, 320));
 //   sb.camera({ x: 500, y: 320, zoom: 1.4 }, { dur: 1.2 });
-//   sb.clear();                       // starcie tablicy -> nowy rozdział
+//   sb.clear();                       // starcie tablicy gąbką -> nowy rozdział
 //   player = new Player(canvas, sb.scene());
 //
-// Ręka (ołówek) ma ciągłą trajektorię przez cały film: prowadzi kreski,
-// koloruje kredką, pisze litery, przelatuje łukiem do kolejnego elementu,
-// odpoczywa obok rysunku i schodzi z kadru na końcu (HandTrack).
-// Czasy kroków wynikają z modelu ręki (StrokePlan), a przed kolejnym
-// elementem automatycznie jest chwila na przelot ołówka.
+// Zasada fizyki sceny: NIC nie pojawia się samo. Każdy ślad na kartce robi
+// jedna ręka z narzędziem — ołówkiem (w kolorze kreski), zakreślaczem albo
+// gąbką. Ręka ma ciągłą trajektorię (HandTrack): prowadzi kreskę, przelatuje
+// do następnego elementu, zmienia narzędzie w powietrzu, odpoczywa obok
+// rysunku i schodzi z kadru. Wyjątki trzeba nazwać wprost:
+//   ambient: true — animacja otoczenia już narysowanego elementu (para, oddech),
+//   magic: true   — świadomy efekt "magiczny" (pop).
+// sb.lint() wypisuje wszystko, co łamie tę zasadę (także kroki, do których ręka
+// nie zdąży dojechać albo które są rysowane równolegle z innymi).
 
 import { Timeline } from './timeline.js';
-import { clamp, ease, lerp, noise1 } from './math.js';
+import { clamp, ease, easing, lerp, noise1 } from './math.js';
 import { bounds } from './paths.js';
-import { StrokePlan, HandTrack, HAND, travelTime } from './hand.js';
+import { StrokePlan, HandTrack, HAND, travelTime, minDuration } from './hand.js';
 import { arrowParts, crayonTrace } from './sketch.js';
 
 const PEN_SPEED = HAND.speed;
 // rodzaje kroków, które po zakończeniu wyglądają tak samo (poza drganiem kreski) — można je buforować
 const STATIC_KINDS = new Set(['pen', 'strokes', 'arrow', 'crayon', 'fill', 'highlight', 'write', 'dot']);
 const TIMING_KEYS = ['at', 'with', 'after', 'gap'];
+const SOLID = (o) => ({ spacing: 16, w: 36, angle: -0.5, ...o, solid: true });
+const ERASE_PASSES = 5;
+const AIM = 0.06;
 
 export class Storyboard {
   /**
-   * @param {object} o w, h (rozmiar sceny), pencil (czy pokazywać ołówek), paper (tło),
+   * @param {object} o w, h (rozmiar sceny), pencil (czy pokazywać rękę), paper (tło),
    *                   idle ('boil' | 'loop' | 'still'), speed (px/s ręki), background(sk,t) — własne tło,
-   *                   handGaps (domyślnie true — przerwy na przelot ołówka między elementami),
-   *                   cache (domyślnie true — bufor ukończonych elementów), fps (limit klatek w idle 'loop')
+   *                   handGaps (domyślnie true — przerwy na przelot ręki między elementami),
+   *                   cache (domyślnie true — bufor ukończonych elementów), fps (limit klatek w idle 'loop'),
+   *                   warn (domyślnie true — ostrzeżenia lint w konsoli przy pierwszym rysowaniu)
    */
-  constructor({ w = 1280, h = 720, pencil = true, paper = true, idle = 'boil', speed = PEN_SPEED, background, handGaps = true, cache = true, fps } = {}) {
-    this.fps = fps;
+  constructor({ w = 1280, h = 720, pencil = true, paper = true, idle = 'boil', speed = PEN_SPEED, background, handGaps = true, cache = true, fps, warn = true } = {}) {
     this.w = w;
     this.h = h;
+    this.fps = fps;
     this.tl = new Timeline();
     this.items = [];
     this.cams = [];
@@ -49,8 +57,9 @@ export class Storyboard {
     this.background = background;
     this.handGaps = handGaps;
     this.useCache = cache;
+    this.warn = warn;
     this.n = 0;
-    this.lastPencil = null; // ostatni krok z ręką (do automatycznych przerw)
+    this.lastHand = null; // ostatni krok z ręką (do automatycznych przerw)
     this.hand = null; // HandTrack — budowany leniwie przy pierwszym rysowaniu
     this.caches = [];
     this.lastCamKey = null;
@@ -63,34 +72,50 @@ export class Storyboard {
    * @param {number} dur
    * @param {object} o opcje (czasowe + pędzla)
    * @param {Function} render (sk, p, t) => void
-   * @param {object} [hand] { trace(sk, p) => tip, from, to } — ślad ręki
+   * @param {object} [hand] { trace(sk, p, t) => tip, from, to, tool, natural } — ślad ręki
    */
   #add(kind, dur, o, render, hand) {
     const name = o.name ?? `${kind}#${this.n++}`;
-    const pencil = !!hand && (o.pencil ?? this.usePencil);
+    const useHand = !!hand && o.pencil !== false;
     const timing = { ...o };
     // automatyczna przerwa na przelot ręki od poprzedniego elementu
-    if (pencil && this.handGaps && this.lastPencil && !TIMING_KEYS.some((k) => o[k] != null) && this.tl.cursor <= this.lastPencil.seg.start + this.lastPencil.seg.dur + 1e-6) {
-      const a = this.lastPencil.to, b = hand.from;
-      if (a && b) timing.gap = travelTime(Math.hypot(b[0] - a[0], b[1] - a[1]));
+    // (dopełnia brakujący czas, jeśli wcześniej był już wait/kamera)
+    if (useHand && this.handGaps && this.lastHand && !TIMING_KEYS.some((k) => o[k] != null)) {
+      const a = this.lastHand.to, b = hand.from;
+      const idle = this.tl.cursor - (this.lastHand.seg.start + this.lastHand.seg.dur);
+      // + chwila na "wycelowanie" przed dotknięciem kartki (pokrywa też niedokładność szacunku pozycji)
+      const need = a && b ? travelTime(Math.hypot(b[0] - a[0], b[1] - a[1])) + AIM : 0;
+      if (need > idle + 1e-6) timing.gap = need - Math.max(0, idle);
     }
-    this.tl.add(name, dur, { ...timing, ease: o.ease ?? (kind === 'pop' ? 'back' : hand?.natural ? 'linear' : 'hand') });
+    const easeName = o.ease ?? (kind === 'pop' ? 'back' : hand?.natural ? 'linear' : 'inOut');
+    // fizyka: krok nie może wymagać szybszej ręki niż HAND.maxSpeed — w razie
+    // potrzeby wydłużamy go (pismo liczy ślad dopiero przy rysowaniu, więc pomijamy)
+    if (useHand && kind !== 'write' && !o.fast) {
+      const t0 = this.tl.cursor;
+      const min = minDuration((p) => hand.trace(null, p, t0), easing(easeName));
+      if (min > dur) dur = min;
+    }
+    this.tl.add(name, dur, { ...timing, ease: easeName });
     const seg = this.tl.get(name);
     const item = {
       name, kind, seg, render,
       chapter: this.chapter,
       keep: !!o.keep,
-      // warstwa: kredka domyślnie pod konturami, nawet jeśli dodana później
-      z: o.z ?? (kind === 'crayon' || kind === 'liquid' || kind === 'highlight' ? -1 : 0),
-      pencil,
+      // warstwa: kolor (kredka, zakreślacz, wypełnienie) domyślnie pod konturami
+      z: o.z ?? (['crayon', 'liquid', 'highlight', 'fill'].includes(kind) ? -1 : 0),
+      hand: useHand,
+      visible: kind !== 'clear',
+      ambient: !!o.ambient,
+      magic: !!o.magic,
       static: o.static ?? STATIC_KINDS.has(kind),
       trace: hand?.trace,
+      tool: hand?.tool ?? { type: 'pencil', color: o.color },
       from: hand?.from,
       to: hand?.to,
     };
     this.items.push(item);
     this.items.sort((p, q) => p.z - q.z); // sort stabilny — w obrębie warstwy kolejność dodania
-    if (pencil) this.lastPencil = item;
+    if (useHand) this.lastHand = item;
     this.hand = null;
     return this;
   }
@@ -107,6 +132,7 @@ export class Storyboard {
       natural: true,
       from: plan.from,
       to: plan.to,
+      tool: { type: 'pencil', color: o.color ?? 'pen' },
       trace: (sk, p) => plan.at(p).tip,
     });
   }
@@ -126,7 +152,7 @@ export class Storyboard {
     return this.#strokeItem('arrow', arrowParts(pts, o.head ?? 16), o, (sk, p) => sk.arrow(pts, p, o));
   }
 
-  /** Zamalowanie kredką — ręka jedzie zygzakiem wewnątrz konturu. */
+  /** Zamalowanie kredką w kolorze — ręka jedzie środkiem kolorowanego pasa. */
   crayon(poly, o = {}) {
     const b = bounds(poly);
     const from = crayonTrace(poly, 0, o), to = crayonTrace(poly, 1, o);
@@ -135,25 +161,61 @@ export class Storyboard {
     }, {
       from: [from.x, from.y],
       to: [to.x, to.y],
+      tool: { type: 'pencil', color: o.color ?? 'teal' },
       trace: (sk, p) => crayonTrace(poly, p, o),
     });
   }
 
+  /**
+   * Kryjące wypełnienie — zamalowane szerokim pisakiem, pas po pasie;
+   * po skończeniu dokładnie płaskie.
+   */
   fill(poly, o = {}) {
-    return this.#add('fill', o.dur ?? 0.4, { ease: 'out', ...o }, (sk, p) => sk.fill(poly, o.color ?? 'paper', p * (o.alpha ?? 1)));
+    const so = SOLID({ seed: 7, ...o, color: o.color ?? 'paper' });
+    const b = bounds(poly);
+    const from = crayonTrace(poly, 0, so), to = crayonTrace(poly, 1, so);
+    return this.#add('fill', o.dur ?? clamp(0.3 + Math.sqrt(b.w * b.h) / 500, 0.35, 1.2), { ease: 'inOut', ...o }, (sk, p) => {
+      if (p >= 1) sk.fill(poly, so.color, o.alpha ?? 1);
+      else sk.crayon(poly, p, { ...so, alpha: o.alpha ?? 1 });
+    }, {
+      from: [from.x, from.y],
+      to: [to.x, to.y],
+      tool: { type: 'marker', color: so.color },
+      trace: (sk, p) => crayonTrace(poly, p, so),
+    });
   }
 
+  /**
+   * "Napełnianie" kształtu — ręka koloruje warstwami od dołu; po skończeniu
+   * powierzchnia delikatnie faluje.
+   */
   liquid(poly, o = {}) {
-    return this.#add('liquid', o.dur ?? 1, { ease: 'inOut', ...o }, (sk, p) => sk.liquid(poly, p * (o.level ?? 1), o));
+    const b = bounds(poly);
+    const level = o.level ?? 1;
+    const rows = Math.max(2, Math.round((b.h * level) / 14));
+    const at = (p) => {
+      const y = b.y + b.h - b.h * level * p;
+      const x = b.cx + Math.sin(p * rows * Math.PI) * b.w * 0.28 * (1 - 0.6 * p);
+      return { x, y, angle: 0, lift: 0 };
+    };
+    return this.#add('liquid', o.dur ?? clamp(0.4 + rows * 0.08, 0.5, 2), { ease: 'inOut', ...o }, (sk, p) => sk.liquid(poly, p * level, o), {
+      from: [at(0).x, at(0).y],
+      to: [at(1).x, at(1).y],
+      tool: { type: 'pencil', color: o.color ?? 'sky' },
+      trace: (sk, p) => at(p),
+    });
   }
 
   highlight(pts, width = 22, o = {}) {
     return this.#add('highlight', o.dur ?? 0.6, o, (sk, p) => sk.highlight(pts, width, p, o), {
       from: pts[0],
       to: pts[pts.length - 1],
+      tool: { type: 'marker', color: o.color ?? 'ochre' },
       trace: (sk, p) => {
-        const i = Math.min(pts.length - 1, Math.floor(p * (pts.length - 1)));
-        return { x: pts[i][0], y: pts[i][1], angle: 0, lift: 0 };
+        const f = p * (pts.length - 1);
+        const i = Math.min(pts.length - 2, Math.floor(f));
+        const k = f - i;
+        return { x: lerp(pts[i][0], pts[i + 1][0], k), y: lerp(pts[i][1], pts[i + 1][1], k) + width * 0.15, angle: 0, lift: 0 };
       },
     });
   }
@@ -165,25 +227,40 @@ export class Storyboard {
   write(text, x, y, o = {}) {
     const size = o.size ?? 32;
     const chars = String(text).replace(/\s/g, '').length;
-    const est = (chars * (0.06 + size / 1500) + (String(text).split(/\s+/).length - 1) * 0.08) * ((PEN_SPEED / (o.speed ?? this.speed)) || 1);
+    // droga ręki rośnie proporcjonalnie do wielkości liter — kalibracja z pomiarów
+    // minimalnego czasu (lint w przeglądarce): ~0,0019 s na znak i piksel wysokości
+    const est = (chars * (0.012 + size * 0.0019) + (String(text).split(/\s+/).length - 1) * 0.08) * ((PEN_SPEED / (o.speed ?? this.speed)) || 1);
     const dur = o.dur ?? clamp(est, 0.3, 8);
-    const w = String(text).length * size * 0.45;
+    // szacunek szerokości linii (pismo odręczne ~0,4 em na znak); dokładny ślad liczy się przy rysowaniu
+    const lines = String(text).split('\n');
+    const w = Math.max(...lines.map((l) => l.length)) * size * 0.4;
     const x0 = o.align === 'center' ? x - w / 2 : o.align === 'right' ? x - w : x;
     const wo = { ...o, fit: dur };
     return this.#add('write', dur, { ease: 'linear', ...o }, (sk, p) => sk.write(text, x, y, p, wo), {
-      from: [x0, y - size * 0.4],
-      to: [x0 + w, y],
+      from: [x0 + size * 0.1, y - size * 0.45],
+      to: [x0 + w * 0.95, y - size * 0.3 + (lines.length - 1) * size * (o.lineHeight ?? 1.15)],
+      tool: { type: 'pencil', color: o.color ?? 'ink' },
       trace: (sk, p) => sk.writeTrace(text, x, y, p, wo),
     });
   }
 
+  /** Kropka — ręka stawia ją małym kółkiem. */
   dot(x, y, r, o = {}) {
-    return this.#add('dot', o.dur ?? 0.35, { ease: 'back', ...o }, (sk, p) => sk.dot(x, y, r * p, o.color ?? 'pen', o.alpha ?? 1));
+    const at = (p) => {
+      const a = p * Math.PI * 3;
+      return { x: x + Math.cos(a) * r * 0.45 * (1 - p * 0.5), y: y + Math.sin(a) * r * 0.45 * (1 - p * 0.5), angle: 0, lift: 0 };
+    };
+    return this.#add('dot', o.dur ?? clamp(0.15 + r * 0.02, 0.18, 0.5), { ease: 'out', ...o }, (sk, p) => sk.dot(x, y, r * Math.sqrt(p), o.color ?? 'pen', o.alpha ?? 1), {
+      from: [at(0).x, at(0).y],
+      to: [at(1).x, at(1).y],
+      tool: { type: 'pencil', color: o.color ?? 'pen' },
+      trace: (sk, p) => at(p),
+    });
   }
 
   /**
-   * Element "wyskakujący" — rysowany przez fn(sk, t) w skali rosnącej od 0 z
-   * lekkim przestrzeleniem, wokół punktu (x,y).
+   * Element "wyskakujący" — rysowany przez fn(sk, t) w skali rosnącej od 0.
+   * To efekt magiczny (bez ręki): lint go zgłosi, chyba że podasz magic: true.
    */
   pop(x, y, fn, o = {}) {
     return this.#add('pop', o.dur ?? 0.45, o, (sk, p, t) => {
@@ -194,12 +271,14 @@ export class Storyboard {
 
   /**
    * Dowolne rysowanie: fn(sk, p, t) — p to postęp tego kroku.
-   * Żeby ręka prowadziła rysunek, podaj o.trace(p) => {x,y} oraz o.from/o.to.
+   * Ręka prowadzi rysunek, jeśli podasz o.trace(p) => {x, y, tool?} (opcjonalnie o.from/o.to, o.tool).
+   * Animacja otoczenia, która niczego nie rysuje (np. para nad narysowanym kubkiem): o.ambient = true.
    */
   custom(fn, o = {}) {
     const hand = o.trace && {
       from: o.from ?? (() => { const a = o.trace(0); return [a.x, a.y]; })(),
       to: o.to ?? (() => { const a = o.trace(1); return [a.x, a.y]; })(),
+      tool: o.tool ?? { type: 'pencil', color: o.color ?? 'pen' },
       trace: (sk, p) => o.trace(p),
     };
     return this.#add('custom', o.dur ?? 1, o, fn, hand);
@@ -225,14 +304,33 @@ export class Storyboard {
     return this;
   }
 
-  /** Starcie tablicy (gumka przechodzi od lewej do prawej) i nowy rozdział. */
+  /**
+   * Starcie tablicy gąbką i nowy rozdział. Gąbka przechodzi pionowymi pasami
+   * (w dół, w górę, …) — zmazane jest dokładnie to, przez co przeszła.
+   */
   clear(o = {}) {
-    const dur = o.dur ?? 0.9;
-    const start = this.tl.cursor + (o.gap ?? 0.2);
-    this.clears.push({ start, dur, chapter: this.chapter });
+    // czas: długość trasy gąbki przy ~2000 px/s (fizyka i tak pilnuje limitu)
+    const dur = o.dur ?? this.#eraser(this.cameraAt(this.tl.cursor), 0).length / 2000;
+    const chapter = this.chapter;
+    const name = o.name ?? `clear#${this.n++}`;
+    const at = (p, t) => this.#eraser(this.cameraAt(t), p);
+    const start = at(0, this.tl.cursor);
+    // przerwa na przelot ręki do gąbki liczy się automatycznie (handGaps)
+    const gap = o.gap ?? (this.lastHand && this.handGaps ? undefined : 0.2);
+    this.#add('clear', dur, { ...o, gap, name, ease: 'linear' }, () => {}, {
+      from: [start.x, start.y],
+      to: null,
+      tool: { type: 'eraser' },
+      trace: (sk, p, t) => {
+        const e = at(p, t);
+        return { x: e.x, y: e.y, angle: 0, lift: 0, width: e.width };
+      },
+    });
+    const item = this.items.find((it) => it.name === name);
+    const end = at(1, item.seg.start + item.seg.dur);
+    item.to = [end.x, end.y];
+    this.clears.push({ item, chapter });
     this.chapter++;
-    this.tl.cursor = start + dur + 0.15;
-    this.lastPencil = null;
     return this;
   }
 
@@ -269,16 +367,63 @@ export class Storyboard {
   /** Ciągła trajektoria ręki (budowana raz, po wczytaniu czcionek). */
   handTrack(sk) {
     if (this.hand) return this.hand;
+    this.hand = this.#buildTrack(sk);
+    if (this.warn && !this.warned && typeof console !== 'undefined') {
+      this.warned = true;
+      const issues = this.lint(sk);
+      if (issues.length) console.warn(`Storyboard.lint: ${issues.length} problem(ów)\n` + issues.map((i) => `  ${i.name} (${i.time.toFixed(2)} s): ${i.problem}`).join('\n'));
+    }
+    return this.hand;
+  }
+
+  #buildTrack(sk) {
     const segs = this.items
-      .filter((it) => it.pencil && it.trace)
+      .filter((it) => it.hand && it.trace)
       .map((it) => ({
+        name: it.name,
+        item: it,
         start: it.seg.start,
         end: it.seg.start + it.seg.dur,
-        trace: (t) => it.trace(sk, it.seg.ease(clamp((t - it.seg.start) / (it.seg.dur || 1)))),
+        tool: it.tool,
+        trace: (t) => it.trace(sk, it.seg.ease(clamp((t - it.seg.start) / (it.seg.dur || 1))), t),
       }));
     const off = [this.w + 90, this.h + 110];
-    this.hand = new HandTrack(segs, { enter: off, exit: off });
-    return this.hand;
+    return new HandTrack(segs, { enter: off, exit: off });
+  }
+
+  /**
+   * Kontrola "fizyki" sceny. Zwraca listę problemów:
+   *  - element pojawia się bez ręki (a nie jest ambient/magic),
+   *  - ręka nie zdąży dojechać na początek kroku (część narysowałaby się sama),
+   *  - krok rysowany w czasie, gdy ręka jest zajęta innym (równolegle).
+   * @param {object} [sk] Sketch (dla dokładnego śladu pisma); bez niego — przybliżenie.
+   */
+  lint(sk, { tolerance = 0.06 } = {}) {
+    const issues = [];
+    const add = (it, problem) => issues.push({ name: it.name, kind: it.kind, time: it.seg.start, problem });
+    for (const it of this.items) {
+      if (!it.visible || it.hand || it.ambient || it.magic) continue;
+      add(it, it.trace ? 'ręka wyłączona (pencil: false) — element pojawi się sam' : 'element bez ręki — pojawi się sam; dodaj trace albo oznacz ambient/magic');
+    }
+    const stub = {
+      writeTrace: (text, x, y, p, o = {}) => ({ x: x + String(text).length * (o.size ?? 32) * 0.45 * p, y, angle: 0, lift: 0 }),
+    };
+    const hand = sk?.writeTrace ? (this.hand ?? this.#buildTrack(sk)) : this.#buildTrack(stub);
+    // pismo: ślad liter znamy dopiero z prawdziwą czcionką — sprawdzamy tempo ręki tutaj
+    if (sk?.writeTrace) {
+      for (const it of this.items) {
+        if (it.kind !== 'write' || !it.hand) continue;
+        const min = minDuration((p) => it.trace(sk, p, it.seg.start), easing('linear'));
+        if (min > it.seg.dur * 1.05) add(it, `pismo za szybkie dla ręki — potrzeba co najmniej ${min.toFixed(2)} s (jest ${it.seg.dur.toFixed(2)} s)`);
+      }
+    }
+    for (const r of hand.report) {
+      const it = r.seg.item;
+      if (r.status === 'skipped') add(it, 'ręka zajęta innym krokiem — element narysowałby się sam (rysowanie równoległe)');
+      else if (r.status === 'unreachable') add(it, 'ręka nie zdąży dojechać przed końcem kroku — element narysowałby się sam (dodaj gap)');
+      else if (r.status === 'late' && r.late > tolerance) add(it, `ręka spóźniona o ${r.late.toFixed(2)} s — początek narysowałby się sam (dodaj gap lub usuń at/with)`);
+    }
+    return issues.sort((a, b) => a.time - b.time);
   }
 
   draw(sk, t) {
@@ -289,13 +434,15 @@ export class Storyboard {
     let wipe = null;
     let visibleChapter = 0;
     for (const c of this.clears) {
-      if (t >= c.start + c.dur) visibleChapter = c.chapter + 1;
-      else if (t >= c.start) wipe = c;
+      const s = c.item.seg;
+      if (t >= s.start + s.dur) visibleChapter = c.chapter + 1;
+      else if (t >= s.start) wipe = { q: clamp((t - s.start) / s.dur) };
     }
 
     const main = [];
     const kept = [];
     for (const it of this.items) {
+      if (!it.visible) continue;
       if (it.keep) kept.push(it);
       else if (it.chapter === visibleChapter) main.push(it);
     }
@@ -307,8 +454,8 @@ export class Storyboard {
     };
     const settled = (it) => it.static && t >= it.seg.start + it.seg.dur;
 
-    // bufor: ukończone elementy kopiujemy z bitmapy (odświeżanej, gdy zmienia się
-    // klatka drgania, rozmiar albo kamera), na bieżąco rysujemy tylko resztę
+    // bufor: ukończone elementy kopiujemy z bitmapy (osobnej dla każdej wersji
+    // drgania kreski), na bieżąco rysujemy tylko resztę
     const camKey = `${cam.x.toFixed(2)},${cam.y.toFixed(2)},${cam.zoom.toFixed(4)}`;
     const camStill = camKey === this.lastCamKey;
     this.lastCamKey = camKey;
@@ -330,16 +477,20 @@ export class Storyboard {
     }
     if (!groups.length) groups.push({ z: 0, items: [] });
 
+    const W = ctx.canvas?.width ?? 0, H = ctx.canvas?.height ?? 0;
+    // osobna bitmapa na każdą wersję drgania (gdy płótno nie jest ogromne)
+    const slot = W * H <= 4.2e6 ? sk.boil : 0;
     groups.forEach((g, gi) => {
       let k = 0;
       while (k < g.items.length && settled(g.items[k])) k++;
       const withPaper = gi === 0 && this.paper;
       if (canCache && (k > 0 || withPaper)) {
-        const key = `${visibleChapter}|${k}|${sk.boil}|${camKey}|${ctx.canvas.width}x${ctx.canvas.height}|${base.a.toFixed(4)},${base.e.toFixed(1)},${base.f.toFixed(1)}`;
-        const c = (this.caches[gi] ??= { canvas: document.createElement('canvas'), key: null });
+        const key = `${visibleChapter}|${k}|${sk.boil}|${camKey}|${W}x${H}|${base.a.toFixed(4)},${base.e.toFixed(1)},${base.f.toFixed(1)}`;
+        const slots = (this.caches[gi] ??= []);
+        const c = (slots[slot] ??= { canvas: document.createElement('canvas'), key: null });
         if (c.key !== key) {
-          c.canvas.width = ctx.canvas.width;
-          c.canvas.height = ctx.canvas.height;
+          c.canvas.width = W;
+          c.canvas.height = H;
           const cc = c.canvas.getContext('2d');
           cc.setTransform(base);
           sk.ctx = cc;
@@ -371,30 +522,76 @@ export class Storyboard {
 
     ctx.save();
     applyCam(ctx);
-    if (wipe) this.#wipe(sk, cam, clamp((t - wipe.start) / wipe.dur), t);
+    if (wipe) this.#wipe(sk, cam, wipe.q);
     kept.forEach(drawItem);
 
-    // ołówek — dopiero gdy czcionki są gotowe (ślad pisma zależy od kształtu liter)
+    // ręka — dopiero gdy czcionki są gotowe (ślad pisma zależy od kształtu liter)
     if (this.usePencil && sk.fontsReady !== false && sk.writeTrace) {
       const hand = this.handTrack(sk);
       const pos = hand.at(t);
       if (pos) {
         const prev = hand.at(t - 1 / 30) ?? pos;
         const vx = (pos.x - prev.x) * 30;
-        sk.pencil(pos.x, pos.y, { size: 0.9 / cam.zoom ** 0.3, lift: pos.lift ?? 0, lean: -clamp(vx / 4000, -0.22, 0.22) });
+        const tool = pos.tool ?? { type: 'pencil' };
+        sk.tool(pos.x, pos.y, {
+          type: tool.type,
+          color: tool.color,
+          width: pos.width ?? this.#eraser(cam, 0).width,
+          size: tool.type === 'eraser' ? 1 : 0.9 / cam.zoom ** 0.3,
+          lift: pos.lift ?? 0,
+          lean: -clamp(vx / 4000, -0.22, 0.22),
+        });
       }
     }
     ctx.restore();
   }
 
-  /** Gumka: falisty pas koloru papieru przesuwający się przez kadr. */
-  #wipe(sk, cam, q, t) {
+  /**
+   * Geometria gąbki dla postępu p: ciągła trasa zygzakiem — pas w dół, przesunięcie
+   * w bok, pas w górę, … — ze stałą prędkością (łagodny start i koniec całości).
+   */
+  #eraser(cam, p) {
     const vw = this.w / cam.zoom, vh = this.h / cam.zoom;
-    const x0 = cam.x - vw / 2 - 40, y0 = cam.y - vh / 2 - 40;
-    const edge = x0 + (vw + 160) * ease.inOut(q);
-    const poly = [[x0, y0]];
-    for (let y = y0; y <= y0 + vh + 80; y += 20) poly.push([edge + noise1(y * 0.02 + t) * 30, y]);
-    poly.push([x0, y0 + vh + 80]);
-    sk.fill(poly, 'paper', 1);
+    const x0 = cam.x - vw / 2, y0 = cam.y - vh / 2;
+    const band = vw / ERASE_PASSES;
+    // gąbka zawsze w kadrze (filc sięga do krawędzi), zmazany pas obejmuje całą wysokość
+    const top = y0 + 22, bottom = y0 + vh - 22;
+    const V = bottom - top, S = band;
+    const L = ERASE_PASSES * V + (ERASE_PASSES - 1) * S;
+    const s = ease.sine(clamp(p)) * L;
+    const k = Math.min(ERASE_PASSES - 1, Math.floor(s / (V + S)));
+    const r = s - k * (V + S);
+    const down = k % 2 === 0;
+    const q = Math.min(1, r / V); // postęp pionowy w pasie k
+    const side = r > V ? (r - V) / S : 0; // przesunięcie w bok do pasa k+1
+    return {
+      x0, y0, vw, vh, band, k, q, top, bottom, down, length: L,
+      x: x0 + band * (k + 0.5 + side),
+      y: down ? lerp(top, bottom, q) : lerp(bottom, top, q),
+      width: band + 24,
+    };
+  }
+
+  /** Zmazany obszar = pasy, przez które przeszła gąbka (z lekko poszarpanymi brzegami). */
+  #wipe(sk, cam, q) {
+    const e = this.#eraser(cam, q);
+    const strip = (xa, xb, ya, yb, seed) => {
+      const poly = [];
+      for (let y = ya; y <= yb; y += 24) poly.push([xa + noise1(seed + y * 0.03) * 5, y]);
+      poly.push([xa, yb]);
+      for (let y = yb; y >= ya; y -= 24) poly.push([xb + noise1(seed + 9 + y * 0.03) * 5, y]);
+      poly.push([xb, ya]);
+      sk.fill(poly, 'paper', 1);
+    };
+    const y0 = e.y0 - 40, y1 = e.y0 + e.vh + 40;
+    for (let i = 0; i < e.k; i++) {
+      const cx = e.x0 + e.band * (i + 0.5);
+      strip(cx - e.band / 2 - 8, cx + e.band / 2 + 8, y0, y1, i * 7);
+    }
+    // bieżący pas: od krawędzi, z której gąbka ruszyła, do jej filcu
+    const cx = e.x0 + e.band * (e.k + 0.5);
+    const reach = e.q >= 1 ? (e.down ? y1 : y0) : e.y + (e.down ? 15 : -15);
+    if (e.down) strip(cx - e.band / 2 - 8, cx + e.band / 2 + 8, y0, reach, e.k * 7);
+    else strip(cx - e.band / 2 - 8, cx + e.band / 2 + 8, reach, y1, e.k * 7);
   }
 }

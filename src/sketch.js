@@ -27,6 +27,11 @@ export const PALETTE = {
 
 /** Ile razy na sekundę kreska "drga" (line boil) — jak w ręcznej animacji poklatkowej. */
 export const BOIL_FPS = 8;
+/**
+ * Drganie to cykl kilku "rysunków" (jak u animatorów: 3–4 wersje kreski w pętli).
+ * Dzięki temu ukończone elementy da się zbuforować raz na każdą wersję.
+ */
+export const BOIL_CYCLE = 4;
 
 let grainCache = null;
 let paperCache = null;
@@ -183,7 +188,9 @@ export class Sketch {
    * Zamalowanie kredką: zygzak kreskowania przycięty do konturu + ziarno papieru.
    * @param {number[][]} poly zamknięty kontur
    * @param {number} p postęp zamalowywania
-   * @param {object} o color, alpha, spacing (odstęp kresek), w (grubość), angle, seed, grain
+   * @param {object} o color, alpha, spacing (odstęp kresek), w (grubość), angle, seed, grain,
+   *                   solid (kryjące zamalowanie szerokim pisakiem, bez ziarna),
+   *                   holes (kontury, które kredka omija)
    */
   crayon(poly, p = 1, o = {}) {
     if (p <= 0 || !poly || poly.length < 3) return null;
@@ -207,7 +214,12 @@ export class Sketch {
     lc.beginPath();
     poly.forEach(([x, y], i) => (i ? lc.lineTo(x, y) : lc.moveTo(x, y)));
     lc.closePath();
-    lc.clip();
+    // otwory (np. oczy postaci) — kredka je omija, jak rysownik
+    for (const hole of o.holes ?? []) {
+      hole.forEach(([x, y], i) => (i ? lc.lineTo(x, y) : lc.moveTo(x, y)));
+      lc.closePath();
+    }
+    lc.clip(o.holes ? 'evenodd' : 'nonzero');
     lc.strokeStyle = this.col(o.color, 'teal');
     lc.lineCap = 'round';
     lc.lineJoin = 'round';
@@ -219,13 +231,15 @@ export class Sketch {
       i ? lc.lineTo(x + wv, y - wv) : lc.moveTo(x, y);
     }
     lc.stroke();
-    lc.globalAlpha = 0.55;
-    lc.lineWidth = width * 0.5;
-    lc.stroke();
+    if (!o.solid) {
+      lc.globalAlpha = 0.55;
+      lc.lineWidth = width * 0.5;
+      lc.stroke();
+    }
     lc.restore();
 
     // ziarno: wydrapujemy drobne białe rysy jak przy kredce na fakturze papieru
-    if ((o.grain ?? 1) > 0) {
+    if (!o.solid && (o.grain ?? 1) > 0) {
       lc.save();
       lc.setTransform(1, 0, 0, 1, 0, 0);
       lc.globalCompositeOperation = 'destination-out';
@@ -237,7 +251,7 @@ export class Sketch {
 
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.globalAlpha *= o.alpha ?? 0.85;
+    ctx.globalAlpha *= o.alpha ?? (o.solid ? 1 : 0.85);
     ctx.drawImage(this.layer, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
     ctx.restore();
     return p >= 1 ? null : crayonTip(z, p, seed);
@@ -517,32 +531,56 @@ export class Sketch {
   // -------------------------------------------------------------- narzędzie
 
   /**
-   * Rysujący ołówek — grafit dokładnie w (x,y). `angle` to kierunek od grafitu
-   * do gumki (domyślnie w górę i w prawo, jak trzymany w prawej ręce).
+   * Narzędzie w ręce, z końcówką dokładnie w (x,y):
+   *   type 'pencil' — ołówek; `color` to kolor rysika: dla czerni grafit w żółtym
+   *                   ołówku, dla koloru kredka w tym kolorze,
+   *   type 'marker' — zakreślacz ze ściętą końcówką,
+   *   type 'eraser' — gąbka do tablicy (środek w x,y).
+   * `angle` — kierunek od końcówki do tyłu narzędzia, `lean` — przechył od ruchu,
+   * `lift` 0..1 — uniesienie nad kartką (cień odsuwa się i rozmywa).
    */
-  pencil(x, y, o = {}) {
+  tool(x, y, o = {}) {
     const { ctx } = this;
+    const type = o.type ?? 'pencil';
     const lift = clamp(o.lift ?? 0);
-    const size = (o.size ?? 1) * (1 + 0.07 * lift); // uniesiony ołówek jest bliżej "kamery"
+    const size = (o.size ?? 1) * (1 + 0.07 * lift); // uniesione narzędzie jest bliżej "kamery"
     const t = this.time;
-    // ręka lekko "pracuje"; `lean` przechyla ołówek w stronę ruchu
     const ang = (o.angle ?? -1.05) + (o.lean ?? 0) + (o.still ? 0 : noise1(t * 2.1) * 0.06);
-    const len = 120 * size;
-    const wd = 13 * size;
     ctx.save();
     ctx.translate(x, y);
     if (o.alpha != null) ctx.globalAlpha *= o.alpha;
-    // cień na kartce — im wyżej ołówek, tym dalej i bardziej rozmyty
-    ctx.save();
-    ctx.rotate(ang);
-    ctx.globalAlpha *= 0.12 * (1 - 0.4 * lift);
-    ctx.fillStyle = '#000';
-    ctx.beginPath();
-    ctx.ellipse(len * 0.55 + lift * 10, wd * (1.4 + lift * 1.6), len * 0.45, wd * (0.45 + 0.2 * lift), 0, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.lineJoin = 'round';
+    if (type === 'eraser') this.#eraserSprite(size, lift, o);
+    else {
+      const len = (type === 'marker' ? 110 : 120) * size;
+      const wd = (type === 'marker' ? 20 : 13) * size;
+      // cień na kartce — im wyżej narzędzie, tym dalej i bardziej rozmyty
+      ctx.save();
+      ctx.rotate(ang);
+      ctx.globalAlpha *= 0.12 * (1 - 0.4 * lift);
+      ctx.fillStyle = '#000';
+      ctx.beginPath();
+      ctx.ellipse(len * 0.55 + lift * 10, wd * (1.4 + lift * 1.6), len * 0.45, wd * (0.45 + 0.2 * lift), 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      ctx.translate(0, -lift * 12);
+      ctx.rotate(ang);
+      if (type === 'marker') this.#markerSprite(len, wd, size, o);
+      else this.#pencilSprite(len, wd, size, o);
+    }
     ctx.restore();
-    ctx.translate(0, -lift * 12);
-    ctx.rotate(ang);
+  }
+
+  /** Ołówek (zgodność wstecz) — to samo co tool(x, y, { type: 'pencil', ... }). */
+  pencil(x, y, o = {}) {
+    this.tool(x, y, { ...o, type: 'pencil' });
+  }
+
+  #pencilSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const lead = this.col(o.color, 'ink');
+    const graphite = o.color == null || ['ink', 'inkSoft'].includes(o.color) || lead === this.palette.ink;
+    const body = graphite ? this.col('ochre') : lead;
     const cone = 24 * size;
     // drewno
     ctx.fillStyle = '#f0d3a8';
@@ -552,34 +590,38 @@ export class Sketch {
     ctx.lineTo(cone, wd / 2);
     ctx.closePath();
     ctx.fill();
-    // grafit
-    ctx.fillStyle = this.col('ink');
+    // rysik w kolorze kreski
+    ctx.fillStyle = graphite ? this.col('ink') : lead;
     ctx.beginPath();
     ctx.moveTo(0, 0);
-    ctx.lineTo(cone * 0.35, -wd * 0.18);
-    ctx.lineTo(cone * 0.35, wd * 0.18);
+    ctx.lineTo(cone * 0.38, -wd * 0.2);
+    ctx.lineTo(cone * 0.38, wd * 0.2);
     ctx.closePath();
     ctx.fill();
     // korpus
-    ctx.fillStyle = this.col(o.color, 'ochre');
-    ctx.fillRect(cone, -wd / 2, len - cone - 22 * size, wd);
+    const bodyLen = len - cone - (graphite ? 22 : 4) * size;
+    ctx.fillStyle = body;
+    ctx.fillRect(cone, -wd / 2, bodyLen, wd);
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.fillRect(cone, -wd / 2 + 2 * size, len - cone - 22 * size, wd * 0.22);
+    ctx.fillRect(cone, -wd / 2 + 2 * size, bodyLen, wd * 0.22);
     ctx.fillStyle = 'rgba(0,0,0,0.12)';
-    ctx.fillRect(cone, wd * 0.18, len - cone - 22 * size, wd * 0.32);
-    // skuwka
-    ctx.fillStyle = '#b9b4ab';
-    ctx.fillRect(len - 22 * size, -wd / 2 - 0.5, 9 * size, wd + 1);
-    // gumka
-    ctx.fillStyle = this.col('coral');
-    ctx.beginPath();
-    ctx.roundRect?.(len - 13 * size, -wd / 2, 13 * size, wd, [0, 4 * size, 4 * size, 0]);
-    if (!ctx.roundRect) ctx.rect(len - 13 * size, -wd / 2, 13 * size, wd);
-    ctx.fill();
-    // kontur
+    ctx.fillRect(cone, wd * 0.18, bodyLen, wd * 0.32);
+    if (graphite) {
+      // skuwka i gumka
+      ctx.fillStyle = '#b9b4ab';
+      ctx.fillRect(len - 22 * size, -wd / 2 - 0.5, 9 * size, wd + 1);
+      ctx.fillStyle = this.col('coral');
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(len - 13 * size, -wd / 2, 13 * size, wd, [0, 4 * size, 4 * size, 0]);
+      else ctx.rect(len - 13 * size, -wd / 2, 13 * size, wd);
+      ctx.fill();
+    } else {
+      // kredka: denko w kolorze
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      ctx.fillRect(len - 4 * size, -wd / 2, 4 * size, wd);
+    }
     ctx.strokeStyle = this.col('ink');
     ctx.lineWidth = 1.6 * size;
-    ctx.lineJoin = 'round';
     ctx.beginPath();
     ctx.moveTo(0, 0);
     ctx.lineTo(cone, -wd / 2);
@@ -590,7 +632,77 @@ export class Sketch {
     ctx.moveTo(cone, -wd / 2);
     ctx.lineTo(cone, wd / 2);
     ctx.stroke();
+  }
+
+  #markerSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const ink = this.col(o.color, 'ochre');
+    const tip = 14 * size;
+    // ścięta końcówka w kolorze tuszu
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.moveTo(-1 * size, -wd * 0.05);
+    ctx.lineTo(tip, -wd * 0.32);
+    ctx.lineTo(tip, wd * 0.32);
+    ctx.lineTo(2 * size, wd * 0.22);
+    ctx.closePath();
+    ctx.fill();
+    // obsadka
+    ctx.fillStyle = '#e9e4da';
+    ctx.fillRect(tip, -wd * 0.42, 8 * size, wd * 0.84);
+    // korpus z paskiem koloru
+    ctx.fillStyle = '#fbfaf6';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(tip + 8 * size, -wd / 2, len - tip - 8 * size, wd, [2 * size, 7 * size, 7 * size, 2 * size]);
+    else ctx.rect(tip + 8 * size, -wd / 2, len - tip - 8 * size, wd);
+    ctx.fill();
+    ctx.fillStyle = ink;
+    ctx.globalAlpha *= 0.85;
+    ctx.fillRect(len * 0.45, -wd / 2, len * 0.32, wd);
+    ctx.globalAlpha /= 0.85;
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.fillRect(tip + 8 * size, wd * 0.15, len - tip - 10 * size, wd * 0.3);
+    ctx.strokeStyle = this.col('ink');
+    ctx.lineWidth = 1.6 * size;
+    ctx.beginPath();
+    ctx.moveTo(-1 * size, -wd * 0.05);
+    ctx.lineTo(tip, -wd * 0.32);
+    ctx.lineTo(tip, -wd / 2);
+    ctx.lineTo(len, -wd / 2);
+    ctx.lineTo(len, wd / 2);
+    ctx.lineTo(tip, wd / 2);
+    ctx.lineTo(tip, wd * 0.32);
+    ctx.lineTo(2 * size, wd * 0.22);
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */
+  #eraserSprite(size, lift, o) {
+    const { ctx } = this;
+    const w = (o.width ?? 150) * size, h = 30 * size, back = 26 * size;
+    const tilt = (o.lean ?? 0) * 0.5 + noise1(this.time * 1.3) * 0.03;
+    ctx.save();
+    ctx.globalAlpha *= 0.13 * (1 - 0.4 * lift);
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(10 + lift * 8, 12 + lift * 14, w * 0.55, h * 0.8, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
+    ctx.translate(0, -lift * 10);
+    ctx.rotate(tilt);
+    ctx.fillStyle = '#d9d4ca'; // filc
+    ctx.fillRect(-w / 2, -h / 2, w, h);
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    for (let i = 0; i < 6; i++) ctx.fillRect(-w / 2 + (i * w) / 6 + 3 * size, -h / 2, 2 * size, h);
+    ctx.fillStyle = '#b07d4f'; // drewno
+    ctx.fillRect(-w / 2 + 6 * size, -h / 2 - back, w - 12 * size, back);
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fillRect(-w / 2 + 6 * size, -h / 2 - back, w - 12 * size, back * 0.3);
+    ctx.strokeStyle = this.col('ink');
+    ctx.lineWidth = 1.6 * size;
+    ctx.strokeRect(-w / 2, -h / 2, w, h);
+    ctx.strokeRect(-w / 2 + 6 * size, -h / 2 - back, w - 12 * size, back);
   }
 
   /** Rysuje fn w lokalnym układzie (przesunięcie, skala, obrót). */
@@ -645,13 +757,15 @@ const zigCache = new WeakMap();
 /** Zygzak kreskowania kredki dla konturu (cache po konturze i parametrach). */
 function zigzag(poly, o) {
   const gap = o.spacing ?? 10;
-  const angle = o.angle ?? -0.6;
   const seed = o.seed ?? 5;
   const width = o.w ?? 14;
+  const b = bounds(poly);
+  // kierunek kreskowania: długie, wąskie kształty kolorujemy krótkimi ruchami
+  // w poprzek, przesuwając rękę wzdłuż (jak człowiek), resztę ukośnie
+  const angle = o.angle ?? (b.w > 2.5 * b.h ? 1.22 : b.h > 2.5 * b.w ? -0.35 : -0.6);
   const key = `${gap}|${angle}|${seed}|${width}`;
   let m = zigCache.get(poly);
   if (m?.has(key)) return m.get(key);
-  const b = bounds(poly);
   const R = Math.hypot(b.w, b.h) / 2 + width;
   const ca = Math.cos(angle), sa = Math.sin(angle);
   const rand = rng(seed);
@@ -678,10 +792,23 @@ function zigzag(poly, o) {
     cy[i + 1] = cy[i] + pt[1] * ins;
     cnt[i + 1] = cnt[i] + ins;
   });
-  const env = path.map((_, i) => {
+  const raw = path.map((_, i) => {
     const a = Math.max(0, i - W), e = Math.min(n, i + W + 1);
     const c = cnt[e] - cnt[a];
     return c > 0 ? [(cx[e] - cx[a]) / c, (cy[e] - cy[a]) / c] : null;
+  });
+  // dziury (fragmenty zygzaka całkiem poza konturem) wypełniamy ciągle: ręka czeka
+  // w ostatnim miejscu, zamiast przeskakiwać; na początku — pierwszy znany punkt
+  const first = raw.find(Boolean) ?? [b.cx, b.cy];
+  let last = first;
+  const filled = raw.map((e) => (e ? (last = e) : last));
+  // drugie wygładzenie (okno ±W/2) — bez szarpnięć przy zmianie liczby punktów w oknie
+  const h = Math.max(1, W >> 1);
+  const sx = new Float64Array(n + 1), sy = new Float64Array(n + 1);
+  filled.forEach(([x, y], i) => { sx[i + 1] = sx[i] + x; sy[i + 1] = sy[i] + y; });
+  const env = filled.map((_, i) => {
+    const a = Math.max(0, i - h), e = Math.min(n, i + h + 1);
+    return [(sx[e] - sx[a]) / (e - a), (sy[e] - sy[a]) / (e - a)];
   });
   const z = { b, path, wave, env, W, angle };
   if (!m) zigCache.set(poly, (m = new Map()));
@@ -696,13 +823,13 @@ export function crayonTrace(poly, p, o = {}) {
 
 function crayonTip(z, p, seed) {
   const n = z.path.length;
-  let i = Math.min(n - 1, Math.max(0, Math.floor(n * clamp(p)) - 1));
-  // najbliższy punkt pasa z treścią (na brzegach zygzak bywa poza konturem)
-  let e = z.env[i];
-  for (let k = 1; !e && k < n; k++) e = z.env[i - k] ?? z.env[i + k];
-  if (!e) return { x: z.b.cx, y: z.b.cy, angle: 0, lift: 0 };
+  // ułamkowy indeks — płynna interpolacja między punktami pasa
+  const f = Math.min(n - 1, Math.max(0, n * clamp(p) - 1));
+  const i = Math.floor(f), k = f - i;
+  const a = z.env[i], c = z.env[Math.min(n - 1, i + 1)];
+  const e = [a[0] + (c[0] - a[0]) * k, a[1] + (c[1] - a[1]) * k];
   // drobne drganie ręki wzdłuż kierunku kreskowania (jeden ruch tam-z-powrotem na dwa rzędy)
-  const osc = 9 * Math.sin((i / z.W) * Math.PI) + noise1(seed + i * 0.05) * 1.5;
+  const osc = 9 * Math.sin((f / z.W) * Math.PI) + noise1(seed + f * 0.05) * 1.5;
   return { x: e[0] + Math.cos(z.angle) * osc, y: e[1] + Math.sin(z.angle) * osc, angle: z.angle, lift: 0 };
 }
 

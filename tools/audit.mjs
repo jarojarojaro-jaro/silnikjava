@@ -24,8 +24,8 @@ const res = await tab.evaluate(({ fps, jumpPx }) => {
   const p = window.__player;
   const sk = p.sk;
   let pos = null;
-  const orig = sk.pencil.bind(sk);
-  sk.pencil = (x, y, o) => {
+  const orig = sk.tool.bind(sk);
+  sk.tool = (x, y, o) => {
     const m = sk.ctx.getTransform();
     pos = { x: m.a * x + m.c * y + m.e, y: m.b * x + m.d * y + m.f };
     return orig(x, y, o);
@@ -43,18 +43,18 @@ const res = await tab.evaluate(({ fps, jumpPx }) => {
     times.push(performance.now() - t0);
     track.push(pos && { t, ...pos });
   }
-  sk.pencil = orig;
+  sk.tool = orig;
   // teleport = izolowany skok: duże przesunięcie, a sąsiednie klatki ruszają się dużo mniej
   // (szybki, ale ciągły ruch ręki ma podobne przesunięcia w kolejnych klatkach)
   const step = track.map((p, i) => (i && p && track[i - 1] ? Math.hypot(p.x - track[i - 1].x, p.y - track[i - 1].y) : 0));
   const jumps = [];
   let toggles = 0;
   let visible = 0;
-  let maxSpeed = 0;
+  let maxSpeed = 0, maxAt = 0;
   for (let i = 0; i < track.length; i++) {
     if (track[i]) visible++;
     if (i && !!track[i] !== !!track[i - 1]) toggles++;
-    maxSpeed = Math.max(maxSpeed, step[i] * fps);
+    if (step[i] * fps > maxSpeed) { maxSpeed = step[i] * fps; maxAt = track[i]?.t ?? 0; }
     const around = Math.max(step[i - 1] ?? 0, step[i + 1] ?? 0);
     if (step[i] > jumpPx && step[i] > 2.5 * around) jumps.push({ t: +track[i].t.toFixed(3), px: Math.round(step[i]) });
   }
@@ -63,7 +63,7 @@ const res = await tab.evaluate(({ fps, jumpPx }) => {
   return {
     frames: times.length,
     frameMs: { avg: +(times.reduce((a, b) => a + b, 0) / times.length).toFixed(2), p50: +q(0.5).toFixed(2), p95: +q(0.95).toFixed(2), max: +sorted[sorted.length - 1].toFixed(2) },
-    pencil: { visiblePct: +((100 * visible) / track.length).toFixed(1), toggles, maxSpeed: Math.round(maxSpeed), jumps: jumps.length, worst: jumps.sort((a, b) => b.px - a.px).slice(0, 8) },
+    pencil: { visiblePct: +((100 * visible) / track.length).toFixed(1), toggles, maxSpeed: Math.round(maxSpeed), maxAt: +maxAt.toFixed(3), jumps: jumps.length, worst: jumps.sort((a, b) => b.px - a.px).slice(0, 8) },
   };
 }, { fps, jumpPx });
 
@@ -72,6 +72,6 @@ if (opt('json', false)) console.log(JSON.stringify(res));
 else {
   console.log(`${page}  (${dims.w}x${dims.h}, ${res.frames} klatek @ ${fps} fps)`);
   console.log(`  render klatki [ms]: śr ${res.frameMs.avg}  p50 ${res.frameMs.p50}  p95 ${res.frameMs.p95}  max ${res.frameMs.max}`);
-  console.log(`  ołówek: widoczny ${res.pencil.visiblePct}% klatek, pojawia/znika ${res.pencil.toggles}×, teleporty (> ${jumpPx}px): ${res.pencil.jumps}, maks. prędkość ${res.pencil.maxSpeed} px/s`);
+  console.log(`  ołówek: widoczny ${res.pencil.visiblePct}% klatek, pojawia/znika ${res.pencil.toggles}×, teleporty (> ${jumpPx}px): ${res.pencil.jumps}, maks. prędkość ${res.pencil.maxSpeed} px/s (w ${res.pencil.maxAt} s)`);
   if (res.pencil.worst.length) console.log(`  największe skoki: ${res.pencil.worst.map((j) => `${j.t}s:${j.px}px`).join('  ')}`);
 }
