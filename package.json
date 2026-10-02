@@ -1,0 +1,23 @@
+{
+  "name": "silnikjava",
+  "version": "0.1.0",
+  "description": "Silnik JS do rysowanych animacji i filmów objaśniających (explainer videos) — kreska ołówkiem, kredka, pismo odręczne.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "start": "npx --yes http-server -c-1 -p 8080 .",
+    "test": "node --test tests/*.test.mjs",
+    "render:hero": "node tools/render.mjs examples/hero.html --out out/hero --mp4",
+    "render:explainer": "node tools/render.mjs examples/explainer.html --out out/explainer --mp4"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  },
+  "license": "MIT"
+}
