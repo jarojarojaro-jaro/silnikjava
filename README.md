@@ -74,7 +74,8 @@ src/
                  scrollDrive (czas sceny = pozycja scrolla)
   record.js      recordWebM, snapshot, download
 tools/render.mjs render klatka po klatce (Playwright) -> PNG / MP4 (ffmpeg)
-tools/audit.mjs  pomiar: czas renderu klatki, teleporty i znikanie ołówka
+tools/audit.mjs  pomiar: czas renderu klatki, teleporty, prędkość i znikanie ręki
+tools/lint.mjs   kontrola fizyki scen w przeglądarce (nic nie pojawia się bez ręki)
 ```
 
 **Zasada:** scena jest czystą funkcją czasu. `draw(sk, t)` rysuje wszystko od
@@ -109,11 +110,11 @@ new Player(canvas, scene, { trigger: 'view' });
 | `pen(pts, p, o)` | kreska z naciskiem, zwraca końcówkę `{x,y,angle,done}` | `w`, `color`, `jitter`, `seed`, `taper`, `dash:[on,off]`, `sketchy`, `still` |
 | `strokes(list, p, o)` | kilka kresek jak ręka: profil prędkości, podnoszenie ołówka; zwraca końcówkę z `lift` | jak `pen`, `plan` |
 | `arrow(pts, p, o)` | trzon + dwa ramiona grota (osobne ruchy ręki) | `head` |
-| `crayon(poly, p, o)` | zamalowanie zygzakiem z ziarnem | `color`, `alpha`, `spacing`, `w`, `angle`, `grain` |
+| `crayon(poly, p, o)` | zamalowanie zygzakiem z ziarnem (długie kształty — krótkimi ruchami w poprzek) | `color`, `alpha`, `spacing`, `w`, `angle`, `grain`, `holes`, `solid` |
 | `liquid(poly, level, o)` | napełnianie od dołu z falą | `color`, `alpha`, `wave`, `speed` |
 | `highlight(pts, width, p, o)` | zakreślacz (`multiply`) | `color`, `alpha` |
 | `write(text, x, y, p, o)` | pismo prawdziwymi kreskami liter (kropki i ogonki na końcu słowa), zwraca pozycję pisaka | `size`, `font` (`hand`/`title`/`mono`/CSS), `align`, `color`, `\n`, `fit`, `mode: 'wipe'` |
-| `pencil(x, y, o)` | rysujący ołówek z grafitem w (x,y) | `angle`, `lean`, `lift` (0..1, uniesienie), `size`, `color` |
+| `tool(x, y, o)` | narzędzie w ręce z końcówką w (x,y): `type` `pencil` (kolor rysika = `color`), `marker`, `eraser` | `type`, `color`, `angle`, `lean`, `lift` (0..1), `size`, `width` |
 | `fill`, `occlude`, `dot`, `paper`, `group` | wypełnienia, zasłanianie tła, kropki, papier, układ lokalny | |
 
 Kolory: nazwy z palety (`ink`, `pen`, `teal`, `sky`, `ochre`, `coral`, `plum`,
@@ -126,10 +127,41 @@ Kolory: nazwy z palety (`ink`, `pen`, `teal`, `sky`, `ochre`, `coral`, `plum`,
 `dot`, `pop(x, y, fn)` (wyskakuje z przestrzeleniem), `custom(fn(sk, p, t), { trace })`,
 `wait(s)`, `mark(name)`, `camera({x,y,zoom}, {dur})`, `clear({dur})`.
 
-Ręka prowadzi kroki `pen`, `strokes`, `arrow`, `crayon`, `write` i `highlight`.
-Kroki `custom` prowadzi, jeśli podasz `trace(p) => {x, y}` (przykład:
-`mascotTrace` w `examples/scenes/mascot.js`). Elementy tła, które mają się
-dorysować równolegle bez ręki, oznacz `pencil: false` i ustaw `with`.
+**Zasada fizyki sceny: nic nie pojawia się samo.** Każdy ślad robi jedna ręka
+z narzędziem:
+* **ołówek w kolorze kreski**: grafit dla czerni, kredka dla koloru
+  (`pen`, `strokes`, `arrow`, `write`, `crayon`, `dot`, `liquid`);
+* **zakreślacz**: `highlight` i kryjące `fill`;
+* **gąbka**: `clear` ściera pasami, a zmazane jest dokładnie to, przez co
+  przeszła.
+
+Ręka zmienia narzędzie w powietrzu między krokami. Krok nie może wymagać
+szybszej ręki niż fizyczny limit (`HAND.maxSpeed`, ~3200 px/s po kartce,
+4500 px/s w powietrzu); w razie potrzeby czas kroku się wydłuża. Kroki `custom`
+prowadzi ręka, jeśli podasz `trace(p) => {x, y, tool?}`. Przykład: postać
+w `examples/scenes/mascot.js` (`Sequence`: kontur → oczy → kredka z ominięciem
+oczu → źrenice → detale).
+
+Świadome wyjątki trzeba nazwać:
+* `ambient: true`: animacja już narysowanego elementu (para z kubka, oddech);
+* `magic: true`: efekt bez ręki (`pop`);
+* `fast: true`: wyłącza limit prędkości.
+
+`sb.lint()` zwraca listę problemów: element bez ręki, ręka spóźniona albo
+niezdążająca, rysowanie równoległe, a w przeglądarce także za szybkie pismo.
+Przy pierwszym rysowaniu problemy trafiają do konsoli. Pełna kontrola
+z prawdziwymi czcionkami:
+
+```bash
+node tools/lint.mjs                                   # wszystkie dema
+node tools/lint.mjs examples/scenes/moja.js:buildMoja # własna scena (kod wyjścia 1 przy problemach)
+```
+
+Zasady rysownika, których silnik nie wymusi, ale warto ich pilnować:
+* **pierwszy plan rysuj najpierw:** linie tła chowają się wtedy za nim i nie
+  trzeba niczego wymazywać;
+* **nie rysuj zakrytych linii:** np. stos kartek to kartka z przodu i widoczne
+  brzegi kartek pod spodem.
 
 Opcje storyboardu: `handGaps` (przerwa na przelot ołówka przed kolejnym
 elementem, domyślnie włączona), `speed` (tempo ręki w px/s), `cache` (bufor
@@ -170,6 +202,12 @@ node tools/audit.mjs examples/explainer.html   # czas klatki, widoczność ołó
 ```
 
 Wyniki przed i po przebudowie ręki są w [docs/PLAN.md](docs/PLAN.md).
+
+## Od skryptu do filmu
+
+Jak wygląda zrobienie filmu z Twojego skryptu: [docs/PRODUKCJA.md](docs/PRODUKCJA.md)
+(research: [docs/PRODUKCJA-research.md](docs/PRODUKCJA-research.md)).
+Produkcja seryjna mniejszymi modelami: [docs/SKALOWANIE.md](docs/SKALOWANIE.md).
 
 ## Eksport wideo
 

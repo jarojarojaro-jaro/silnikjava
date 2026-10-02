@@ -99,6 +99,38 @@ Zmiany w zachowaniu, o których trzeba wiedzieć:
 * Opcja kredki `gap` ma teraz nazwę `spacing`. Kolidowała z `gap` na osi czasu,
   co w pierwszej wersji dawało 9-sekundowe przerwy w filmie.
 
+## Etap 2b — fizyka sceny (zrobione)
+
+Zasada: **nic nie pojawia się samo**. Każdy ślad robi jedna ręka z narzędziem:
+ołówkiem w kolorze kreski, zakreślaczem albo gąbką. Narzędzie zmienia się
+w powietrzu.
+
+- [x] Wypełnienie, kropka, ciecz i zakreślacz prowadzone ręką; `pop` jest
+  oznaczony jako magiczny.
+- [x] Ścieranie gąbką, ciągłą trasą pasami (zmazane to, przez co przeszła).
+- [x] Postać rysowana sekwencją (`Sequence`): kontur → oczy → kredka
+  z ominięciem oczu → źrenice → detale. Ślad ręki i rysunek mają jedno źródło.
+- [x] Pierwszy plan rysowany przed tłem; brak zakrytych linii (stos kartek).
+- [x] Fizyczny limit prędkości ręki: ~3200 px/s po kartce, 4500 px/s
+  w powietrzu. Kroki wymagające szybszej ręki dostają automatycznie dłuższy
+  czas.
+- [x] `lint()` i `tools/lint.mjs` (w przeglądarce): element bez ręki, ręka
+  spóźniona albo niezdążająca, rysowanie równoległe, za szybkie pismo.
+  Wszystkie dema: 0 problemów.
+- [x] Wydajność: cykliczne drganie (4 wersje kreski, jak u animatorów)
+  i bufor przyrostowy ukończonych elementów.
+
+| scena | render klatki śr / p50 / p95 | ołówek widoczny | pojawia/znika | teleporty | maks. prędkość ręki |
+| --- | --- | --- | --- | --- | --- |
+| explainer | 3,0 / 2,3 / 12,9 ms | 100% | 0× | 1 (47 px) | 4459 px/s |
+| hero | 7,1 / 5,0 / 20,5 ms | 100% | 0× | 3 (≤ 61 px) | 4711 px/s* |
+
+\* hero renderowany w skali 1280/1240, więc limit 4500 px/s daje tu ~4650 px/s.
+
+Koszt fizyki: filmy są dłuższe (explainer ~60 s, hero ~44 s), bo ręka nie
+może rysować szybciej niż człowiek. Krótszy film to mniej elementów albo
+mniej detali postaci, a nie szybsza ręka.
+
 ## Etap 3 — rozbudowa (kolejne iteracje)
 
 - Wysokopoziomowy format sceny (węzły z id, strzałki między id z

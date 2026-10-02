@@ -381,7 +381,8 @@ export class HandTrack {
       }
       if (s.type === 'rest') return { ...this.#rest(s, t), tool: s.tool };
       if (s.type === 'travel') {
-        const q = ease.inOut(clamp((t - s.t0) / Math.max(1e-6, s.t1 - s.t0)));
+        // profil sinusoidalny: szczyt prędkości π/2 · średniej — zgodnie z travelTime()
+        const q = ease.sine(clamp((t - s.t0) / Math.max(1e-6, s.t1 - s.t0)));
         const b = s.b();
         if (!b) return null;
         const a = s.a;
