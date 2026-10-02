@@ -11,7 +11,7 @@
 //     draw(sk, t, state),    // rysuje klatkę dla czasu t (bez stanu!)
 //   }
 
-import { Sketch, BOIL_FPS, loadFonts } from './sketch.js';
+import { Sketch, BOIL_FPS, BOIL_CYCLE, loadFonts } from './sketch.js';
 
 const ticks = new Set();
 let rafId = 0;
@@ -136,14 +136,15 @@ export class Player {
   renderAt(t) {
     const { ctx, sk, dpr } = this;
     sk.time = t;
-    sk.boil = this.scene.boil === false ? 0 : Math.floor(Math.max(0, t) * BOIL_FPS);
+    const boilIdx = this.scene.boil === false ? 0 : Math.floor(Math.max(0, t) * BOIL_FPS);
+    sk.boil = boilIdx % BOIL_CYCLE;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     ctx.setTransform(dpr * this.scale, 0, 0, dpr * this.scale, dpr * this.ox, dpr * this.oy);
     this.scene.draw(sk, Math.max(0, t), this.state);
-    this.lastBoil = sk.boil;
+    this.lastBoil = boilIdx;
   }
 
   render() {

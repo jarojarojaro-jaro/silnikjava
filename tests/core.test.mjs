@@ -2,8 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   clamp, prog, noise1, rng, ease, catmull, resample, pathLength, pointAt, line, rect, ellipse,
-  svgPath, bounds, Timeline, Storyboard, StrokePlan, minJerk, travelTime, thin, traceSkeleton,
+  svgPath, bounds, Timeline, Storyboard, StrokePlan, Sequence, minJerk, travelTime, thin, traceSkeleton,
 } from '../src/index.js';
+import { buildExplainer } from '../examples/scenes/explainer.js';
+import { buildHero } from '../examples/scenes/hero.js';
+import { buildScrollDiagram } from '../examples/scenes/diagram.js';
 
 const close = (a, b, eps = 1e-6) => assert.ok(Math.abs(a - b) <= eps, `${a} ≈ ${b}`);
 
@@ -107,7 +110,7 @@ function mockSketch() {
   return {
     ctx, calls, boil: 0,
     paper: rec('paper'), pen: rec('pen'), crayon: rec('crayon'), write: rec('write'), fill: rec('fill'),
-    pencil: rec('pencil'), arrow: rec('arrow'), strokes: rec('strokes'),
+    pencil: rec('pencil'), tool: rec('tool'), arrow: rec('arrow'), strokes: rec('strokes'),
     writeTrace: (text, x, y, p) => ({ x: x + 100 * p, y, angle: 0, lift: 0 }),
   };
 }
@@ -132,7 +135,7 @@ test('Storyboard: naturalne czasy i przerwa na przelot ołówka', () => {
   const [a, b] = [...sb.tl.segments.values()];
   assert.ok(a.dur > 0.5 && a.dur < 1.2, `czas kreski 600 px: ${a.dur}`);
   const gap = b.start - (a.start + a.dur);
-  close(gap, travelTime(Math.hypot(600, 300)), 1e-9);
+  close(gap, travelTime(Math.hypot(600, 300)) + 0.06, 1e-9); // przelot + chwila na wycelowanie
   assert.ok(b.dur < a.dur, 'krótka kreska krócej');
 });
 
@@ -219,4 +222,74 @@ test('szkielet: gruba kreska -> linia 1 px, kształt L -> łamana z końcami', (
   assert.ok(long.length >= 1 && long.length <= 2, `kresek: ${long.length}`);
   const total = long.reduce((a, s) => a + s.pts.length, 0);
   assert.ok(total > 35, 'kreski pokrywają oba ramiona');
+});
+
+test('fizyka sceny: w demach nic nie pojawia się bez ręki (lint = 0)', () => {
+  for (const sb of [buildExplainer(), buildHero(), buildScrollDiagram()]) {
+    const issues = sb.lint();
+    assert.deepEqual(issues.map((i) => `${i.name}: ${i.problem}`), []);
+  }
+});
+
+test('lint wykrywa: magiczny pop, wyłączoną rękę, rysowanie równoległe, spóźnioną rękę', () => {
+  const sb = new Storyboard({ w: 800, h: 600, warn: false });
+  sb.pen([[0, 0], [300, 0]], { name: 'a' });
+  sb.pop(100, 100, () => {}, { name: 'pop' });
+  sb.pen([[0, 50], [300, 50]], { name: 'bez', pencil: false });
+  sb.pen([[0, 100], [300, 100]], { name: 'b' });
+  sb.pen([[0, 200], [300, 200]], { name: 'rownolegle', with: 'b' });
+  sb.pop(100, 100, () => {}, { name: 'swiadomy', magic: true });
+  const sb2 = new Storyboard({ w: 800, h: 600, warn: false });
+  sb2.pen([[0, 0], [300, 0]]);
+  sb2.pen([[700, 500], [790, 500]], { name: 'daleko', gap: 0 });
+  const byName = Object.fromEntries([...sb.lint(), ...sb2.lint()].map((i) => [i.name, i.problem]));
+  assert.match(byName.pop, /bez ręki/);
+  assert.match(byName.bez, /wyłączona/);
+  assert.match(byName.rownolegle, /zajęta/);
+  assert.match(byName.daleko, /spóźniona|nie zdąży/);
+  assert.equal(byName.a, undefined);
+  assert.equal(byName.swiadomy, undefined, 'magic: true to świadomy wyjątek');
+});
+
+test('Sequence: kroki po kolei, przeloty między nimi, narzędzie kroku', () => {
+  const pt = (x, y) => () => ({ x, y, angle: 0, lift: 0 });
+  const seq = new Sequence([
+    { dur: 1, trace: (q) => ({ x: 100 * q, y: 0, angle: 0, lift: 0 }), tool: { type: 'pencil', color: 'pen' } },
+    { dur: 1, trace: pt(300, 0), tool: { type: 'pencil', color: 'coral' } },
+  ]);
+  assert.ok(seq.total > 2, 'jest przelot między krokami');
+  const mid = seq.at(1.05 / seq.total);
+  assert.ok(mid.tip.lift > 0, 'w przelocie ołówek uniesiony');
+  assert.deepEqual(seq.at(0.25).local[1], 0);
+  assert.equal(seq.at(1).tip.tool.color, 'coral');
+  assert.equal(seq.at(0.1).tip.tool.color, 'pen');
+});
+
+test('ścieranie: ręka z gąbką przechodzi pasami przez cały kadr', () => {
+  const sb = new Storyboard({ w: 1000, h: 500, warn: false });
+  sb.pen([[100, 100], [400, 100]]);
+  sb.clear();
+  sb.pen([[100, 300], [400, 300]]);
+  const hand = sb.lint() && sb.handTrack({ writeTrace: () => null });
+  const clear = sb.items.find((it) => it.kind === 'clear');
+  const xs = new Set();
+  for (let q = 0; q <= 1; q += 0.02) {
+    const t = clear.seg.start + q * clear.seg.dur;
+    const h = hand.at(t);
+    assert.equal(h.tool.type, 'eraser');
+    xs.add(Math.round(h.x));
+  }
+  assert.ok(xs.size >= 5, 'gąbka odwiedza wszystkie pasy');
+  assert.equal(sb.lint().length, 0);
+});
+
+test('zmiana narzędzia w powietrzu: kredka w kolorze wypełnienia', () => {
+  const sb = new Storyboard({ w: 800, h: 600, warn: false });
+  const box = [[100, 100], [300, 100], [300, 250], [100, 250], [100, 100]];
+  sb.pen(box, { color: 'ink' });
+  sb.crayon(box, { color: 'coral' });
+  const hand = sb.handTrack({ writeTrace: () => null });
+  const [pen, crayon] = sb.items.sort((a, b) => a.seg.start - b.seg.start);
+  assert.equal(hand.at(pen.seg.start + pen.seg.dur / 2).tool.color, 'ink');
+  assert.equal(hand.at(crayon.seg.start + crayon.seg.dur / 2).tool.color, 'coral');
 });
