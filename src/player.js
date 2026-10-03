@@ -71,7 +71,7 @@ export class Player {
     }
     // gotowość czcionek — po ich wczytaniu przerysowujemy klatkę
     this.sk.fontsReady = false;
-    this.ready = loadFonts(this.sk.fonts).then(() => { this.sk.fontsReady = true; this.dirty = true; });
+    this.ready = loadFonts({ ...this.sk.fonts, ...(scene.fonts ?? {}) }).then(() => { this.sk.fontsReady = true; this.dirty = true; });
     // lektor: scena z klipami audio (Storyboard.say) dostaje ścieżkę dźwiękową
     this.audio = this.o.audio === false || !scene.audio?.length ? null : new AudioTrack(scene.audio);
     this.unsub = subscribe((now) => this.#tick(now));

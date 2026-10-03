@@ -76,7 +76,17 @@ A zanim zacznie, wie już, jak każda rzecz ma wyglądać na końcu.
 16. Treść nie dotyka krawędzi kadru (margines ≥ 60 px) i wypełnia kadr
     równo, bez pustej połowy.
 
-## 6. Procedura (zawsze w tej kolejności)
+## 6. Rolka 9:16
+
+17. **[lint, ostrzeżenie] Rysuj tylko w strefie bezpiecznej** (720×1280:
+    x 36–640, y 150–900). Wyżej, niżej i przy prawej krawędzi interfejs
+    aplikacji zasłoni rysunek. Pod rysunkiem są napisy.
+18. Pierwsze zdanie to hak: pytanie albo problem widza, a nie „dzisiaj
+    opowiem o…”. Coś musi się rysować od pierwszej sekundy.
+19. Elementy duże i proste: tytuł ≥ 60 px, podpisy ≥ 36 px, najwyżej 3–4
+    obiekty w kadrze. Układ pionowy (z góry na dół), a nie w rzędzie.
+
+## 7. Procedura (zawsze w tej kolejności)
 
 ```bash
 node tools/lint.mjs scena.js:buildScena:voice.json --items   # 0 błędów, 0 ostrzeżeń; --items = czasy kroków

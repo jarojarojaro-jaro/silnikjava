@@ -24,7 +24,7 @@ import { clamp, ease, easing, lerp, noise1 } from './math.js';
 import { bounds } from './paths.js';
 import { StrokePlan, HandTrack, HAND, travelTime, minDuration } from './hand.js';
 import { arrowParts, crayonTrace } from './sketch.js';
-import { subtitleCues, toSRT, toVTT } from './narration.js';
+import { subtitleCues, reelCues, toSRT, toVTT } from './narration.js';
 import { resolveTheme } from './themes.js';
 
 const PEN_SPEED = HAND.speed;
@@ -34,6 +34,7 @@ const TIMING_KEYS = ['at', 'with', 'after', 'gap'];
 const SOLID = (o) => ({ spacing: 16, w: 36, angle: -0.5, ...o, solid: true });
 const ERASE_PASSES = 5;
 const AIM = 0.06;
+const CAPTION_FONT = '"Lilita One", "Kalam", sans-serif';
 
 export class Storyboard {
   /**
@@ -43,8 +44,16 @@ export class Storyboard {
    *                   cache (domyślnie true — bufor ukończonych elementów), fps (limit klatek w idle 'loop'),
    *                   warn (domyślnie true — ostrzeżenia lint w konsoli przy pierwszym rysowaniu)
    */
-  constructor({ w = 1280, h = 720, pencil = true, paper = true, idle = 'boil', speed = PEN_SPEED, background, handGaps = true, cache = true, fps, warn = true, theme } = {}) {
+  constructor({ w, h, pencil = true, paper = true, idle = 'boil', speed = PEN_SPEED, background, handGaps = true, cache = true, fps, warn = true, theme, format, safe, captions } = {}) {
     this.theme = theme;
+    // format 'reel' (rolka 9:16): kadr 720×1280 (render np. 1080×1920), strefy zasłaniane
+    // przez interfejs aplikacji poza rysunkiem, napisy słowo po słowie wypalone w obraz
+    const reel = format === 'reel';
+    w ??= reel ? 720 : 1280;
+    h ??= reel ? 1280 : 720;
+    this.format = format ?? 'landscape';
+    this.safe = safe ?? (reel ? { x0: 36, y0: 150, x1: 640, y1: 900 } : null);
+    this.captions = captions === false ? null : captions ?? (reel ? {} : null);
     this.w = w;
     this.h = h;
     this.fps = fps;
@@ -469,6 +478,7 @@ export class Storyboard {
       idle: this.idle,
       fps: this.fps,
       theme: this.theme,
+      fonts: this.captions ? { captions: this.captions.font ?? CAPTION_FONT } : undefined,
       audio: this.audio.map(({ src, start, dur }) => ({ src, start, dur })),
       subtitles: (format, opts) => this.subtitles(format, opts),
       draw: (sk, t) => this.draw(sk, t),
@@ -545,6 +555,17 @@ export class Storyboard {
     for (const it of this.items) {
       if (it.cue && it.seg.start - it.cue.target > 0.35) {
         warn(it.name, it.kind, it.seg.start, `rysunek spóźniony o ${(it.seg.start - it.cue.target).toFixed(2)} s względem słowa „${it.cue.word}” (${it.cue.beat}) — za dużo rysunku przed nim`);
+      }
+    }
+    // rolka: rysunek w strefie, którą zasłoni interfejs (nick, opis, przyciski)
+    if (this.safe) {
+      const z = this.safe;
+      for (const it of this.items) {
+        if (!it.visible || !it.box) continue;
+        const b = it.box;
+        if (b.x < z.x0 - 4 || b.y < z.y0 - 4 || b.x + b.w > z.x1 + 4 || b.y + b.h > z.y1 + 4) {
+          warn(it.name, it.kind, it.seg.start, `poza bezpieczną strefą (${z.x0}–${z.x1} × ${z.y0}–${z.y1}) — interfejs aplikacji to zasłoni`);
+        }
       }
     }
     for (const c of this.audio) {
@@ -723,6 +744,62 @@ export class Storyboard {
       }
     }
     ctx.restore();
+    // napisy rolkowe: warstwa interfejsu nad tablicą (bez kamery i bez ręki — to nie rysunek)
+    if (this.captions && this.audio.length) {
+      ctx.save();
+      ctx.setTransform(base);
+      this.#drawCaptions(sk, t);
+      ctx.restore();
+    }
+  }
+
+  /** Porcja napisu na czas t: 2–3 słowa, słowo mówione podświetlone i lekko powiększone. */
+  #drawCaptions(sk, t) {
+    const o = this.captions;
+    this.reelCues ??= reelCues(this.audio, o);
+    const cue = this.reelCues.find((c) => t >= c.start && t <= c.end);
+    if (!cue) return;
+    const { ctx } = sk;
+    const size = o.size ?? Math.round(this.w * 0.085);
+    const font = `${size}px ${o.font ?? CAPTION_FONT}`;
+    ctx.font = font;
+    ctx.textBaseline = 'alphabetic';
+    ctx.lineJoin = 'round';
+    const space = ctx.measureText(' ').width;
+    const words = cue.words.map((w) => ({ ...w, text: o.upper === false ? w.w : w.w.toUpperCase(), width: 0 }));
+    for (const w of words) w.width = ctx.measureText(w.text).width;
+    // zawijanie do szerokości strefy bezpiecznej
+    const maxW = (this.safe ? this.safe.x1 - this.safe.x0 : this.w) * 0.94;
+    const lines = [[]];
+    let lw = 0;
+    for (const w of words) {
+      if (lines[lines.length - 1].length && lw + space + w.width > maxW) { lines.push([]); lw = 0; }
+      lines[lines.length - 1].push(w);
+      lw += (lw ? space : 0) + w.width;
+    }
+    const cx = this.safe ? (this.safe.x0 + this.safe.x1) / 2 : this.w / 2;
+    const y0 = o.y ?? (this.safe ? this.safe.y1 + 70 : this.h * 0.86);
+    const pop = clamp((t - cue.start) / 0.12);
+    lines.forEach((ln, li) => {
+      const width = ln.reduce((a, w) => a + w.width, 0) + space * (ln.length - 1);
+      let x = cx - width / 2;
+      const y = y0 + (li - (lines.length - 1) / 2) * size * 1.08;
+      for (const w of ln) {
+        const active = t >= w.s - 0.05 && t <= w.e + 0.05;
+        const k = (active ? 1.1 : 1) * (0.86 + 0.14 * ease.out(pop));
+        ctx.save();
+        ctx.translate(x + w.width / 2, y - size * 0.35);
+        ctx.scale(k, k);
+        ctx.translate(-w.width / 2, size * 0.35);
+        ctx.lineWidth = size * 0.2;
+        ctx.strokeStyle = o.stroke ?? '#111111';
+        ctx.strokeText(w.text, 0, 0);
+        ctx.fillStyle = active ? o.highlight ?? '#ffd23f' : o.color ?? '#ffffff';
+        ctx.fillText(w.text, 0, 0);
+        ctx.restore();
+        x += w.width + space;
+      }
+    });
   }
 
   /**

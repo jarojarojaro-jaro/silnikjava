@@ -471,3 +471,23 @@ test('reguła kompletności obiektu: kontur → kolor bez przerw, inaczej błąd
   mark.pen(ellipse(600, 375, 150, 115), { color: 'coral' });
   assert.equal(mark.lint().filter((i) => /obiekt przerwany/.test(i.problem)).length, 0);
 });
+
+import { reelCues } from '../src/index.js';
+
+test('rolka 9:16: kadr 720×1280, strefy bezpieczne w lint, napisy po 2–3 słowa', () => {
+  const sb = new Storyboard({ format: 'reel' });
+  assert.equal(sb.w, 720);
+  assert.equal(sb.h, 1280);
+  sb.pen(line(100, 400, 600, 400), { color: 'ink' });
+  sb.pen(line(100, 1150, 600, 1150), { color: 'ink' }); // tu będzie opis i przyciski aplikacji
+  const warns = sb.lint().filter((i) => /bezpieczną strefą/.test(i.problem));
+  assert.deepEqual(warns.map((w) => w.name), ['pen#1']);
+  assert.ok(sb.scene().fonts.captions);
+  const cues = reelCues([{ start: 10, words: [
+    { w: 'Nie', s: 0, e: 0.2 }, { w: 'wiesz,', s: 0.2, e: 0.5 }, { w: 'gdzie', s: 0.5, e: 0.8 },
+    { w: 'znika', s: 0.8, e: 1.1 }, { w: 'wypłata?', s: 1.1, e: 1.6 }, { w: 'Zasada', s: 1.9, e: 2.3 },
+  ] }]);
+  assert.deepEqual(cues.map((c) => c.words.map((w) => w.w).join(' ')), ['Nie wiesz, gdzie', 'znika wypłata?', 'Zasada']);
+  assert.equal(cues[0].start, 10);
+  for (let i = 0; i + 1 < cues.length; i++) assert.ok(cues[i].end < cues[i + 1].start);
+});

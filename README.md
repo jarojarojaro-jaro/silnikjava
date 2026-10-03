@@ -257,6 +257,29 @@ Ta sama scena w innym stylu wymaga zmiany jednej linijki:
 Co zmienia motyw, jak zrobić własny i pomysły na kolejne style:
 [docs/STYLE.md](docs/STYLE.md). Demo: `examples/styles.html`.
 
+## Rolki 9:16 (Reels, TikTok, Shorts)
+
+```js
+const sb = new Storyboard({ format: 'reel', theme: 'neon' }); // kadr 720×1280
+```
+
+```bash
+node tools/render.mjs "examples/reels.html?r=neon" --width 1080 --mp4   # 1080×1920
+```
+
+* **Strefy bezpieczne.** Góra (do 150), dół (od 900) i prawy pas (od 640)
+  zasłania interfejs aplikacji: nick, opis, przyciski. `lint` ostrzega, gdy
+  rysunek tam wchodzi.
+* **Napisy wypalone w obraz.** Po 2–3 słowa, wersalikami, a słowo, które
+  właśnie pada, jest podświetlone i lekko powiększone. Czasy słów biorą się
+  z `voice.json`. To warstwa interfejsu, a nie rysunek, więc nie rysuje jej
+  ręka. Opcje: `captions: { size, y, font, color, highlight, upper }` albo
+  `captions: false`.
+* **Tempo rolki.** Hak w pierwszym zdaniu (pytanie, problem), duże elementy,
+  jedna myśl na zdanie, 15–20 s.
+
+Demo: `examples/reels.html`.
+
 ## Od skryptu do filmu
 
 Jak wygląda zrobienie filmu z Twojego skryptu: [docs/PRODUKCJA.md](docs/PRODUKCJA.md)

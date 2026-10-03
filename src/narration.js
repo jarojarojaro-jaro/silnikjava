@@ -108,6 +108,33 @@ export function subtitleCues(clips, { maxChars = 42, maxLines = 2, minDur = 1.0 
   return cues;
 }
 
+/**
+ * Napisy "rolkowe": krótkie porcje po 2–3 słowa (wypalane w obraz), każde słowo
+ * z własnym czasem — do podświetlania słowa, które właśnie pada.
+ * Zwraca [{ start, end, words: [{ w, s, e }] }] (czasy bezwzględne).
+ */
+export function reelCues(clips, { maxChars = 16, maxWords = 3, tail = 0.35 } = {}) {
+  const cues = [];
+  for (const c of clips) {
+    let cur = null;
+    for (const w of c.words) {
+      const word = { w: w.w, s: c.start + w.s, e: c.start + w.e };
+      const text = cur ? cur.words.map((x) => x.w).join(' ') + ' ' + w.w : w.w;
+      if (!cur || cur.words.length >= maxWords || text.length > maxChars || /[.!?…]$/.test(cur.words[cur.words.length - 1].w)) {
+        cur = { start: word.s, words: [] };
+        cues.push(cur);
+      }
+      cur.words.push(word);
+    }
+  }
+  for (let i = 0; i < cues.length; i++) {
+    const last = cues[i].words[cues[i].words.length - 1];
+    const next = cues[i + 1]?.start ?? Infinity;
+    cues[i].end = Math.min(next - 0.02, last.e + tail);
+  }
+  return cues;
+}
+
 export function toSRT(cues) {
   return cues.map((c, i) => `${i + 1}\n${fmt(c.start, ',')} --> ${fmt(c.end, ',')}\n${c.lines.join('\n')}\n`).join('\n');
 }
