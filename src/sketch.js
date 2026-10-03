@@ -229,6 +229,7 @@ export class Sketch {
         target.lineCap = 'round';
         target.lineJoin = 'round';
         if (o.alpha != null && !chalk) target.globalAlpha *= o.alpha;
+        const alpha0 = target.globalAlpha;
         for (let i = 1; i <= last; i += 2) {
           const end = Math.min(last, i + 1);
           if (!visible(i)) continue;
@@ -240,6 +241,8 @@ export class Sketch {
           const bend = 1 + pressure * Math.min(1, curv[Math.min(i, n - 1)] * 8);
           const wob = 0.84 + 0.26 * noise1(seed * 3.7 + d * 0.02);
           target.lineWidth = Math.max(0.4, w * press * wob * bend);
+          // pióro z kałamarza: atrament z każdą kreską się wyczerpuje (kreska blednie), nowa kreska = nowe zanurzenie
+          if (style.inkFade) target.globalAlpha = alpha0 * (1 - style.inkFade * Math.min(1, d / (style.inkReach ?? 520)));
           target.stroke();
         }
         target.restore();
@@ -839,8 +842,8 @@ export class Sketch {
     ctx.lineJoin = 'round';
     if (type === 'eraser') this.#eraserSprite(size, lift, o);
     else {
-      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124, flipmarker: 118 }[type] ?? 120) * size;
-      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13, flipmarker: 22 }[type] ?? 13) * size;
+      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124, flipmarker: 118, quill: 150 }[type] ?? 120) * size;
+      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13, flipmarker: 22, quill: 26 }[type] ?? 13) * size;
       // cień na kartce — im wyżej narzędzie, tym dalej i bardziej rozmyty
       ctx.save();
       ctx.rotate(ang);
@@ -860,6 +863,7 @@ export class Sketch {
       else if (type === 'brush') this.#brushSprite(len, wd, size, o);
       else if (type === 'brushpen') this.#brushpenSprite(len, wd, size, o);
       else if (type === 'flipmarker') this.#flipmarkerSprite(len, wd, size, o);
+      else if (type === 'quill') this.#quillSprite(len, wd, size, o);
       else this.#pencilSprite(len, wd, size, o);
     }
     ctx.restore();
@@ -1225,6 +1229,59 @@ export class Sketch {
     ctx.fillRect(len - 12 * size, -wd / 2 + 1, 10 * size, wd - 2);
     ctx.fillStyle = 'rgba(0,0,0,0.08)';
     ctx.fillRect(x0, wd * 0.15, len - x0, wd * 0.3);
+  }
+
+  /** Pióro gęsie: stalówka z kropelką atramentu, dutka, chorągiewka pióra z promieniami. */
+  #quillSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const nib = 16 * size, shaft = 46 * size;
+    ctx.strokeStyle = this.theme.outline ?? '#3a2614';
+    ctx.lineWidth = 1.2 * size;
+    // stalówka (zacięta dutka) z atramentem na czubku
+    ctx.fillStyle = '#d9c8a2';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(nib, -3 * size);
+    ctx.lineTo(nib, 3 * size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = this.col(o.color, 'ink');
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(nib * 0.45, -1.4 * size);
+    ctx.lineTo(nib * 0.45, 1.4 * size);
+    ctx.closePath();
+    ctx.fill();
+    // dutka
+    ctx.fillStyle = '#efe4c8';
+    ctx.fillRect(nib, -2.6 * size, shaft, 5.2 * size);
+    ctx.strokeRect(nib, -2.6 * size, shaft, 5.2 * size);
+    // chorągiewka: łukowate pióro z promieniami
+    const x0 = nib + shaft * 0.35, x1 = len;
+    ctx.fillStyle = '#f4ecda';
+    ctx.beginPath();
+    ctx.moveTo(x0, -2 * size);
+    ctx.quadraticCurveTo((x0 + x1) / 2, -wd * 1.1, x1, -wd * 0.25);
+    ctx.quadraticCurveTo(x1 - 8 * size, 0, x1, wd * 0.15);
+    ctx.quadraticCurveTo((x0 + x1) / 2, wd * 0.55, x0 + 10 * size, 2 * size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(90,70,40,0.35)';
+    ctx.lineWidth = 0.8 * size;
+    for (let i = 1; i < 9; i++) {
+      const x = x0 + ((x1 - x0) * i) / 9;
+      ctx.beginPath();
+      ctx.moveTo(x, -1 * size);
+      ctx.lineTo(x + 10 * size, -wd * (0.55 + 0.35 * Math.sin((i / 9) * Math.PI)));
+      ctx.stroke();
+    }
+    ctx.strokeStyle = this.theme.outline ?? '#3a2614';
+    ctx.beginPath();
+    ctx.moveTo(nib, 0);
+    ctx.lineTo(x1 - 4 * size, -wd * 0.05);
+    ctx.stroke();
   }
 
   /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */

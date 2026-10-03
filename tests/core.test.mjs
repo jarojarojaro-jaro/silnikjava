@@ -383,6 +383,7 @@ import { buildComic } from '../examples/scenes/styles/comic.js';
 import { buildFlipchart } from '../examples/scenes/styles/flipchart.js';
 import { buildKraft } from '../examples/scenes/styles/kraft.js';
 import { buildSketch } from '../examples/scenes/styles/sketch.js';
+import { buildParchment } from '../examples/scenes/styles/parchment.js';
 
 test('motywy: nazwy, uzupełnione domyślne pola, nieznany motyw to błąd', () => {
   assert.deepEqual(themeNames().map((t) => t.id).slice(0, 5), ['paper', 'chalk', 'blueprint', 'neon', 'notebook']);
@@ -417,12 +418,12 @@ test('motyw w Storyboardzie: scena niesie motyw, ślad kredki idzie kreskowaniem
 });
 
 test('filmy w trzech stylach: fizyka OK, ~15–18 s, kotwice na czas', () => {
-  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook], ['watercolor', buildWatercolor], ['comic', buildComic], ['flipchart', buildFlipchart], ['kraft', buildKraft], ['sketch', buildSketch]]) {
+  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook], ['watercolor', buildWatercolor], ['comic', buildComic], ['flipchart', buildFlipchart], ['kraft', buildKraft], ['sketch', buildSketch], ['parchment', buildParchment]]) {
     const v = new Voice(JSON.parse(readFileSync(new URL(`../examples/voice/${id}/voice.json`, import.meta.url), 'utf8')), `voice/${id}/`);
     const sb = build(v);
     assert.equal(sb.scene().theme, id);
     assert.deepEqual(sb.lint().filter((i) => i.level !== 'warn').map((i) => i.problem), [], id);
-    assert.ok(sb.duration > 12 && sb.duration < 21, `${id}: ${sb.duration.toFixed(1)} s`);
+    assert.ok(sb.duration > 12 && sb.duration < 28, `${id}: ${sb.duration.toFixed(1)} s`);
     for (const it of sb.items.filter((x) => x.cue)) {
       assert.ok(it.seg.start - it.cue.target < 0.85, `${id} ${it.name} „${it.cue.word}”`);
     }

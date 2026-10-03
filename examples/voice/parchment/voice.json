@@ -1,0 +1,287 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-darkman-medium",
+ "meta": {
+  "głos": "pl_PL-darkman-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Piętnasty lipca tysiąc czterysta dziesiątego roku. Pola pod Grunwaldem.",
+   "notes": [
+    "tytuł, wsie, jezioro, róża wiatrów"
+   ],
+   "audio": "b1.ogg",
+   "duration": 4.621,
+   "words": [
+    {
+     "w": "Piętnasty",
+     "s": 0.0,
+     "e": 0.56
+    },
+    {
+     "w": "lipca",
+     "s": 0.56,
+     "e": 1.02
+    },
+    {
+     "w": "tysiąc",
+     "s": 1.02,
+     "e": 1.56
+    },
+    {
+     "w": "czterysta",
+     "s": 1.56,
+     "e": 2.1
+    },
+    {
+     "w": "dziesiątego",
+     "s": 2.1,
+     "e": 2.74
+    },
+    {
+     "w": "roku.",
+     "s": 2.74,
+     "e": 3.02
+    },
+    {
+     "w": "Pola",
+     "s": 3.14,
+     "e": 3.4
+    },
+    {
+     "w": "pod",
+     "s": 3.4,
+     "e": 3.62
+    },
+    {
+     "w": "Grunwaldem.",
+     "s": 3.62,
+     "e": 4.36
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Po jednej stronie stają wojska zakonu krzyżackiego, w białych płaszczach z czarnym krzyżem.",
+   "notes": [
+    "czworobok Zakonu, krzyże"
+   ],
+   "audio": "b2.ogg",
+   "duration": 5.55,
+   "words": [
+    {
+     "w": "Po",
+     "s": 0.0,
+     "e": 0.12
+    },
+    {
+     "w": "jednej",
+     "s": 0.12,
+     "e": 0.52
+    },
+    {
+     "w": "stronie",
+     "s": 0.52,
+     "e": 0.92
+    },
+    {
+     "w": "stają",
+     "s": 0.92,
+     "e": 1.24
+    },
+    {
+     "w": "wojska",
+     "s": 1.24,
+     "e": 1.7
+    },
+    {
+     "w": "zakonu",
+     "s": 1.7,
+     "e": 2.18
+    },
+    {
+     "w": "krzyżackiego,",
+     "s": 2.18,
+     "e": 2.92
+    },
+    {
+     "w": "w",
+     "s": 3.06,
+     "e": 3.32
+    },
+    {
+     "w": "białych",
+     "s": 3.32,
+     "e": 3.68
+    },
+    {
+     "w": "płaszczach",
+     "s": 3.68,
+     "e": 4.22
+    },
+    {
+     "w": "z",
+     "s": 4.22,
+     "e": 4.4
+    },
+    {
+     "w": "czarnym",
+     "s": 4.4,
+     "e": 4.86
+    },
+    {
+     "w": "krzyżem.",
+     "s": 4.86,
+     "e": 5.38
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Naprzeciw armia polsko-litewska króla Władysława Jagiełły, pod czerwoną chorągwią z białym orłem.",
+   "notes": [
+    "czworobok polsko-litewski"
+   ],
+   "audio": "b3.ogg",
+   "duration": 6.142,
+   "words": [
+    {
+     "w": "Naprzeciw",
+     "s": 0.0,
+     "e": 0.68
+    },
+    {
+     "w": "armia",
+     "s": 0.68,
+     "e": 1.0
+    },
+    {
+     "w": "polsko-litewska",
+     "s": 1.0,
+     "e": 1.92
+    },
+    {
+     "w": "króla",
+     "s": 1.92,
+     "e": 2.26
+    },
+    {
+     "w": "Władysława",
+     "s": 2.26,
+     "e": 2.86
+    },
+    {
+     "w": "Jagiełły,",
+     "s": 2.86,
+     "e": 3.34
+    },
+    {
+     "w": "pod",
+     "s": 3.6,
+     "e": 3.9
+    },
+    {
+     "w": "czerwoną",
+     "s": 3.9,
+     "e": 4.48
+    },
+    {
+     "w": "chorągwią",
+     "s": 4.48,
+     "e": 5.04
+    },
+    {
+     "w": "z",
+     "s": 5.04,
+     "e": 5.18
+    },
+    {
+     "w": "białym",
+     "s": 5.18,
+     "e": 5.58
+    },
+    {
+     "w": "orłem.",
+     "s": 5.58,
+     "e": 5.96
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Po całodniowej bitwie Zakon ponosi klęskę, a jego potęga słabnie na zawsze.",
+   "notes": [
+    "strzałki natarcia, przekreślenie"
+   ],
+   "audio": "b4.ogg",
+   "duration": 4.853,
+   "words": [
+    {
+     "w": "Po",
+     "s": 0.0,
+     "e": 0.12
+    },
+    {
+     "w": "całodniowej",
+     "s": 0.12,
+     "e": 0.8
+    },
+    {
+     "w": "bitwie",
+     "s": 0.8,
+     "e": 1.22
+    },
+    {
+     "w": "Zakon",
+     "s": 1.22,
+     "e": 1.54
+    },
+    {
+     "w": "ponosi",
+     "s": 1.54,
+     "e": 1.96
+    },
+    {
+     "w": "klęskę,",
+     "s": 1.96,
+     "e": 2.62
+    },
+    {
+     "w": "a",
+     "s": 2.86,
+     "e": 2.94
+    },
+    {
+     "w": "jego",
+     "s": 2.94,
+     "e": 3.12
+    },
+    {
+     "w": "potęga",
+     "s": 3.12,
+     "e": 3.6
+    },
+    {
+     "w": "słabnie",
+     "s": 3.6,
+     "e": 4.02
+    },
+    {
+     "w": "na",
+     "s": 4.02,
+     "e": 4.18
+    },
+    {
+     "w": "zawsze.",
+     "s": 4.18,
+     "e": 4.52
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

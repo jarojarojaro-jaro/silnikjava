@@ -458,6 +458,62 @@ export const THEMES = {
       vignette(ctx, w, h, 0.1);
     },
   },
+
+  // ------------------------------------------------------------ stara mapa / pergamin
+  parchment: {
+    name: 'Stara mapa (pergamin)',
+    palette: {
+      // atrament galasowy, czerwony atrament, akwarelowe podkolorowanie map
+      paper: '#ead8ad', ink: '#3a2614', inkSoft: '#7a5a38', pen: '#7c1d12', penDark: '#5e140c',
+      teal: '#4d7a63', sky: '#4e7396', ochre: '#c4912f', coral: '#a8402a', plum: '#5b3d63', white: '#fbf3df',
+    },
+    fonts: { hand: '"MedievalSharp", "Kalam", cursive', title: '"Grenze Gotisch", "Kalam", cursive' },
+    writeScale: 1.15,
+    // pióro gęsie: lekki nacisk, kreska blednie, gdy kończy się atrament
+    pen: { style: 'ink', width: 0.9, jitter: 1, pressure: 0.5, inkFade: 0.45, inkReach: 480 },
+    crayon: { wash: true, w: 30, spacing: 22, alpha: 0.75, grain: 0.45 },
+    highlight: { blend: 'multiply', alpha: 0.35 },
+    tools: { pencil: 'quill', crayon: 'brush' },
+    outline: '#3a2614',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // plamy, przebarwienia i włókna starego papieru
+      ctx.fillStyle = ctx.createPattern(texture('parchment', 480, (c, S, r) => {
+        for (let i = 0; i < 26; i++) {
+          // miękkie przebarwienia (bez obwódek), zawinięte na brzegach kafla
+          const x = r() * S, y = r() * S, rad = 60 + r() * 140, a = 0.025 + r() * 0.04;
+          for (const dx of [-S, 0, S]) for (const dy of [-S, 0, S]) {
+            const g = c.createRadialGradient(x + dx, y + dy, 0, x + dx, y + dy, rad);
+            g.addColorStop(0, `rgba(120,80,30,${a})`);
+            g.addColorStop(1, 'rgba(120,80,30,0)');
+            c.fillStyle = g;
+            c.fillRect(x + dx - rad, y + dy - rad, rad * 2, rad * 2);
+          }
+        }
+        for (let i = 0; i < 2600; i++) {
+          c.fillStyle = r() > 0.5 ? `rgba(90,60,25,${r() * 0.07})` : `rgba(255,248,225,${r() * 0.3})`;
+          c.fillRect(r() * S, r() * S, 1 + r() * 3, 1);
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      // przypalone, ciemniejsze brzegi i ślady złożenia
+      const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.hypot(w, h) * 0.58);
+      g.addColorStop(0, 'rgba(80,45,15,0)');
+      g.addColorStop(1, 'rgba(80,45,15,0.55)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(90,60,25,0.12)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(w / 2, 0);
+      ctx.lineTo(w / 2 + 4, h);
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2 - 3);
+      ctx.stroke();
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */

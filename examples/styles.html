@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Silnik — style</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&family=Kalam:wght@400;700&family=Architects+Daughter&family=Courier+Prime&family=Patrick+Hand&family=Shadows+Into+Light+Two&family=Mynerve&family=Amatic+SC:wght@400;700&family=Bangers&family=Shantell+Sans&family=Sriracha&family=Lilita+One&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&family=Kalam:wght@400;700&family=Architects+Daughter&family=Courier+Prime&family=Patrick+Hand&family=Shadows+Into+Light+Two&family=Mynerve&family=Amatic+SC:wght@400;700&family=Bangers&family=Shantell+Sans&family=Sriracha&family=Lilita+One&family=Grenze+Gotisch&family=MedievalSharp&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
     .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 14px; }
@@ -48,6 +48,7 @@
     import { buildFlipchart } from './scenes/styles/flipchart.js';
     import { buildKraft } from './scenes/styles/kraft.js';
     import { buildSketch } from './scenes/styles/sketch.js';
+    import { buildParchment } from './scenes/styles/parchment.js';
 
     const STYLES = {
       chalk: { name: 'Tablica kredowa', build: buildChalk, about: 'Kreda na zielonej tablicy: ziarnista kreska, kolorowa kreda, w ręce kawałek kredy. Lekcja, matematyka, edukacja.' },
@@ -59,6 +60,7 @@
       flipchart: { name: 'Flipchart', build: buildFlipchart, about: 'Arkusz z bloku na sztaludze: gruby marker o stałej grubości ze smugami filcu, mocne kolory, wyraźne liczby. Warsztaty, sprzedaż, strategia, szkolenia.' },
       kraft: { name: 'Papier pakowy', build: buildKraft, about: 'Brązowy papier kraft z włóknami i taśmą w rogach: czarny cienkopis, biały żelopis, kredki, przez które przebija papier. Przepisy, kawiarnie, rękodzieło, marki „eko”.' },
       sketch: { name: 'Szkic ołówkiem', build: buildSketch, about: 'Szkicownik na spirali: grafit z ziarnem papieru, druga blada linia obok, kreskowanie zamiast koloru, jasne linie konstrukcyjne i jeden akcent koloru. Fizyka, technika, „jak to działa”.' },
+      parchment: { name: 'Stara mapa', build: buildParchment, about: 'Pergamin z plamami i przypalonymi brzegami, pióro gęsie z kałamarza (kreska blednie, gdy kończy się atrament), akwarelowe podkolorowanie map. Historia, bitwy, podróże.' },
     };
     const id = new URLSearchParams(location.search).get('s') in STYLES ? new URLSearchParams(location.search).get('s') : 'chalk';
     const $ = (x) => document.getElementById(x);
