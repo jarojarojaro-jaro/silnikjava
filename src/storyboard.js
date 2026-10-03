@@ -767,9 +767,16 @@ export class Storyboard {
     ctx.font = font;
     ctx.textBaseline = 'alphabetic';
     ctx.lineJoin = 'round';
-    const space = ctx.measureText(' ').width;
-    const words = cue.words.map((w) => ({ ...w, text: o.upper === false ? w.w : w.w.toUpperCase(), width: 0 }));
-    for (const w of words) w.width = ctx.measureText(w.text).width;
+    // odstęp między słowami: część czcionek ma prawie zerową spację
+    const space = Math.max(ctx.measureText(' ').width, size * 0.4);
+    const pop = 0.86 + 0.14 * ease.out(clamp((t - cue.start) / 0.12));
+    // każde słowo z własną skalą (mówione większe); układ liczony po skali, żeby nic nie nachodziło
+    const words = cue.words.map((w) => {
+      const text = o.upper === false ? w.w : w.w.toUpperCase();
+      const active = t >= w.s - 0.05 && t <= w.e + 0.05;
+      const k = (active ? 1.1 : 1) * pop;
+      return { text, active, k, width: ctx.measureText(text).width * k };
+    });
     // zawijanie do szerokości strefy bezpiecznej
     const maxW = (this.safe ? this.safe.x1 - this.safe.x0 : this.w) * 0.94;
     const lines = [[]];
@@ -781,22 +788,18 @@ export class Storyboard {
     }
     const cx = this.safe ? (this.safe.x0 + this.safe.x1) / 2 : this.w / 2;
     const y0 = o.y ?? (this.safe ? this.safe.y1 + 70 : this.h * 0.86);
-    const pop = clamp((t - cue.start) / 0.12);
     lines.forEach((ln, li) => {
       const width = ln.reduce((a, w) => a + w.width, 0) + space * (ln.length - 1);
       let x = cx - width / 2;
       const y = y0 + (li - (lines.length - 1) / 2) * size * 1.08;
       for (const w of ln) {
-        const active = t >= w.s - 0.05 && t <= w.e + 0.05;
-        const k = (active ? 1.1 : 1) * (0.86 + 0.14 * ease.out(pop));
         ctx.save();
-        ctx.translate(x + w.width / 2, y - size * 0.35);
-        ctx.scale(k, k);
-        ctx.translate(-w.width / 2, size * 0.35);
-        ctx.lineWidth = size * 0.2;
+        ctx.translate(x, y - size * 0.35 * (w.k - 1));
+        ctx.scale(w.k, w.k);
+        ctx.lineWidth = size * 0.15;
         ctx.strokeStyle = o.stroke ?? '#111111';
         ctx.strokeText(w.text, 0, 0);
-        ctx.fillStyle = active ? o.highlight ?? '#ffd23f' : o.color ?? '#ffffff';
+        ctx.fillStyle = w.active ? o.highlight ?? '#ffd23f' : o.color ?? '#ffffff';
         ctx.fillText(w.text, 0, 0);
         ctx.restore();
         x += w.width + space;
