@@ -29,12 +29,12 @@ export function buildKraft(voice) {
     sb.write('Kawa z dripa', 640, 118, { size: 84, font: 'title', align: 'center', color: 'ink' });
   });
 
-  // 2. "Zmiel piętnaście gramów kawy, średnio grubo."
+  // 2. "Weź ziarna kawy, zmiel je średnio grubo, wystarczy piętnaście gramów."
   sb.say(B(2), () => {
-    sb.pen(BEAN, { color: 'ink', w: 3, seed: 4, cue: 'Zmiel' });
+    sb.pen(BEAN, { color: 'ink', w: 3, seed: 4, cue: 'ziarna' });
     sb.pen(CREASE, { color: 'ink', w: 2.6, seed: 5 });
-    label('15 g', 250, 'gramów');
     sb.crayon(BEAN, { color: 'inkSoft', seed: 6 });
+    label('15 g', 250, 'piętnaście');
   });
 
   // 3. "Zalej ją wodą o temperaturze dziewięćdziesięciu czterech stopni."
@@ -43,14 +43,14 @@ export function buildKraft(voice) {
     sb.strokes([line(640, 272, 640, 240, { seed: 8 }), line(615, 265, 610, 240, { seed: 9 }), line(665, 265, 670, 240, { seed: 10 })], { color: 'sky', w: 3, seed: 8, speed: 1500 });
     sb.dot(640, 420, 7, { color: 'sky' });
     label('94°C', 640, 'dziewięćdziesięciu');
-    // filiżanka czeka pod spodem, zanim lektor powie o czasie
-    sb.strokes([CUP, HANDLE], { color: 'ink', w: 3, seed: 11 });
   });
 
-  // 4. "Po trzech minutach kawa jest gotowa. Smacznego!"
+  // 4. "Kawa przecieka do filiżanki i po trzech minutach jest gotowa. Smacznego!"
   sb.say(B(4), () => {
-    label('3 min', 1030, 'minutach');
-    sb.liquid(CUP_IN, { color: 'inkSoft', level: 0.8, alpha: 0.85, cue: 'kawa' });
+    // filiżanka i od razu kawa w niej — jeden obiekt, bez wracania
+    sb.strokes([CUP, HANDLE], { color: 'ink', w: 3, seed: 11, cue: 'Kawa' });
+    sb.liquid(CUP_IN, { color: 'inkSoft', level: 0.8, alpha: 0.85, cue: 'filiżanki' });
+    label('3 min', 1030, 'trzech');
     sb.strokes([steam(1000, 0), steam(1040, 2), steam(1080, 4)], { color: 'pen', w: 2.4, seed: 12, speed: 1500, cue: 'Smacznego' });
   });
   sb.wait(0.8);

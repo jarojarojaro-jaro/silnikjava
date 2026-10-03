@@ -12,84 +12,104 @@
     "tytuł"
    ],
    "audio": "b1.ogg",
-   "duration": 2.38,
+   "duration": 2.403,
    "words": [
     {
      "w": "Kawa",
      "s": 0.0,
-     "e": 0.26
+     "e": 0.24
     },
     {
      "w": "z",
-     "s": 0.26,
+     "s": 0.24,
      "e": 0.4
     },
     {
      "w": "dripa",
      "s": 0.4,
-     "e": 0.78
+     "e": 0.76
     },
     {
      "w": "w",
-     "s": 0.78,
-     "e": 0.9
+     "s": 0.76,
+     "e": 0.88
     },
     {
      "w": "trzech",
-     "s": 0.9,
+     "s": 0.88,
      "e": 1.18
     },
     {
      "w": "prostych",
      "s": 1.18,
-     "e": 1.72
+     "e": 1.68
     },
     {
      "w": "krokach.",
-     "s": 1.72,
-     "e": 2.16
+     "s": 1.68,
+     "e": 2.2
     }
    ],
    "match": 1.0
   },
   {
    "id": "b2",
-   "text": "Zmiel piętnaście gramów kawy, średnio grubo.",
+   "text": "Weź ziarna kawy, zmiel je średnio grubo, wystarczy piętnaście gramów.",
    "notes": [
     "ziarno, 15 g"
    ],
    "audio": "b2.ogg",
-   "duration": 3.46,
+   "duration": 4.807,
    "words": [
     {
-     "w": "Zmiel",
+     "w": "Weź",
      "s": 0.0,
-     "e": 0.44
+     "e": 0.34
     },
     {
-     "w": "piętnaście",
-     "s": 0.44,
-     "e": 1.1
-    },
-    {
-     "w": "gramów",
-     "s": 1.1,
-     "e": 1.52
+     "w": "ziarna",
+     "s": 0.34,
+     "e": 0.7
     },
     {
      "w": "kawy,",
-     "s": 1.52,
-     "e": 1.96
+     "s": 0.7,
+     "e": 1.08
+    },
+    {
+     "w": "zmiel",
+     "s": 1.28,
+     "e": 1.68
+    },
+    {
+     "w": "je",
+     "s": 1.68,
+     "e": 1.82
     },
     {
      "w": "średnio",
-     "s": 2.32,
-     "e": 2.78
+     "s": 1.82,
+     "e": 2.26
     },
     {
-     "w": "grubo.",
-     "s": 2.78,
-     "e": 3.22
+     "w": "grubo,",
+     "s": 2.26,
+     "e": 2.72
+    },
+    {
+     "w": "wystarczy",
+     "s": 2.94,
+     "e": 3.54
+    },
+    {
+     "w": "piętnaście",
+     "s": 3.54,
+     "e": 4.12
+    },
+    {
+     "w": "gramów.",
+     "s": 4.12,
+     "e": 4.6
     }
    ],
    "match": 1.0
@@ -101,94 +121,114 @@
     "drip, krople, 94°C"
    ],
    "audio": "b3.ogg",
-   "duration": 3.82,
+   "duration": 3.599,
    "words": [
     {
      "w": "Zalej",
      "s": 0.0,
-     "e": 0.44
+     "e": 0.42
     },
     {
      "w": "ją",
-     "s": 0.44,
-     "e": 0.58
+     "s": 0.42,
+     "e": 0.54
     },
     {
      "w": "wodą",
-     "s": 0.58,
-     "e": 1.0
+     "s": 0.54,
+     "e": 0.94
     },
     {
      "w": "o",
-     "s": 1.0,
-     "e": 1.2
+     "s": 0.94,
+     "e": 1.1
     },
     {
      "w": "temperaturze",
-     "s": 1.2,
-     "e": 1.88
+     "s": 1.1,
+     "e": 1.76
     },
     {
      "w": "dziewięćdziesięciu",
-     "s": 1.88,
-     "e": 2.62
+     "s": 1.76,
+     "e": 2.48
     },
     {
      "w": "czterech",
-     "s": 2.62,
-     "e": 3.1
+     "s": 2.48,
+     "e": 2.92
     },
     {
      "w": "stopni.",
-     "s": 3.1,
-     "e": 3.6
+     "s": 2.92,
+     "e": 3.38
     }
    ],
    "match": 1.0
   },
   {
    "id": "b4",
-   "text": "Po trzech minutach kawa jest gotowa. Smacznego!",
+   "text": "Kawa przecieka do filiżanki i po trzech minutach jest gotowa. Smacznego!",
    "notes": [
     "filiżanka napełnia się, para, 3 min"
    ],
    "audio": "b4.ogg",
-   "duration": 3.262,
+   "duration": 4.783,
    "words": [
     {
-     "w": "Po",
+     "w": "Kawa",
      "s": 0.0,
-     "e": 0.08
+     "e": 0.24
+    },
+    {
+     "w": "przecieka",
+     "s": 0.24,
+     "e": 0.84
+    },
+    {
+     "w": "do",
+     "s": 0.84,
+     "e": 0.96
+    },
+    {
+     "w": "filiżanki",
+     "s": 0.96,
+     "e": 1.6
+    },
+    {
+     "w": "i",
+     "s": 1.6,
+     "e": 1.88
+    },
+    {
+     "w": "po",
+     "s": 1.88,
+     "e": 2.02
     },
     {
      "w": "trzech",
-     "s": 0.08,
-     "e": 0.38
+     "s": 2.02,
+     "e": 2.36
     },
     {
      "w": "minutach",
-     "s": 0.38,
-     "e": 1.02
-    },
-    {
-     "w": "kawa",
-     "s": 1.02,
-     "e": 1.3
+     "s": 2.36,
+     "e": 2.88
     },
     {
      "w": "jest",
-     "s": 1.3,
-     "e": 1.56
+     "s": 2.88,
+     "e": 3.08
     },
     {
      "w": "gotowa.",
-     "s": 1.56,
-     "e": 2.22
+     "s": 3.08,
+     "e": 3.7
     },
     {
      "w": "Smacznego!",
-     "s": 2.44,
-     "e": 3.0
+     "s": 3.94,
+     "e": 4.5
     }
    ],
    "match": 1.0
