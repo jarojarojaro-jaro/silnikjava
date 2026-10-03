@@ -1,0 +1,277 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-darkman-medium",
+ "meta": {
+  "głos": "pl_PL-darkman-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Jak dawniej wytapiano żelazo? Służył do tego gliniany piec, zwany dymarką.",
+   "notes": [
+    "tytuł, dymarka"
+   ],
+   "audio": "b1.ogg",
+   "duration": 5.317,
+   "words": [
+    {
+     "w": "Jak",
+     "s": 0.0,
+     "e": 0.24
+    },
+    {
+     "w": "dawniej",
+     "s": 0.24,
+     "e": 0.7
+    },
+    {
+     "w": "wytapiano",
+     "s": 0.7,
+     "e": 1.26
+    },
+    {
+     "w": "żelazo?",
+     "s": 1.26,
+     "e": 1.86
+    },
+    {
+     "w": "Służył",
+     "s": 2.02,
+     "e": 2.56
+    },
+    {
+     "w": "do",
+     "s": 2.56,
+     "e": 2.66
+    },
+    {
+     "w": "tego",
+     "s": 2.66,
+     "e": 2.9
+    },
+    {
+     "w": "gliniany",
+     "s": 2.9,
+     "e": 3.4
+    },
+    {
+     "w": "piec,",
+     "s": 3.4,
+     "e": 3.88
+    },
+    {
+     "w": "zwany",
+     "s": 4.14,
+     "e": 4.56
+    },
+    {
+     "w": "dymarką.",
+     "s": 4.56,
+     "e": 5.16
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Od góry sypano na zmianę rudę żelaza i węgiel drzewny.",
+   "notes": [
+    "strzałki: ruda, węgiel"
+   ],
+   "audio": "b2.ogg",
+   "duration": 3.715,
+   "words": [
+    {
+     "w": "Od",
+     "s": 0.0,
+     "e": 0.2
+    },
+    {
+     "w": "góry",
+     "s": 0.2,
+     "e": 0.52
+    },
+    {
+     "w": "sypano",
+     "s": 0.52,
+     "e": 0.96
+    },
+    {
+     "w": "na",
+     "s": 0.96,
+     "e": 1.1
+    },
+    {
+     "w": "zmianę",
+     "s": 1.1,
+     "e": 1.56
+    },
+    {
+     "w": "rudę",
+     "s": 1.56,
+     "e": 1.88
+    },
+    {
+     "w": "żelaza",
+     "s": 1.88,
+     "e": 2.36
+    },
+    {
+     "w": "i",
+     "s": 2.36,
+     "e": 2.66
+    },
+    {
+     "w": "węgiel",
+     "s": 2.66,
+     "e": 3.08
+    },
+    {
+     "w": "drzewny.",
+     "s": 3.08,
+     "e": 3.58
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Miechy tłoczyły powietrze, a w środku ogień dochodził do tysiąca dwustu stopni.",
+   "notes": [
+    "miech, płomienie, 1200°C"
+   ],
+   "audio": "b3.ogg",
+   "duration": 5.062,
+   "words": [
+    {
+     "w": "Miechy",
+     "s": 0.0,
+     "e": 0.34
+    },
+    {
+     "w": "tłoczyły",
+     "s": 0.34,
+     "e": 0.88
+    },
+    {
+     "w": "powietrze,",
+     "s": 0.88,
+     "e": 1.42
+    },
+    {
+     "w": "a",
+     "s": 1.8,
+     "e": 1.88
+    },
+    {
+     "w": "w",
+     "s": 1.88,
+     "e": 1.98
+    },
+    {
+     "w": "środku",
+     "s": 1.98,
+     "e": 2.48
+    },
+    {
+     "w": "ogień",
+     "s": 2.48,
+     "e": 2.88
+    },
+    {
+     "w": "dochodził",
+     "s": 2.88,
+     "e": 3.32
+    },
+    {
+     "w": "do",
+     "s": 3.32,
+     "e": 3.4
+    },
+    {
+     "w": "tysiąca",
+     "s": 3.4,
+     "e": 3.92
+    },
+    {
+     "w": "dwustu",
+     "s": 3.92,
+     "e": 4.44
+    },
+    {
+     "w": "stopni.",
+     "s": 4.44,
+     "e": 4.86
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Na dnie zostawał gąbczasty kęs żelaza, który kowal wykuwał na metal.",
+   "notes": [
+    "kęs żelaza, kowadło"
+   ],
+   "audio": "b4.ogg",
+   "duration": 4.354,
+   "words": [
+    {
+     "w": "Na",
+     "s": 0.0,
+     "e": 0.18
+    },
+    {
+     "w": "dnie",
+     "s": 0.18,
+     "e": 0.46
+    },
+    {
+     "w": "zostawał",
+     "s": 0.46,
+     "e": 1.08
+    },
+    {
+     "w": "gąbczasty",
+     "s": 1.08,
+     "e": 1.6
+    },
+    {
+     "w": "kęs",
+     "s": 1.6,
+     "e": 1.94
+    },
+    {
+     "w": "żelaza,",
+     "s": 1.94,
+     "e": 2.4
+    },
+    {
+     "w": "który",
+     "s": 2.54,
+     "e": 2.78
+    },
+    {
+     "w": "kowal",
+     "s": 2.78,
+     "e": 3.22
+    },
+    {
+     "w": "wykuwał",
+     "s": 3.22,
+     "e": 3.68
+    },
+    {
+     "w": "na",
+     "s": 3.68,
+     "e": 3.8
+    },
+    {
+     "w": "metal.",
+     "s": 3.8,
+     "e": 4.12
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

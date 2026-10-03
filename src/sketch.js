@@ -842,8 +842,8 @@ export class Sketch {
     ctx.lineJoin = 'round';
     if (type === 'eraser') this.#eraserSprite(size, lift, o);
     else {
-      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124, flipmarker: 118, quill: 150 }[type] ?? 120) * size;
-      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13, flipmarker: 22, quill: 26 }[type] ?? 13) * size;
+      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124, flipmarker: 118, quill: 150, gouge: 112 }[type] ?? 120) * size;
+      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13, flipmarker: 22, quill: 26, gouge: 12 }[type] ?? 13) * size;
       // cień na kartce — im wyżej narzędzie, tym dalej i bardziej rozmyty
       ctx.save();
       ctx.rotate(ang);
@@ -864,6 +864,7 @@ export class Sketch {
       else if (type === 'brushpen') this.#brushpenSprite(len, wd, size, o);
       else if (type === 'flipmarker') this.#flipmarkerSprite(len, wd, size, o);
       else if (type === 'quill') this.#quillSprite(len, wd, size, o);
+      else if (type === 'gouge') this.#gougeSprite(len, wd, size, o);
       else this.#pencilSprite(len, wd, size, o);
     }
     ctx.restore();
@@ -1282,6 +1283,43 @@ export class Sketch {
     ctx.moveTo(nib, 0);
     ctx.lineTo(x1 - 4 * size, -wd * 0.05);
     ctx.stroke();
+  }
+
+  /** Dłuto do drzeworytu: stalowe ostrze w kształcie V, ferrula, gruszkowa drewniana rączka. */
+  #gougeSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const blade = 44 * size, ferrule = 10 * size;
+    ctx.strokeStyle = this.theme.outline ?? '#17120e';
+    ctx.lineWidth = 1.3 * size;
+    ctx.fillStyle = '#b8bcc2';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(6 * size, -3.4 * size);
+    ctx.lineTo(blade, -3 * size);
+    ctx.lineTo(blade, 3 * size);
+    ctx.lineTo(6 * size, 3.4 * size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(6 * size, -2.6 * size, blade - 8 * size, 1.4 * size);
+    ctx.fillStyle = '#8e9298';
+    ctx.fillRect(blade, -4.5 * size, ferrule, 9 * size);
+    ctx.strokeRect(blade, -4.5 * size, ferrule, 9 * size);
+    // rączka: gruszka
+    const x0 = blade + ferrule;
+    ctx.fillStyle = '#a8703f';
+    ctx.beginPath();
+    ctx.moveTo(x0, -5 * size);
+    ctx.bezierCurveTo(x0 + 20 * size, -wd * 0.9, len - 8 * size, -wd * 1.4, len, 0);
+    ctx.bezierCurveTo(len - 8 * size, wd * 1.4, x0 + 20 * size, wd * 0.9, x0, 5 * size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.beginPath();
+    ctx.ellipse((x0 + len) / 2 + 6 * size, -wd * 0.45, (len - x0) * 0.3, wd * 0.18, 0, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */

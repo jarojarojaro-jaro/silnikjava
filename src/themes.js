@@ -514,6 +514,53 @@ export const THEMES = {
       ctx.stroke();
     },
   },
+
+  // ------------------------------------------------------------ drzeworyt
+  woodcut: {
+    name: 'Drzeworyt',
+    palette: {
+      // druk dwukolorowy: czerń i czerwień na kremowym papierze czerpanym
+      paper: '#f1e6cf', ink: '#17120e', inkSoft: '#5b4b3c', pen: '#b3261e', penDark: '#8a1c16',
+      teal: '#2f5d55', sky: '#3c5a7a', ochre: '#c9902c', coral: '#b3261e', plum: '#4b2f45', white: '#fbf6ea',
+    },
+    fonts: { hand: '"Special Elite", "Kalam", monospace', title: '"Alfa Slab One", "Kalam", serif' },
+    writeScale: 1.5,
+    // dłuto: gruba, pewna kreska, mało drżenia, krótkie zwężenia
+    pen: { style: 'ink', width: 1.7, jitter: 0.35, pressure: 0.25, taper: 0.5 },
+    // kolor = równoległe nacięcia (kreskowanie jak w klocku), bez fali
+    crayon: { w: 3.4, spacing: 9, alpha: 0.95, grain: 0.3, wave: 0, angle: 0.25 },
+    highlight: { blend: 'multiply', alpha: 0.4 },
+    tools: { pencil: 'gouge', crayon: 'gouge' },
+    outline: '#17120e',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // papier czerpany i lekki ślad słojów klocka
+      ctx.fillStyle = ctx.createPattern(texture('woodcut', 360, (c, S, r) => {
+        for (let y = 0; y < S; y += 3) {
+          c.strokeStyle = `rgba(90,60,30,${0.012 + r() * 0.02})`;
+          c.lineWidth = 1;
+          c.beginPath();
+          for (let x = 0; x <= S; x += 12) c.lineTo(x, y + Math.sin((x + y * 3) * 0.02) * 2.5);
+          c.stroke();
+        }
+        for (let i = 0; i < 1800; i++) {
+          c.fillStyle = `rgba(80,55,30,${r() * 0.06})`;
+          c.fillRect(r() * S, r() * S, 1 + r() * 2, 1 + r());
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      // odbita ramka klocka
+      ctx.save();
+      ctx.strokeStyle = 'rgba(23,18,14,0.88)';
+      ctx.lineWidth = 7;
+      ctx.strokeRect(22, 22, w - 44, h - 44);
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(34, 34, w - 68, h - 68);
+      ctx.restore();
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */
