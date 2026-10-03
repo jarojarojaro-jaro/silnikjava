@@ -157,6 +157,8 @@ mniej detali postaci, a nie szybsza ręka.
   (nowy pędzel `wash`), komiks (nowy pędzel `halftone`, pędzelek z naciskiem).
   Każdy z filmem z lektorem; fizyka 0 błędów, 0 ostrzeżeń o tempie.
 - [x] `tools/lint.mjs --items`: czasy kroków i kotwic (strojenie tempa).
+- [x] Kolejne trzy: flipchart (kreska `marker`), papier pakowy, szkic ołówkiem
+  (kreska `graphite`, szkicowe linie). Razem dziewięć stylów z filmami.
 - Opis i przepis na własny styl: [STYLE.md](STYLE.md).
 
 ## Etap 3 — rozbudowa (kolejne iteracje)
@@ -167,8 +169,8 @@ mniej detali postaci, a nie szybsza ręka.
   mniejszymi modelami).
 - Biblioteka ikon rysowanych (terminal, globus, plik, chmura, baza, żarówka,
   zębatka, człowiek…), każda jako zestaw kresek z kolejnością rysowania.
-- Narzędzia: dłoń trzymająca pisak; kolejne style (flipchart, papier
-  pakowy, szkic ołówkiem — patrz STYLE.md).
+- Narzędzia: dłoń trzymająca pisak; kolejne style (karteczki, retro
+  terminal, stara mapa — patrz STYLE.md).
 - Przejścia: przesunięcie kartki, przewrócenie strony, zoom-through.
 - Postacie: rig z emocjami (radość, zdziwienie, myślenie), gesty wskazywania.
 - Eksport: WebCodecs (szybszy niż MediaRecorder), dźwięk w eksporcie.

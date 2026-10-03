@@ -246,7 +246,7 @@ Ta sama scena w innym stylu wymaga zmiany jednej linijki:
 * `kraft`: cienkopis, biały żelopis i kredki na papierze pakowym;
 * `sketch`: grafit, szkicowe linie i kreskowanie w szkicowniku.
 
-![Sześć stylów](docs/img/style-sheet.png)
+![Dziewięć stylów](docs/img/style-sheet.png)
 
 Co zmienia motyw, jak zrobić własny i pomysły na kolejne style:
 [docs/STYLE.md](docs/STYLE.md). Demo: `examples/styles.html`.
