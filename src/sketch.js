@@ -154,7 +154,7 @@ export class Sketch {
         ctx.globalCompositeOperation = 'lighter';
         ctx.strokeStyle = color;
         for (const [k, a] of [[5, 0.07], [3, 0.14], [1.8, 0.35]]) {
-          ctx.globalAlpha = (o.alpha ?? 1) * a;
+          ctx.globalAlpha = (o.alpha ?? 1) * a * (style.glow ?? 1);
           ctx.lineWidth = w * k;
           ctx.stroke(path);
         }
@@ -382,11 +382,13 @@ export class Sketch {
     lc.setTransform(1, 0, 0, 1, 0, 0);
     lc.clearRect(x0, y0, x1 - x0, y1 - y0);
     lc.setTransform(ctx.getTransform());
-    // warstwa farby
+    // warstwa farby (soft: mgławica — mocno rozmyta, bez brzegu)
+    if (o.soft) lc.filter = `blur(${o.soft === true ? 14 : o.soft}px)`;
     shape();
     lc.fillStyle = col;
     lc.globalAlpha = 0.5;
     lc.fill('evenodd');
+    lc.filter = 'none';
     // nierówne rozłożenie pigmentu: kilka miękkich plam ciemniej i jaśniej
     lc.save();
     lc.clip('evenodd');
@@ -401,13 +403,15 @@ export class Sketch {
     }
     lc.restore();
     // pigment zbiera się na brzegu wysychającej plamy
-    shape();
-    lc.strokeStyle = col;
-    lc.globalAlpha = 0.75;
-    lc.lineWidth = 2.4;
-    lc.filter = 'blur(1px)';
-    lc.stroke();
-    lc.filter = 'none';
+    if (!o.soft) {
+      shape();
+      lc.strokeStyle = col;
+      lc.globalAlpha = 0.75;
+      lc.lineWidth = 2.4;
+      lc.filter = 'blur(1px)';
+      lc.stroke();
+      lc.filter = 'none';
+    }
     // mokry front: widać tylko to, przez co przeszedł pędzel
     if (p < 1) {
       lc.globalCompositeOperation = 'destination-in';
@@ -426,7 +430,8 @@ export class Sketch {
       lc.filter = 'none';
     }
     lc.restore();
-    this.#composite(box, { grain: o.grain ?? 0.35, granule: true, alpha: o.alpha ?? 0.9, blend: 'multiply' });
+    // na jasnym papierze farba mnoży się z podłożem; na ciemnym (kosmos) — świeci (blend: 'screen'/'lighter')
+    this.#composite(box, { grain: o.grain ?? 0.35, granule: true, alpha: o.alpha ?? 0.9, blend: o.blend ?? 'multiply' });
   }
 
   /**

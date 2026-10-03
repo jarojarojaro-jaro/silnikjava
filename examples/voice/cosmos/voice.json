@@ -1,0 +1,287 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-gosia-medium",
+ "meta": {
+  "głos": "pl_PL-gosia-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Jak powstaje gwiazda? Wszystko zaczyna się od ogromnego obłoku gazu i pyłu.",
+   "notes": [
+    "tytuł, mgławica"
+   ],
+   "audio": "b1.ogg",
+   "duration": 5.166,
+   "words": [
+    {
+     "w": "Jak",
+     "s": 0.0,
+     "e": 0.22
+    },
+    {
+     "w": "powstaje",
+     "s": 0.22,
+     "e": 0.82
+    },
+    {
+     "w": "gwiazda?",
+     "s": 0.82,
+     "e": 1.46
+    },
+    {
+     "w": "Wszystko",
+     "s": 1.62,
+     "e": 2.08
+    },
+    {
+     "w": "zaczyna",
+     "s": 2.08,
+     "e": 2.5
+    },
+    {
+     "w": "się",
+     "s": 2.5,
+     "e": 2.7
+    },
+    {
+     "w": "od",
+     "s": 2.7,
+     "e": 2.94
+    },
+    {
+     "w": "ogromnego",
+     "s": 2.94,
+     "e": 3.54
+    },
+    {
+     "w": "obłoku",
+     "s": 3.54,
+     "e": 4.1
+    },
+    {
+     "w": "gazu",
+     "s": 4.1,
+     "e": 4.56
+    },
+    {
+     "w": "i",
+     "s": 4.56,
+     "e": 4.68
+    },
+    {
+     "w": "pyłu.",
+     "s": 4.68,
+     "e": 5.0
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Grawitacja ściąga obłok do środka, a ten kurczy się i coraz szybciej wiruje.",
+   "notes": [
+    "strzałki do środka, spirala"
+   ],
+   "audio": "b2.ogg",
+   "duration": 5.132,
+   "words": [
+    {
+     "w": "Grawitacja",
+     "s": 0.0,
+     "e": 0.7
+    },
+    {
+     "w": "ściąga",
+     "s": 0.7,
+     "e": 1.22
+    },
+    {
+     "w": "obłok",
+     "s": 1.22,
+     "e": 1.56
+    },
+    {
+     "w": "do",
+     "s": 1.56,
+     "e": 1.74
+    },
+    {
+     "w": "środka,",
+     "s": 1.74,
+     "e": 2.34
+    },
+    {
+     "w": "a",
+     "s": 2.62,
+     "e": 2.72
+    },
+    {
+     "w": "ten",
+     "s": 2.72,
+     "e": 2.9
+    },
+    {
+     "w": "kurczy",
+     "s": 2.9,
+     "e": 3.3
+    },
+    {
+     "w": "się",
+     "s": 3.3,
+     "e": 3.5
+    },
+    {
+     "w": "i",
+     "s": 3.5,
+     "e": 3.74
+    },
+    {
+     "w": "coraz",
+     "s": 3.74,
+     "e": 3.96
+    },
+    {
+     "w": "szybciej",
+     "s": 3.96,
+     "e": 4.58
+    },
+    {
+     "w": "wiruje.",
+     "s": 4.58,
+     "e": 4.92
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "W jądrze rośnie temperatura, aż do piętnastu milionów stopni.",
+   "notes": [
+    "gorące jądro, 15 mln °C"
+   ],
+   "audio": "b3.ogg",
+   "duration": 3.994,
+   "words": [
+    {
+     "w": "W",
+     "s": 0.0,
+     "e": 0.16
+    },
+    {
+     "w": "jądrze",
+     "s": 0.16,
+     "e": 0.52
+    },
+    {
+     "w": "rośnie",
+     "s": 0.52,
+     "e": 0.86
+    },
+    {
+     "w": "temperatura,",
+     "s": 0.86,
+     "e": 1.54
+    },
+    {
+     "w": "aż",
+     "s": 1.82,
+     "e": 2.04
+    },
+    {
+     "w": "do",
+     "s": 2.04,
+     "e": 2.2
+    },
+    {
+     "w": "piętnastu",
+     "s": 2.2,
+     "e": 2.84
+    },
+    {
+     "w": "milionów",
+     "s": 2.84,
+     "e": 3.28
+    },
+    {
+     "w": "stopni.",
+     "s": 3.28,
+     "e": 3.76
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Wtedy wodór zaczyna zamieniać się w hel i rodzi się nowa gwiazda.",
+   "notes": [
+    "promienie, H → He"
+   ],
+   "audio": "b4.ogg",
+   "duration": 4.052,
+   "words": [
+    {
+     "w": "Wtedy",
+     "s": 0.0,
+     "e": 0.22
+    },
+    {
+     "w": "wodór",
+     "s": 0.22,
+     "e": 0.58
+    },
+    {
+     "w": "zaczyna",
+     "s": 0.58,
+     "e": 1.06
+    },
+    {
+     "w": "zamieniać",
+     "s": 1.06,
+     "e": 1.66
+    },
+    {
+     "w": "się",
+     "s": 1.66,
+     "e": 1.78
+    },
+    {
+     "w": "w",
+     "s": 1.78,
+     "e": 1.88
+    },
+    {
+     "w": "hel",
+     "s": 1.88,
+     "e": 2.14
+    },
+    {
+     "w": "i",
+     "s": 2.14,
+     "e": 2.42
+    },
+    {
+     "w": "rodzi",
+     "s": 2.42,
+     "e": 2.76
+    },
+    {
+     "w": "się",
+     "s": 2.76,
+     "e": 2.96
+    },
+    {
+     "w": "nowa",
+     "s": 2.96,
+     "e": 3.3
+    },
+    {
+     "w": "gwiazda.",
+     "s": 3.3,
+     "e": 3.84
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

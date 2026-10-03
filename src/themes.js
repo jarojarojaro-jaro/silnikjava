@@ -561,6 +561,62 @@ export const THEMES = {
       ctx.restore();
     },
   },
+
+  // ------------------------------------------------------------ kosmos
+  cosmos: {
+    name: 'Kosmos',
+    palette: {
+      paper: '#070b1a', ink: '#eef1ff', inkSoft: '#9aa3c8', pen: '#ffd76a', penDark: '#e8b94a',
+      teal: '#5ff0d2', sky: '#6cb8ff', ochre: '#ffb347', coral: '#ff7a8a', plum: '#b28dff', white: '#ffffff',
+    },
+    fonts: { hand: '"Comfortaa", "Kalam", sans-serif', title: '"Exo 2", "Kalam", sans-serif' },
+    // pastelowa, łagodnie świecąca kreska
+    pen: { style: 'neon', width: 0.95, jitter: 0.6, glow: 0.7 },
+    // mgławice: miękkie plamy, które dodają światła
+    crayon: { wash: true, soft: true, blend: 'screen', w: 34, spacing: 24, alpha: 0.85, grain: 0.15 },
+    highlight: { blend: 'lighter', alpha: 0.3 },
+    text: { glow: true },
+    tools: { pencil: 'neon', crayon: 'neon' },
+    outline: 'rgba(0,0,0,0.8)',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      const g = ctx.createRadialGradient(w * 0.5, h * 0.55, 20, w * 0.5, h * 0.55, Math.hypot(w, h) * 0.6);
+      g.addColorStop(0, '#141a3a');
+      g.addColorStop(1, sk.col('paper'));
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      // pył międzygwiezdny: kilka słabych kolorowych obłoków
+      const r = rng(17);
+      for (const [x, y, rad, col] of [[0.2, 0.3, 0.35, '120,80,200'], [0.85, 0.7, 0.3, '40,140,200'], [0.6, 0.15, 0.25, '200,90,150']]) {
+        const n = ctx.createRadialGradient(w * x, h * y, 0, w * x, h * y, w * rad);
+        n.addColorStop(0, `rgba(${col},0.12)`);
+        n.addColorStop(1, `rgba(${col},0)`);
+        ctx.fillStyle = n;
+        ctx.fillRect(0, 0, w, h);
+      }
+      // gwiazdy: drobne na wzorze + kilka jasnych z poświatą
+      ctx.fillStyle = ctx.createPattern(texture('stars', 400, (c, S, rr) => {
+        for (let i = 0; i < 420; i++) {
+          c.fillStyle = `rgba(255,255,255,${0.15 + rr() * 0.6})`;
+          const s = rr() < 0.9 ? 1 : 1.8;
+          c.fillRect(rr() * S, rr() * S, s, s);
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 14; i++) {
+        const x = r() * w, y = r() * h, rad = 2 + r() * 4;
+        const s = ctx.createRadialGradient(x, y, 0, x, y, rad * 4);
+        s.addColorStop(0, 'rgba(255,255,255,0.9)');
+        s.addColorStop(0.25, 'rgba(200,220,255,0.25)');
+        s.addColorStop(1, 'rgba(200,220,255,0)');
+        ctx.fillStyle = s;
+        ctx.fillRect(x - rad * 4, y - rad * 4, rad * 8, rad * 8);
+      }
+      ctx.restore();
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */
