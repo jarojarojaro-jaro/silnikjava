@@ -55,7 +55,7 @@ export function mascotSequence(seed = 1, dur) {
     { key: 'outline', dur: out.pl.total, trace: out.trace, tool: PEN },
     { key: 'ring0', dur: rings[0].pl.total, trace: rings[0].trace, tool: PEN },
     { key: 'ring1', dur: rings[1].pl.total, trace: rings[1].trace, tool: PEN },
-    { key: 'fill', dur: 1.6, trace: (q) => crayonTrace(BODY, q, CRAYON(seed)), tool: { type: 'pencil', color: 'teal' } },
+    { key: 'fill', dur: 1.6, trace: (q) => crayonTrace(BODY, q, CRAYON(seed)), tool: { type: 'crayon', color: 'teal' } },
     { key: 'pupil0', dur: 0.14, trace: dotTrace(...EYES[0], 9), tool: DARK },
     { key: 'pupil1', dur: 0.14, trace: dotTrace(...EYES[1], 9), tool: DARK },
     { key: 'smile', dur: smile.pl.total, trace: smile.trace, tool: PEN },

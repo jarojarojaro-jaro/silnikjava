@@ -186,7 +186,8 @@ export class Storyboard {
     }, {
       from: [from.x, from.y],
       to: [to.x, to.y],
-      tool: { type: 'pencil', color: o.color ?? 'teal' },
+      // 'crayon': motyw może dać do koloru inne narzędzie (pędzel, marker); domyślnie kredka
+      tool: { type: 'crayon', color: o.color ?? 'teal' },
       trace: (sk, p) => crayonTrace(poly, p, o),
     });
   }

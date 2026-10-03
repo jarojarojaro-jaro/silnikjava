@@ -116,8 +116,8 @@ export class Sketch {
     const L = info.len;
     // kreślarski cienkopis i neon mają stałą grubość (bez nacisku i zwężeń)
     const uniform = kind === 'tech' || kind === 'neon';
-    const taper = uniform ? 0 : o.taper ?? Math.min(26, L * 0.3);
-    const pressure = uniform ? 0 : o.pressure ?? 0.35;
+    const taper = uniform ? 0 : (o.taper ?? Math.min(26, L * 0.3)) * (style.taper ?? 1);
+    const pressure = uniform ? 0 : o.pressure ?? style.pressure ?? 0.35;
     // ułamkowy indeks końca: ostatni odcinek dorysowujemy częściowo — płynny ruch końcówki
     const f = p >= 1 ? n - 1 : Math.max(0.0001, (n - 1) * p);
     const last = Math.ceil(f);
@@ -677,7 +677,9 @@ export class Sketch {
   tool(x, y, o = {}) {
     const { ctx } = this;
     // motyw podmienia narzędzie: na tablicy kreda, na kalce rapidograf, na szybie neonowy pisak
-    const type = this.theme.tools[o.type ?? 'pencil'] ?? o.type ?? 'pencil';
+    const req = o.type ?? 'pencil';
+    // 'crayon' (kolorowanie) bez własnego narzędzia w motywie = to samo co ołówek motywu
+    const type = this.theme.tools[req] ?? (req === 'crayon' ? this.theme.tools.pencil ?? 'pencil' : req);
     const lift = clamp(o.lift ?? 0);
     const size = (o.size ?? 1) * (1 + 0.07 * lift); // uniesione narzędzie jest bliżej "kamery"
     const t = this.time;
@@ -759,7 +761,7 @@ export class Sketch {
       ctx.fillStyle = 'rgba(0,0,0,0.18)';
       ctx.fillRect(len - 4 * size, -wd / 2, 4 * size, wd);
     }
-    ctx.strokeStyle = this.col('ink');
+    ctx.strokeStyle = this.theme.outline ?? this.col('ink');
     ctx.lineWidth = 1.6 * size;
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -801,7 +803,7 @@ export class Sketch {
     ctx.globalAlpha /= 0.85;
     ctx.fillStyle = 'rgba(0,0,0,0.08)';
     ctx.fillRect(tip + 8 * size, wd * 0.15, len - tip - 10 * size, wd * 0.3);
-    ctx.strokeStyle = this.col('ink');
+    ctx.strokeStyle = this.theme.outline ?? this.col('ink');
     ctx.lineWidth = 1.6 * size;
     ctx.beginPath();
     ctx.moveTo(-1 * size, -wd * 0.05);
