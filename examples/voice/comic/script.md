@@ -2,7 +2,7 @@
 
 GŁOS: pl_PL-darkman-medium
 
-1. Dlaczego niebo jest niebieskie?
+1. Zastanawiałeś się kiedyś, dlaczego niebo jest niebieskie?
 [tytuł]
 
 2. Światło słońca to tak naprawdę mieszanka wszystkich kolorów.

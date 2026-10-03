@@ -21,9 +21,9 @@ export function buildComic(voice) {
   const sb = new Storyboard({ w: 1280, h: 720, theme: 'comic', speed: 1000 });
   const B = (n) => voice.beat(n);
 
-  // 1. "Dlaczego niebo jest niebieskie?"
+  // 1. "Zastanawiałeś się kiedyś, dlaczego niebo jest niebieskie?"
   sb.say(B(1), () => {
-    sb.write('Dlaczego niebo jest niebieskie?', 640, 104, { size: 48, font: 'title', align: 'center', color: 'ink' });
+    sb.write('Dlaczego niebo jest niebieskie?', 640, 104, { size: 44, font: 'title', align: 'center', color: 'ink' });
   });
 
   // 2. "Światło słońca to tak naprawdę mieszanka wszystkich kolorów."
