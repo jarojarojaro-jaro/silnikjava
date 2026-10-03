@@ -14,7 +14,7 @@ canvas 2D, bez zależności i bez kroku budowania.
 * **Ręka rysuje naprawdę.** Każdy ślad prowadzi jedna ręka w ludzkim tempie, a
   `lint` pilnuje fizyki i kolejności (np. słońce maluje się zaraz po obrysie,
   a nie po narysowaniu morza). Zasady: [docs/ZASADY.md](docs/ZASADY.md).
-* **9 stylów** zmienianych jedną linijką: `new Storyboard({ theme: 'chalk' })`.
+* **19 stylów** zmienianych jedną linijką: `new Storyboard({ theme: 'chalk' })`.
 * **Lektor**: głos z tekstu (TTS) albo z Twojego nagrania. Rysunek trafia
   w słowa (`cue: 'słowo'`), są napisy SRT/VTT i MP4 z dźwiękiem.
 * **Rolki 9:16** (Reels, TikTok, Shorts): strefy bezpieczne i napisy słowo po
@@ -22,7 +22,8 @@ canvas 2D, bez zależności i bez kroku budowania.
 
 ## Galeria stylów
 
-Każdy styl ma ~15–19-sekundowy film z lektorem. Podglądy są przyspieszone
+Każdy styl ma film z lektorem (pierwsze dziewięć 15–20 s, kolejne dziesięć 22–37 s:
+historia, technika, przyroda). Podglądy są przyspieszone
 2,2×; pełne filmy z dźwiękiem: `examples/styles.html?s=<styl>`.
 
 <table>
@@ -77,10 +78,68 @@ Każdy styl ma ~15–19-sekundowy film z lektorem. Podglądy są przyspieszone
 <sub>Film: „Jak działa dźwignia?”<br>grafit z ziarnem papieru, szkicowe linie, kreskowanie.<br>Do czego: fizyka, technika.</sub>
 </td>
 </tr>
+<tr>
+<td width="33%" valign="top">
+<img src="docs/img/styles/parchment.gif" alt="Stara mapa: Grunwald 1410" width="100%"><br>
+<b>Stara mapa</b> · <code>theme: 'parchment'</code><br>
+<sub>Film: „Grunwald 1410”<br>pióro gęsie z kałamarza (kreska blednie), pergamin z plamami, przypalone brzegi.<br>Do czego: historia, bitwy, podróże.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/woodcut.gif" alt="Drzeworyt: Jak dawniej wytapiano żelazo" width="100%"><br>
+<b>Drzeworyt</b> · <code>theme: 'woodcut'</code><br>
+<sub>Film: „Jak dawniej wytapiano żelazo”<br>gruba rytowana kreska, kolor jako nacięcia dłuta, czerń i czerwień.<br>Do czego: dawne techniki, rzemiosło.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/cosmos.gif" alt="Kosmos: Jak powstaje gwiazda" width="100%"><br>
+<b>Kosmos</b> · <code>theme: 'cosmos'</code><br>
+<sub>Film: „Jak powstaje gwiazda”<br>świecąca pastelowa kreska, mgławice plamą dodającą światła.<br>Do czego: astronomia, fizyka.</sub>
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
+<img src="docs/img/styles/terminal.gif" alt="Terminal CRT: Apollo 11 i alarm 1202" width="100%"><br>
+<b>Terminal CRT</b> · <code>theme: 'terminal'</code><br>
+<sub>Film: „Apollo 11 i alarm 1202”<br>zielony fosfor, linie ekranu, kineskop, pióro świetlne.<br>Do czego: historia techniki, komputery.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/poster.gif" alt="Plakat: Enigma" width="100%"><br>
+<b>Plakat</b> · <code>theme: 'poster'</code><br>
+<sub>Film: „Enigma”<br>płaska kryjąca farba z ziarnem druku, czerwień i czerń, wysoki tytuł.<br>Do czego: historia XX wieku, wojna.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/corkboard.gif" alt="Tablica korkowa: Titanic: łańcuch błędów" width="100%"><br>
+<b>Tablica korkowa</b> · <code>theme: 'corkboard'</code><br>
+<sub>Film: „Titanic: łańcuch błędów”<br>karteczki, pinezki, marker i czerwona nitka łącząca wątki.<br>Do czego: zagadki historii, przyczyny.</sub>
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
+<img src="docs/img/styles/sumi.gif" alt="Tusz i pędzel: Jak rosną góry" width="100%"><br>
+<b>Tusz i pędzel</b> · <code>theme: 'sumi'</code><br>
+<sub>Film: „Jak rosną góry”<br>pędzel gruby w poprzek ostrza, laweowanie tuszem, czerwona pieczęć.<br>Do czego: przyroda, geografia.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/patent.gif" alt="Rysunek patentowy: Jak działa maszyna parowa" width="100%"><br>
+<b>Rysunek patentowy</b> · <code>theme: 'patent'</code><br>
+<sub>Film: „Jak działa maszyna parowa”<br>grafion, przekroje kreskowane 45°, numerowane odsyłacze, FIG. 1.<br>Do czego: technika, wynalazki.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/pixel.gif" alt="Pixel art: Pong 1972" width="100%"><br>
+<b>Pixel art</b> · <code>theme: 'pixel'</code><br>
+<sub>Film: „Pong 1972”<br>kreska przyciągnięta do siatki 8 px, kolor kratka po kratce, pikselowy ołówek.<br>Do czego: historia gier i komputerów.</sub>
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
+<img src="docs/img/styles/charcoal.gif" alt="Węgiel: Pompeje: ostatni dzień" width="100%"><br>
+<b>Węgiel</b> · <code>theme: 'charcoal'</code><br>
+<sub>Film: „Pompeje: ostatni dzień”<br>ziarnista kreska węgla, cienie roztarte palcem, sangwina.<br>Do czego: historia, katastrofy.</sub>
+</td>
+</tr>
 </table>
 
 Jak działa motyw, czym różnią się kreski (`ink`, `chalk`, `tech`, `neon`,
-`marker`, `graphite`) i jak zrobić własny styl: [docs/STYLE.md](docs/STYLE.md).
+`marker`, `graphite`, `pixel`) i jak zrobić własny styl: [docs/STYLE.md](docs/STYLE.md).
 
 ## Rolki 9:16 — przykłady
 
@@ -120,7 +179,7 @@ Otwórz `http://localhost:8080` — galeria z demami:
 
 | demo | co pokazuje |
 | --- | --- |
-| `examples/styles.html` | 9 stylów, każdy jako film z lektorem i napisami |
+| `examples/styles.html` | 19 stylów, każdy jako film z lektorem i napisami |
 | `examples/reels.html` | rolki 9:16 w ramce telefonu, przełącznik stref interfejsu |
 | `examples/narrated.html` | explainer z lektorem: głos, synchronizacja ze słowami, napisy na żywo |
 | `examples/hero.html` | nagłówek w stylu stentor.studio: jedna ręka prowadzi główny wątek, maskotka śledzi ołówek wzrokiem |

@@ -7,7 +7,7 @@ kolorów z palety (`ink`, `pen`, `teal`, `sky`, `ochre`, `coral`, `plum`).
 Dzięki temu ten sam kod sceny daje inny film po zmianie jednej linijki:
 
 ```js
-const sb = new Storyboard({ w: 1280, h: 720, theme: 'chalk' });   // 'paper' | 'chalk' | 'blueprint' | 'neon'
+const sb = new Storyboard({ w: 1280, h: 720, theme: 'chalk' });   // 'paper' | 'chalk' | 'blueprint' | … (19 stylów)
 ```
 
 Fizyka zostaje ta sama w każdym stylu. Każdy ślad robi ręka, `lint` działa
@@ -47,8 +47,38 @@ Kolejne style:
 | do czego | warsztaty, sprzedaż, strategia, szkolenia | przepisy, kawiarnie, rękodzieło, marki „eko” | fizyka, technika, „jak to działa” |
 | przykład | `examples/scenes/styles/flipchart.js`: lejek sprzedażowy | `…/kraft.js`: kawa z dripa | `…/sketch.js`: dźwignia |
 
+Dziesięć stylów do dłuższych opowieści (historia, technika, przyroda):
+
+| | Stara mapa (`parchment`) | Drzeworyt (`woodcut`) | Kosmos (`cosmos`) |
+| --- | --- | --- | --- |
+| podłoże | pergamin: plamy, przypalone brzegi, zagięcia | papier czerpany, ślad słojów klocka, odbita ramka | gradient nocnego nieba, mgławice, gwiazdy z poświatą |
+| kreska | pióro gęsie (`inkFade`): atrament blednie wzdłuż kreski, nowa kreska = nowe zanurzenie | dłuto: gruba, pewna, mało drżenia | neon o łagodnej poświacie (`glow: 0.7`) |
+| kolorowanie | akwarelowe podkolorowanie mapy (`wash`) | równoległe nacięcia (kreskowanie bez fali) | miękka plama bez brzegu (`soft`), dodaje światła (`blend: 'screen'`) |
+| pismo | Grenze Gotisch (tytuły), MedievalSharp | Alfa Slab One, Special Elite | Exo 2, Comfortaa, ze świeceniem |
+| w ręce | gęsie pióro (`quill`), pędzel do koloru | dłuto (`gouge`) | świecący pisak |
+| przykład | `…/parchment.js`: Grunwald 1410 | `…/woodcut.js`: dymarka | `…/cosmos.js`: jak powstaje gwiazda |
+
+| | Terminal CRT (`terminal`) | Plakat (`poster`) | Tablica korkowa (`corkboard`) |
+| --- | --- | --- | --- |
+| podłoże | zaokrąglony kineskop, fosfor, linie ekranu, obudowa | kremowy papier drukarski, ziarno, zagięcia | korek w drewnianej ramie |
+| kreska | zielony fosfor (`neon`) | gruba, równa kreska tuszu | pisak z lekkim naciskiem |
+| kolorowanie | paski światła (`blend: 'lighter'`) | płaska kryjąca farba szerokimi pasami | karteczki zamalowane kryjąco, pinezka, potem tekst |
+| pismo | VT323 | Bebas Neue, Oswald | Kalam, Special Elite |
+| w ręce | pióro świetlne na kablu (`lightpen`) | pisak pędzelkowy | marker |
+| przykład | `…/terminal.js`: Apollo 11, alarm 1202 | `…/poster.js`: Enigma | `…/corkboard.js`: Titanic |
+
+| | Tusz i pędzel (`sumi`) | Rysunek patentowy (`patent`) | Pixel art (`pixel`) | Węgiel (`charcoal`) |
+| --- | --- | --- | --- | --- |
+| podłoże | papier ryżowy z włóknami | biały karton, podwójna ramka arkusza | ekran automatu: siatka pikseli, linie skanowania | szary papier Ingres z żeberkowaniem i pyłem |
+| kreska | pędzel z ostrzem (`nib`, `nibMin`): gruba w poprzek, cienka wzdłuż | cienki tusz kreślarski, prawie bez drżenia | `pixel`: ślad przyciągnięty do siatki (`grid: 8`), schodki zamiast skosów | `graphite` gruba i ziarnista |
+| kolorowanie | laweowanie rozcieńczonym tuszem | przekroje kreskowane pod 45° | kratki zamalowane zygzakiem (`crayon.pixel`) | roztarty pył (`wash` + `soft`) |
+| pismo | Kaushan Script, Spectral | Libre Baskerville, EB Garamond | Pixelify Sans | Cinzel, Spectral |
+| w ręce | pędzel | rapidograf | pikselowy ołówek (`pixelpencil`) | patyk węgla (`charcoal`) |
+| przykład | `…/sumi.js`: jak rosną góry | `…/patent.js`: maszyna parowa | `…/pixel.js`: Pong 1972 | `…/charcoal.js`: Pompeje |
+
 Podgląd: `examples/styles.html?s=chalk` (zakładki z wszystkimi stylami).
-Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
+Każdy film ma lektora (`examples/voice/<styl>/`) i napisy; pierwsze dziewięć
+trwa 15–20 s, kolejne dziesięć 22–37 s.
 
 ## Jak to działa w silniku
 
@@ -63,11 +93,16 @@ Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
   * `neon` daje stałą grubość i poświatę;
   * `marker` daje grubą kreskę ze smugą filcu i ciemniejszymi końcami;
   * `graphite` daje grafit z ziarnem papieru; `pen.sketchy` dodaje drugą, bladą linię.
+  * `pixel` przyciąga ślad do siatki `pen.grid` (px) i rysuje go kratkami.
+
+  Dodatki kreski `ink`: `inkFade` / `inkReach` (atrament blednie wzdłuż
+  kreski), `nib` / `nibMin` (ostrze pod kątem: grubość zależy od kierunku).
 
   `width` i `jitter` skalują grubość i drżenie z opcji sceny.
 * **Kolorowanie** (`crayon`): `theme.crayon` to domyślne opcje (kąt, gęstość,
-  ziarno, tryb mieszania; `wash: true` to plama akwareli, `halftone: true`
-  kolor z rastrem). Storyboard używa
+  ziarno, tryb mieszania `blend`; `wash: true` to plama akwareli, z `soft`
+  miękka plama bez brzegu; `halftone: true` kolor z rastrem; `pixel: true`
+  kratki siatki). Storyboard używa
   ich także do śladu ręki, więc ręka jedzie dokładnie tym zygzakiem, który
   zostawia kolor.
 * **Zakreślacz**: `theme.highlight.blend`. Na papierze `multiply`, na ciemnym
@@ -76,7 +111,8 @@ Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
   odmalowuje fragment tła (siatkę, tablicę) zamiast kłaść płaski kolor.
 * **Narzędzie**: `theme.tools` mapuje `pencil` / `marker` / `crayon`
   (kolorowanie) na sprite motywu (`chalk`, `techpen`, `neon`, `ballpoint`,
-  `brush`, `brushpen`, `marker`, `flipmarker`). Gąbka zostaje gąbką.
+  `brush`, `brushpen`, `marker`, `flipmarker`, `quill`, `gouge`, `lightpen`,
+  `pixelpencil`, `charcoal`). Gąbka zostaje gąbką.
 
 ## Własny styl
 
@@ -113,9 +149,9 @@ Na co uważać:
 
 * **Karteczki samoprzylepne.** Kolorowe kwadraty przyklejane ręką, pismo
   markerem; dobre do burzy mózgów i list.
-* **Retro terminal.** Zielony fosfor na czarnym tle, poświata i linie
-  ekranu, pismo „maszynowe” znak po znaku.
-* **Stara mapa / pergamin.** Sepia, przybrudzone brzegi, kreska piórkiem
-  z kałamarza, która blednie, gdy kończy się atrament.
+* **Witraż.** Grube ołowiane kontury i świecące szkło w kolorze; legendy,
+  średniowiecze.
+* **Kreda na asfalcie.** Gruba, pastelowa kreda na szorstkim, szarym tle;
+  dzieci, zabawy, sport.
 
 Wszystkie korzystają z tej samej sceny, ręki, lektora i eksportu.

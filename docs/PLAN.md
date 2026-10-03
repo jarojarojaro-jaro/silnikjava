@@ -159,6 +159,11 @@ mniej detali postaci, a nie szybsza ręka.
 - [x] `tools/lint.mjs --items`: czasy kroków i kotwic (strojenie tempa).
 - [x] Kolejne trzy: flipchart (kreska `marker`), papier pakowy, szkic ołówkiem
   (kreska `graphite`, szkicowe linie). Razem dziewięć stylów z filmami.
+- [x] Dziesięć kolejnych, z dłuższymi filmami (historia, technika, przyroda):
+  stara mapa (pióro z kałamarza, `inkFade`), drzeworyt, kosmos (miękka plama
+  `soft`, `blend: 'screen'`), terminal CRT, plakat, tablica korkowa, tusz
+  i pędzel (ostrze `nib`), rysunek patentowy, pixel art (kreska `pixel`,
+  `crayon.pixel`), węgiel. Razem dziewiętnaście stylów.
 - Opis i przepis na własny styl: [STYLE.md](STYLE.md).
 
 ## Etap 3 — rozbudowa (kolejne iteracje)
