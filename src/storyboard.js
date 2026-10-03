@@ -34,7 +34,8 @@ const TIMING_KEYS = ['at', 'with', 'after', 'gap'];
 const SOLID = (o) => ({ spacing: 16, w: 36, angle: -0.5, ...o, solid: true });
 const ERASE_PASSES = 5;
 const AIM = 0.06;
-const CAPTION_FONT = '"Lilita One", "Kalam", sans-serif';
+// napisy rolkowe: gruby bezszeryfowy krój z pełnymi polskimi znakami (jak w aplikacjach)
+const CAPTION_FONT = '"Montserrat", "Arial Black", sans-serif';
 
 export class Storyboard {
   /**
@@ -762,8 +763,8 @@ export class Storyboard {
     const cue = this.reelCues.find((c) => t >= c.start && t <= c.end);
     if (!cue) return;
     const { ctx } = sk;
-    const size = o.size ?? Math.round(this.w * 0.085);
-    const font = `${size}px ${o.font ?? CAPTION_FONT}`;
+    const size = o.size ?? Math.round(this.w * 0.078);
+    const font = `${o.weight ?? 700} ${size}px ${o.font ?? CAPTION_FONT}`;
     ctx.font = font;
     ctx.textBaseline = 'alphabetic';
     ctx.lineJoin = 'round';

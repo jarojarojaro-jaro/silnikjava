@@ -273,7 +273,8 @@ node tools/render.mjs "examples/reels.html?r=neon" --width 1080 --mp4   # 1080×
 * **Napisy wypalone w obraz.** Po 2–3 słowa, wersalikami, a słowo, które
   właśnie pada, jest podświetlone i lekko powiększone. Czasy słów biorą się
   z `voice.json`. To warstwa interfejsu, a nie rysunek, więc nie rysuje jej
-  ręka. Opcje: `captions: { size, y, font, color, highlight, upper }` albo
+  ręka. Krój: Montserrat Bold (pełne polskie znaki). Opcje:
+  `captions: { size, y, font, weight, color, highlight, upper }` albo
   `captions: false`.
 * **Tempo rolki.** Hak w pierwszym zdaniu (pytanie, problem), duże elementy,
   jedna myśl na zdanie, 15–20 s.
