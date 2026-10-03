@@ -137,7 +137,29 @@ export class Sketch {
     for (let i = 0; i <= last; i++) P.push(pt(i));
     const visible = (i) => !dash || (i * step) % (dash[0] + dash[1]) <= dash[0];
 
-    if (uniform) {
+    if (kind === 'pixel') {
+      // piksele: ślad pióra przyciągnięty do siatki ekranu, kwadrat po kwadracie
+      const g = style.grid ?? 8;
+      const k = Math.max(1, Math.round(w / g));
+      const sh = (k - 1) / 2;
+      const seen = new Set();
+      const path = new Path2D();
+      for (let i = 0; i < P.length; i++) {
+        if (!visible(i)) continue;
+        const cx = Math.round(P[i][0] / g - 0.5 - sh), cy = Math.round(P[i][1] / g - 0.5 - sh);
+        for (let a = 0; a < k; a++) for (let b = 0; b < k; b++) {
+          const key = (cx + a) * 4096 + cy + b;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          path.rect((cx + a) * g, (cy + b) * g, g, g);
+        }
+      }
+      ctx.save();
+      if (o.alpha != null) ctx.globalAlpha *= o.alpha;
+      ctx.fillStyle = color;
+      ctx.fill(path);
+      ctx.restore();
+    } else if (uniform) {
       // jedna ścieżka o stałej grubości (szybko; neon i cienkopis tak wyglądają)
       const path = new Path2D();
       let open = false;
@@ -325,6 +347,10 @@ export class Sketch {
       this.#halftone(poly, p, o, z, count, box, width);
       return p >= 1 ? null : crayonTip(z, p, seed);
     }
+    if (o.pixel) {
+      this.#pixelFill(poly, o, z, count, width);
+      return p >= 1 ? null : crayonTip(z, p, seed);
+    }
 
     lc.save();
     lc.setTransform(1, 0, 0, 1, 0, 0);
@@ -365,6 +391,31 @@ export class Sketch {
       blend: o.blend,
     });
     return p >= 1 ? null : crayonTip(z, p, seed);
+  }
+
+  /** Wypełnienie pikselami: kratki siatki, przez które przeszedł zygzak, o ile leżą w konturze. */
+  #pixelFill(poly, o, z, count, width) {
+    const { ctx } = this;
+    const g = this.theme.pen.grid ?? 8;
+    const r = Math.max(g / 2, width / 2);
+    const seen = new Set();
+    const path = new Path2D();
+    for (let i = 0; i < count; i++) {
+      const [x, y] = z.path[i];
+      for (let cx = Math.floor((x - r) / g); cx <= Math.floor((x + r) / g); cx++) {
+        for (let cy = Math.floor((y - r) / g); cy <= Math.floor((y + r) / g); cy++) {
+          const key = cx * 4096 + cy;
+          if (seen.has(key)) continue;
+          seen.add(key);
+          if (pointInPoly([(cx + 0.5) * g, (cy + 0.5) * g], poly)) path.rect(cx * g, cy * g, g, g);
+        }
+      }
+    }
+    ctx.save();
+    ctx.globalAlpha *= o.alpha ?? 1;
+    ctx.fillStyle = this.col(o.color, 'teal');
+    ctx.fill(path);
+    ctx.restore();
   }
 
   /**
@@ -853,6 +904,7 @@ export class Sketch {
     if (o.alpha != null) ctx.globalAlpha *= o.alpha;
     ctx.lineJoin = 'round';
     if (type === 'eraser') this.#eraserSprite(size, lift, o);
+    else if (type === 'pixelpencil') this.#pixelPencilSprite(size, lift, o);
     else {
       const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124, flipmarker: 118, quill: 150, gouge: 112, lightpen: 120 }[type] ?? 120) * size;
       const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13, flipmarker: 22, quill: 26, gouge: 12, lightpen: 14 }[type] ?? 13) * size;
@@ -1380,6 +1432,20 @@ export class Sketch {
   }
 
   /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */
+  /** Ołówek z pikseli, jak kursor w programie do rysowania: zawsze ukośnie, grot w (0,0). */
+  #pixelPencilSprite(size, lift, o) {
+    const { ctx } = this;
+    const cs = 4 * size;
+    const cells = pixelPencil();
+    ctx.translate(0, -lift * 10);
+    const lead = o.color && !['ink', 'inkSoft'].includes(o.color) ? this.col(o.color) : '#3a3a3a';
+    const map = { K: '#101010', G: lead, W: '#e8c48a', Y: '#f4c430', D: '#c99a10', S: '#b8bcc8', P: '#ff8fa3' };
+    for (const [i, j, c] of cells) {
+      ctx.fillStyle = map[c];
+      ctx.fillRect(i * cs, (j - 1) * cs, cs, cs);
+    }
+  }
+
   #eraserSprite(size, lift, o) {
     const { ctx } = this;
     const w = (o.width ?? 150) * size, h = 30 * size, back = 26 * size;
@@ -1566,6 +1632,34 @@ function crayonTip(z, p, seed) {
   // drobne drganie ręki wzdłuż kierunku kreskowania (jeden ruch tam-z-powrotem na dwa rzędy)
   const osc = 9 * Math.sin((f / z.W) * Math.PI) + noise1(seed + f * 0.05) * 1.5;
   return { x: e[0] + Math.cos(z.angle) * osc, y: e[1] + Math.sin(z.angle) * osc, angle: z.angle, lift: 0 };
+}
+
+let pencilCells = null;
+/** Komórki pikselowego ołówka [i, j, kolor]; grot w (0,0), oś ukośnie w górę i w prawo. */
+function pixelPencil() {
+  if (pencilCells) return pencilCells;
+  const fill = new Map();
+  for (let i = -2; i < 18; i++) {
+    for (let j = -18; j < 2; j++) {
+      const vx = i + 0.5, vy = j - 0.5;
+      const along = (vx - vy) / Math.SQRT2, across = (vx + vy) / Math.SQRT2;
+      const hw = along < 4.5 ? along * 0.5 : 2.3;
+      if (along < 0 || along > 19 || Math.abs(across) > hw) continue;
+      const c = along < 1.6 ? 'G' : along < 4.5 ? 'W' : along < 15 ? (across > 0.7 ? 'D' : 'Y') : along < 16.6 ? 'S' : 'P';
+      fill.set(i * 64 + j, [i, j, c]);
+    }
+  }
+  // obrys: czarne komórki dookoła wypełnionych
+  const body = [...fill.values()];
+  const out = [];
+  for (const [i, j] of body) {
+    for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const key = (i + a) * 64 + j + b;
+      if (!fill.has(key)) { fill.set(key, null); out.push([i + a, j + b, 'K']); }
+    }
+  }
+  out.push(...body);
+  return (pencilCells = out);
 }
 
 function pointInPoly([x, y], poly) {

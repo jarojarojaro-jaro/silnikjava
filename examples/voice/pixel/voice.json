@@ -1,0 +1,467 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-darkman-medium",
+ "meta": {
+  "głos": "pl_PL-darkman-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "W tysiąc dziewięćset siedemdziesiątym drugim roku powstała gra, która zmieniła rozrywkę na zawsze. Nazywała się Pong.",
+   "notes": [
+    "tytuł PONG, 1972"
+   ],
+   "audio": "b1.ogg",
+   "duration": 6.989,
+   "words": [
+    {
+     "w": "W",
+     "s": 0.0,
+     "e": 0.0
+    },
+    {
+     "w": "tysiąc",
+     "s": 0.0,
+     "e": 0.44
+    },
+    {
+     "w": "dziewięćset",
+     "s": 0.44,
+     "e": 0.92
+    },
+    {
+     "w": "siedemdziesiątym",
+     "s": 0.92,
+     "e": 1.72
+    },
+    {
+     "w": "drugim",
+     "s": 1.72,
+     "e": 2.08
+    },
+    {
+     "w": "roku",
+     "s": 2.08,
+     "e": 2.28
+    },
+    {
+     "w": "powstała",
+     "s": 2.28,
+     "e": 2.88
+    },
+    {
+     "w": "gra,",
+     "s": 2.88,
+     "e": 3.06
+    },
+    {
+     "w": "która",
+     "s": 3.36,
+     "e": 3.58
+    },
+    {
+     "w": "zmieniła",
+     "s": 3.58,
+     "e": 4.2
+    },
+    {
+     "w": "rozrywkę",
+     "s": 4.2,
+     "e": 4.76
+    },
+    {
+     "w": "na",
+     "s": 4.76,
+     "e": 4.94
+    },
+    {
+     "w": "zawsze.",
+     "s": 4.94,
+     "e": 5.28
+    },
+    {
+     "w": "Nazywała",
+     "s": 5.56,
+     "e": 6.2
+    },
+    {
+     "w": "się",
+     "s": 6.2,
+     "e": 6.38
+    },
+    {
+     "w": "Pong.",
+     "s": 6.38,
+     "e": 6.8
+    }
+   ],
+   "match": 0.94
+  },
+  {
+   "id": "b2",
+   "text": "Zasady były bardzo proste. Boisko z dwiema ścianami, linia na środku, dwie białe paletki, po jednej dla każdego gracza, i kwadratowa piłka.",
+   "notes": [
+    "ściany, linia środkowa, paletki, piłka"
+   ],
+   "audio": "b2.ogg",
+   "duration": 9.996,
+   "words": [
+    {
+     "w": "Zasady",
+     "s": 0.0,
+     "e": 0.48
+    },
+    {
+     "w": "były",
+     "s": 0.48,
+     "e": 0.72
+    },
+    {
+     "w": "bardzo",
+     "s": 0.72,
+     "e": 1.08
+    },
+    {
+     "w": "proste.",
+     "s": 1.08,
+     "e": 1.78
+    },
+    {
+     "w": "Boisko",
+     "s": 1.96,
+     "e": 2.38
+    },
+    {
+     "w": "z",
+     "s": 2.38,
+     "e": 2.46
+    },
+    {
+     "w": "dwiema",
+     "s": 2.46,
+     "e": 2.86
+    },
+    {
+     "w": "ścianami,",
+     "s": 2.86,
+     "e": 3.42
+    },
+    {
+     "w": "linia",
+     "s": 3.82,
+     "e": 4.1
+    },
+    {
+     "w": "na",
+     "s": 4.1,
+     "e": 4.26
+    },
+    {
+     "w": "środku,",
+     "s": 4.26,
+     "e": 4.86
+    },
+    {
+     "w": "dwie",
+     "s": 5.12,
+     "e": 5.42
+    },
+    {
+     "w": "białe",
+     "s": 5.42,
+     "e": 5.8
+    },
+    {
+     "w": "paletki,",
+     "s": 5.8,
+     "e": 6.42
+    },
+    {
+     "w": "po",
+     "s": 6.68,
+     "e": 6.82
+    },
+    {
+     "w": "jednej",
+     "s": 6.82,
+     "e": 7.14
+    },
+    {
+     "w": "dla",
+     "s": 7.14,
+     "e": 7.28
+    },
+    {
+     "w": "każdego",
+     "s": 7.28,
+     "e": 7.82
+    },
+    {
+     "w": "gracza,",
+     "s": 7.82,
+     "e": 8.5
+    },
+    {
+     "w": "i",
+     "s": 8.62,
+     "e": 8.68
+    },
+    {
+     "w": "kwadratowa",
+     "s": 8.68,
+     "e": 9.4
+    },
+    {
+     "w": "piłka.",
+     "s": 9.4,
+     "e": 9.86
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Gracz kręcił pokrętłem, a paletka jeździła w górę i w dół. Piłka odbijała się od ściany i leciała na drugą stronę.",
+   "notes": [
+    "strzałki góra-dół, tor piłki"
+   ],
+   "audio": "b3.ogg",
+   "duration": 7.976,
+   "words": [
+    {
+     "w": "Gracz",
+     "s": 0.0,
+     "e": 0.28
+    },
+    {
+     "w": "kręcił",
+     "s": 0.28,
+     "e": 0.78
+    },
+    {
+     "w": "pokrętłem,",
+     "s": 0.78,
+     "e": 1.46
+    },
+    {
+     "w": "a",
+     "s": 1.7,
+     "e": 1.8
+    },
+    {
+     "w": "paletka",
+     "s": 1.8,
+     "e": 2.32
+    },
+    {
+     "w": "jeździła",
+     "s": 2.32,
+     "e": 2.8
+    },
+    {
+     "w": "w",
+     "s": 2.8,
+     "e": 2.92
+    },
+    {
+     "w": "górę",
+     "s": 2.92,
+     "e": 3.38
+    },
+    {
+     "w": "i",
+     "s": 3.38,
+     "e": 3.64
+    },
+    {
+     "w": "w",
+     "s": 3.64,
+     "e": 3.74
+    },
+    {
+     "w": "dół.",
+     "s": 3.74,
+     "e": 4.02
+    },
+    {
+     "w": "Piłka",
+     "s": 4.16,
+     "e": 4.62
+    },
+    {
+     "w": "odbijała",
+     "s": 4.62,
+     "e": 5.28
+    },
+    {
+     "w": "się",
+     "s": 5.28,
+     "e": 5.4
+    },
+    {
+     "w": "od",
+     "s": 5.4,
+     "e": 5.66
+    },
+    {
+     "w": "ściany",
+     "s": 5.66,
+     "e": 6.12
+    },
+    {
+     "w": "i",
+     "s": 6.12,
+     "e": 6.42
+    },
+    {
+     "w": "leciała",
+     "s": 6.42,
+     "e": 6.82
+    },
+    {
+     "w": "na",
+     "s": 6.82,
+     "e": 6.96
+    },
+    {
+     "w": "drugą",
+     "s": 6.96,
+     "e": 7.34
+    },
+    {
+     "w": "stronę.",
+     "s": 7.34,
+     "e": 7.84
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Kto nie odbił piłki, tracił punkt. Pierwszy automat stanął w barze w Kalifornii i po dwóch dniach przestał działać, bo był pełen monet.",
+   "notes": [
+    "wynik 3:2, moneta 25¢"
+   ],
+   "audio": "b4.ogg",
+   "duration": 8.348,
+   "words": [
+    {
+     "w": "Kto",
+     "s": 0.0,
+     "e": 0.0
+    },
+    {
+     "w": "nie",
+     "s": 0.0,
+     "e": 0.3
+    },
+    {
+     "w": "odbił",
+     "s": 0.3,
+     "e": 0.82
+    },
+    {
+     "w": "piłki,",
+     "s": 0.82,
+     "e": 1.3
+    },
+    {
+     "w": "tracił",
+     "s": 1.58,
+     "e": 2.04
+    },
+    {
+     "w": "punkt.",
+     "s": 2.04,
+     "e": 2.42
+    },
+    {
+     "w": "Pierwszy",
+     "s": 2.64,
+     "e": 3.06
+    },
+    {
+     "w": "automat",
+     "s": 3.06,
+     "e": 3.5
+    },
+    {
+     "w": "stanął",
+     "s": 3.5,
+     "e": 4.0
+    },
+    {
+     "w": "w",
+     "s": 4.0,
+     "e": 4.06
+    },
+    {
+     "w": "barze",
+     "s": 4.06,
+     "e": 4.34
+    },
+    {
+     "w": "w",
+     "s": 4.34,
+     "e": 4.42
+    },
+    {
+     "w": "Kalifornii",
+     "s": 4.42,
+     "e": 5.1
+    },
+    {
+     "w": "i",
+     "s": 5.1,
+     "e": 5.18
+    },
+    {
+     "w": "po",
+     "s": 5.18,
+     "e": 5.32
+    },
+    {
+     "w": "dwóch",
+     "s": 5.32,
+     "e": 5.58
+    },
+    {
+     "w": "dniach",
+     "s": 5.58,
+     "e": 5.88
+    },
+    {
+     "w": "przestał",
+     "s": 5.88,
+     "e": 6.38
+    },
+    {
+     "w": "działać,",
+     "s": 6.38,
+     "e": 7.1
+    },
+    {
+     "w": "bo",
+     "s": 7.1,
+     "e": 7.3
+    },
+    {
+     "w": "był",
+     "s": 7.3,
+     "e": 7.52
+    },
+    {
+     "w": "pełen",
+     "s": 7.52,
+     "e": 7.9
+    },
+    {
+     "w": "monet.",
+     "s": 7.9,
+     "e": 8.14
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

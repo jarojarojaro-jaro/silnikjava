@@ -391,6 +391,7 @@ import { buildPoster } from '../examples/scenes/styles/poster.js';
 import { buildCorkboard } from '../examples/scenes/styles/corkboard.js';
 import { buildSumi } from '../examples/scenes/styles/sumi.js';
 import { buildPatent } from '../examples/scenes/styles/patent.js';
+import { buildPixel } from '../examples/scenes/styles/pixel.js';
 
 test('motywy: nazwy, uzupełnione domyślne pola, nieznany motyw to błąd', () => {
   assert.deepEqual(themeNames().map((t) => t.id).slice(0, 5), ['paper', 'chalk', 'blueprint', 'neon', 'notebook']);
@@ -425,7 +426,7 @@ test('motyw w Storyboardzie: scena niesie motyw, ślad kredki idzie kreskowaniem
 });
 
 test('filmy w trzech stylach: fizyka OK, ~15–18 s, kotwice na czas', () => {
-  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook], ['watercolor', buildWatercolor], ['comic', buildComic], ['flipchart', buildFlipchart], ['kraft', buildKraft], ['sketch', buildSketch], ['parchment', buildParchment], ['woodcut', buildWoodcut], ['cosmos', buildCosmos], ['terminal', buildTerminal], ['poster', buildPoster], ['corkboard', buildCorkboard], ['sumi', buildSumi], ['patent', buildPatent]]) {
+  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook], ['watercolor', buildWatercolor], ['comic', buildComic], ['flipchart', buildFlipchart], ['kraft', buildKraft], ['sketch', buildSketch], ['parchment', buildParchment], ['woodcut', buildWoodcut], ['cosmos', buildCosmos], ['terminal', buildTerminal], ['poster', buildPoster], ['corkboard', buildCorkboard], ['sumi', buildSumi], ['patent', buildPatent], ['pixel', buildPixel]]) {
     const v = new Voice(JSON.parse(readFileSync(new URL(`../examples/voice/${id}/voice.json`, import.meta.url), 'utf8')), `voice/${id}/`);
     const sb = build(v);
     assert.equal(sb.scene().theme, id);

@@ -792,6 +792,37 @@ export const THEMES = {
       vignette(ctx, w, h, 0.05);
     },
   },
+  pixel: {
+    name: 'Pixel art',
+    palette: {
+      // ekran automatu: biel fosforu i kilka nasyconych kolorów z 8-bitowej palety
+      paper: '#0c0d14', ink: '#f4f4f4', inkSoft: '#7b80a0', pen: '#ff4f6d', penDark: '#d6264a',
+      teal: '#3de0c5', sky: '#4aa8ff', ochre: '#ffd23f', coral: '#ff7a45', plum: '#b45cff', white: '#ffffff',
+    },
+    fonts: { hand: '"Pixelify Sans", "VT323", monospace', title: '"Pixelify Sans", "VT323", monospace' },
+    writeScale: 1.15,
+    // każda kreska przyciągnięta do siatki 8 px — schodki zamiast skosów
+    pen: { style: 'pixel', width: 2.7, jitter: 0, grid: 8 },
+    // kolor = kratki siatki zamalowane zygzakiem
+    crayon: { pixel: true, w: 16, spacing: 14, alpha: 1, grain: 0 },
+    highlight: { blend: 'screen', alpha: 0.35 },
+    tools: { pencil: 'pixelpencil', crayon: 'pixelpencil', marker: 'pixelpencil' },
+    outline: '#000000',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // ledwo widoczna siatka pikseli i linie skanowania
+      ctx.fillStyle = ctx.createPattern(texture('pixel', 64, (c, S) => {
+        c.fillStyle = 'rgba(120,140,255,0.035)';
+        for (let i = 0; i < S; i += 8) { c.fillRect(i, 0, 1, S); c.fillRect(0, i, S, 1); }
+        c.fillStyle = 'rgba(0,0,0,0.18)';
+        for (let i = 0; i < S; i += 4) c.fillRect(0, i + 2, S, 1);
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      vignette(ctx, w, h, 0.45);
+    },
+  },
   sumi: {
     name: 'Tusz i pędzel',
     palette: {

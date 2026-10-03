@@ -36,6 +36,7 @@ const list = targets.length
       'examples/scenes/styles/corkboard.js:buildCorkboard:examples/voice/corkboard/voice.json',
       'examples/scenes/styles/sumi.js:buildSumi:examples/voice/sumi/voice.json',
       'examples/scenes/styles/patent.js:buildPatent:examples/voice/patent/voice.json',
+      'examples/scenes/styles/pixel.js:buildPixel:examples/voice/pixel/voice.json',
       'examples/scenes/reels/notebook.js:buildReelNotebook:examples/voice/reel-notebook/voice.json',
       'examples/scenes/reels/neon.js:buildReelNeon:examples/voice/reel-neon/voice.json',
       'examples/scenes/reels/comic.js:buildReelComic:examples/voice/reel-comic/voice.json',

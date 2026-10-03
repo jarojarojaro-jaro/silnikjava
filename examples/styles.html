@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Silnik — style</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&family=Kalam:wght@400;700&family=Architects+Daughter&family=Courier+Prime&family=Patrick+Hand&family=Shadows+Into+Light+Two&family=Mynerve&family=Amatic+SC:wght@400;700&family=Bangers&family=Shantell+Sans&family=Sriracha&family=Lilita+One&family=Grenze+Gotisch&family=MedievalSharp&family=Alfa+Slab+One&family=Special+Elite&family=Exo+2:wght@400;700&family=Comfortaa&family=VT323&family=Bebas+Neue&family=Oswald:wght@400;700&family=Kaushan+Script&family=Spectral&family=Libre+Baskerville&family=EB+Garamond&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&family=Kalam:wght@400;700&family=Architects+Daughter&family=Courier+Prime&family=Patrick+Hand&family=Shadows+Into+Light+Two&family=Mynerve&family=Amatic+SC:wght@400;700&family=Bangers&family=Shantell+Sans&family=Sriracha&family=Lilita+One&family=Grenze+Gotisch&family=MedievalSharp&family=Alfa+Slab+One&family=Special+Elite&family=Exo+2:wght@400;700&family=Comfortaa&family=VT323&family=Bebas+Neue&family=Oswald:wght@400;700&family=Kaushan+Script&family=Spectral&family=Libre+Baskerville&family=EB+Garamond&family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
     .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 14px; }
@@ -56,6 +56,7 @@
     import { buildCorkboard } from './scenes/styles/corkboard.js';
     import { buildSumi } from './scenes/styles/sumi.js';
     import { buildPatent } from './scenes/styles/patent.js';
+    import { buildPixel } from './scenes/styles/pixel.js';
 
     const STYLES = {
       chalk: { name: 'Tablica kredowa', build: buildChalk, about: 'Kreda na zielonej tablicy: ziarnista kreska, kolorowa kreda, w ręce kawałek kredy. Lekcja, matematyka, edukacja.' },
@@ -75,6 +76,7 @@
       corkboard: { name: 'Tablica korkowa', build: buildCorkboard, about: 'Tablica śledczego: korek w drewnianej ramie, kolorowe karteczki, pinezki, napisy markerem i czerwona nitka łącząca wątki. Zagadki historii, śledztwa, analizy przyczyn.' },
       sumi: { name: 'Tusz i pędzel', build: buildSumi, about: 'Pędzel z tuszem na papierze ryżowym: kreska gruba w poprzek ostrza i cienka wzdłuż, laweowanie rozcieńczonym tuszem, czerwona pieczęć. Przyroda, geografia, spokojne opowieści.' },
       patent: { name: 'Rysunek patentowy', build: buildPatent, about: 'Arkusz patentowy z XIX wieku: cienki tusz kreślarski, przekroje kreskowane pod 45°, numerowane odsyłacze i podpis FIG. 1. Technika, wynalazki, budowa maszyn.' },
+      pixel: { name: 'Pixel art', build: buildPixel, about: 'Ekran automatu z lat 70.: każda kreska przyciągnięta do siatki 8 px, kolor kładziony kratka po kratce, pikselowa czcionka i pikselowy ołówek w ręce. Historia gier i komputerów, technologia z przymrużeniem oka.' },
     };
     const id = new URLSearchParams(location.search).get('s') in STYLES ? new URLSearchParams(location.search).get('s') : 'chalk';
     const $ = (x) => document.getElementById(x);
