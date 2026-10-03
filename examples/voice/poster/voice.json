@@ -1,0 +1,349 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-darkman-medium",
+ "meta": {
+  "głos": "pl_PL-darkman-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Enigma. Niemiecka maszyna szyfrująca z czasów drugiej wojny światowej.",
+   "notes": [
+    "czerwony pas, tytuł"
+   ],
+   "audio": "b1.ogg",
+   "duration": 4.331,
+   "words": [
+    {
+     "w": "Enigma.",
+     "s": 0.0,
+     "e": 0.54
+    },
+    {
+     "w": "Niemiecka",
+     "s": 0.76,
+     "e": 1.26
+    },
+    {
+     "w": "maszyna",
+     "s": 1.26,
+     "e": 1.7
+    },
+    {
+     "w": "szyfrująca",
+     "s": 1.7,
+     "e": 2.4
+    },
+    {
+     "w": "z",
+     "s": 2.4,
+     "e": 2.56
+    },
+    {
+     "w": "czasów",
+     "s": 2.56,
+     "e": 2.9
+    },
+    {
+     "w": "drugiej",
+     "s": 2.9,
+     "e": 3.14
+    },
+    {
+     "w": "wojny",
+     "s": 3.14,
+     "e": 3.58
+    },
+    {
+     "w": "światowej.",
+     "s": 3.58,
+     "e": 4.1
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "To skrzynia z klawiaturą i obrotowymi wirnikami, o milionach ustawień. Uważano ją za niemożliwą do złamania.",
+   "notes": [
+    "maszyna, wirniki"
+   ],
+   "audio": "b2.ogg",
+   "duration": 7.187,
+   "words": [
+    {
+     "w": "To",
+     "s": 0.0,
+     "e": 0.12
+    },
+    {
+     "w": "skrzynia",
+     "s": 0.12,
+     "e": 0.58
+    },
+    {
+     "w": "z",
+     "s": 0.58,
+     "e": 0.72
+    },
+    {
+     "w": "klawiaturą",
+     "s": 0.72,
+     "e": 1.4
+    },
+    {
+     "w": "i",
+     "s": 1.4,
+     "e": 1.64
+    },
+    {
+     "w": "obrotowymi",
+     "s": 1.64,
+     "e": 2.3
+    },
+    {
+     "w": "wirnikami,",
+     "s": 2.3,
+     "e": 2.96
+    },
+    {
+     "w": "o",
+     "s": 3.24,
+     "e": 3.38
+    },
+    {
+     "w": "milionach",
+     "s": 3.38,
+     "e": 3.96
+    },
+    {
+     "w": "ustawień.",
+     "s": 3.96,
+     "e": 4.58
+    },
+    {
+     "w": "Uważano",
+     "s": 4.66,
+     "e": 5.22
+    },
+    {
+     "w": "ją",
+     "s": 5.22,
+     "e": 5.4
+    },
+    {
+     "w": "za",
+     "s": 5.4,
+     "e": 5.6
+    },
+    {
+     "w": "niemożliwą",
+     "s": 5.6,
+     "e": 6.3
+    },
+    {
+     "w": "do",
+     "s": 6.3,
+     "e": 6.44
+    },
+    {
+     "w": "złamania.",
+     "s": 6.44,
+     "e": 6.98
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "W tysiąc dziewięćset trzydziestym drugim roku wyzwanie podjęło trzech młodych polskich matematyków z Poznania.",
+   "notes": [
+    "1932, trzy postacie"
+   ],
+   "audio": "b3.ogg",
+   "duration": 5.596,
+   "words": [
+    {
+     "w": "W",
+     "s": 0.0,
+     "e": 0.0
+    },
+    {
+     "w": "tysiąc",
+     "s": 0.0,
+     "e": 0.345
+    },
+    {
+     "w": "dziewięćset",
+     "s": 0.345,
+     "e": 0.69
+    },
+    {
+     "w": "trzydziestym",
+     "s": 0.69,
+     "e": 1.035
+    },
+    {
+     "w": "drugim",
+     "s": 1.035,
+     "e": 1.38
+    },
+    {
+     "w": "roku",
+     "s": 1.38,
+     "e": 2.02
+    },
+    {
+     "w": "wyzwanie",
+     "s": 2.02,
+     "e": 2.6
+    },
+    {
+     "w": "podjęło",
+     "s": 2.6,
+     "e": 3.04
+    },
+    {
+     "w": "trzech",
+     "s": 3.04,
+     "e": 3.22
+    },
+    {
+     "w": "młodych",
+     "s": 3.22,
+     "e": 3.72
+    },
+    {
+     "w": "polskich",
+     "s": 3.72,
+     "e": 4.14
+    },
+    {
+     "w": "matematyków",
+     "s": 4.14,
+     "e": 4.82
+    },
+    {
+     "w": "z",
+     "s": 4.82,
+     "e": 4.98
+    },
+    {
+     "w": "Poznania.",
+     "s": 4.98,
+     "e": 5.42
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Rejewski, Różycki i Zygalski odtworzyli jej działanie za pomocą czystej matematyki.",
+   "notes": [
+    "nazwiska, strzałka do maszyny"
+   ],
+   "audio": "b4.ogg",
+   "duration": 5.782,
+   "words": [
+    {
+     "w": "Rejewski,",
+     "s": 0.0,
+     "e": 0.54
+    },
+    {
+     "w": "Różycki",
+     "s": 0.54,
+     "e": 1.78
+    },
+    {
+     "w": "i",
+     "s": 1.78,
+     "e": 1.9
+    },
+    {
+     "w": "Zygalski",
+     "s": 1.9,
+     "e": 2.5
+    },
+    {
+     "w": "odtworzyli",
+     "s": 2.5,
+     "e": 3.12
+    },
+    {
+     "w": "jej",
+     "s": 3.12,
+     "e": 3.2
+    },
+    {
+     "w": "działanie",
+     "s": 3.2,
+     "e": 3.7
+    },
+    {
+     "w": "za",
+     "s": 3.7,
+     "e": 3.88
+    },
+    {
+     "w": "pomocą",
+     "s": 3.88,
+     "e": 4.38
+    },
+    {
+     "w": "czystej",
+     "s": 4.38,
+     "e": 4.88
+    },
+    {
+     "w": "matematyki.",
+     "s": 4.88,
+     "e": 5.52
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b5",
+   "text": "Ich praca pomogła aliantom wygrać wojnę.",
+   "notes": [
+    "ZŁAMANA"
+   ],
+   "audio": "b5.ogg",
+   "duration": 2.728,
+   "words": [
+    {
+     "w": "Ich",
+     "s": 0.0,
+     "e": 0.16
+    },
+    {
+     "w": "praca",
+     "s": 0.16,
+     "e": 0.56
+    },
+    {
+     "w": "pomogła",
+     "s": 0.56,
+     "e": 1.14
+    },
+    {
+     "w": "aliantom",
+     "s": 1.14,
+     "e": 1.72
+    },
+    {
+     "w": "wygrać",
+     "s": 1.72,
+     "e": 2.2
+    },
+    {
+     "w": "wojnę.",
+     "s": 2.2,
+     "e": 2.62
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

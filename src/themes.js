@@ -664,6 +664,49 @@ export const THEMES = {
       ctx.stroke();
     },
   },
+
+  // ------------------------------------------------------------ plakat konstruktywistyczny
+  poster: {
+    name: 'Plakat',
+    palette: {
+      // druk: czerwień, czerń i krem + przygaszony granat i ochra
+      paper: '#eee1c4', ink: '#151414', inkSoft: '#4a4642', pen: '#cf2a1d', penDark: '#a51f15',
+      teal: '#2a4656', sky: '#3c6687', ochre: '#d89b2a', coral: '#cf2a1d', plum: '#3a2c3f', white: '#f8f1e2',
+    },
+    fonts: { hand: '"Oswald", "Kalam", sans-serif', title: '"Bebas Neue", "Oswald", sans-serif' },
+    writeScale: 1.4,
+    // czysta, mocna kreska, prawie bez drżenia
+    pen: { style: 'ink', width: 1.45, jitter: 0.25, pressure: 0.1, taper: 0.3 },
+    // płaska, kryjąca farba drukarska z lekkim ziarnem
+    crayon: { w: 28, spacing: 16, alpha: 0.97, grain: 0.3, wave: 0 },
+    highlight: { blend: 'multiply', alpha: 0.45 },
+    tools: { pencil: 'brushpen', crayon: 'brush' },
+    outline: '#151414',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // stary druk: ziarno, przetarcia i ślady złożenia plakatu
+      ctx.fillStyle = ctx.createPattern(texture('poster', 300, (c, S, r) => {
+        for (let i = 0; i < 2600; i++) {
+          c.fillStyle = r() > 0.6 ? `rgba(255,250,235,${r() * 0.35})` : `rgba(60,40,20,${r() * 0.06})`;
+          c.fillRect(r() * S, r() * S, 1 + r() * 2, 1 + r() * 2);
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(60,40,20,0.1)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(w / 3, 0);
+      ctx.lineTo(w / 3 - 3, h);
+      ctx.moveTo((2 * w) / 3, 0);
+      ctx.lineTo((2 * w) / 3 + 2, h);
+      ctx.moveTo(0, h / 2);
+      ctx.lineTo(w, h / 2 + 3);
+      ctx.stroke();
+      vignette(ctx, w, h, 0.18);
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */

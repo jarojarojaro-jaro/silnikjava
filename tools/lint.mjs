@@ -32,6 +32,7 @@ const list = targets.length
       'examples/scenes/styles/woodcut.js:buildWoodcut:examples/voice/woodcut/voice.json',
       'examples/scenes/styles/cosmos.js:buildCosmos:examples/voice/cosmos/voice.json',
       'examples/scenes/styles/terminal.js:buildTerminal:examples/voice/terminal/voice.json',
+      'examples/scenes/styles/poster.js:buildPoster:examples/voice/poster/voice.json',
       'examples/scenes/reels/notebook.js:buildReelNotebook:examples/voice/reel-notebook/voice.json',
       'examples/scenes/reels/neon.js:buildReelNeon:examples/voice/reel-neon/voice.json',
       'examples/scenes/reels/comic.js:buildReelComic:examples/voice/reel-comic/voice.json',
