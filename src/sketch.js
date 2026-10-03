@@ -906,8 +906,8 @@ export class Sketch {
     if (type === 'eraser') this.#eraserSprite(size, lift, o);
     else if (type === 'pixelpencil') this.#pixelPencilSprite(size, lift, o);
     else {
-      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124, flipmarker: 118, quill: 150, gouge: 112, lightpen: 120 }[type] ?? 120) * size;
-      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13, flipmarker: 22, quill: 26, gouge: 12, lightpen: 14 }[type] ?? 13) * size;
+      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124, flipmarker: 118, quill: 150, gouge: 112, lightpen: 120, charcoal: 96 }[type] ?? 120) * size;
+      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13, flipmarker: 22, quill: 26, gouge: 12, lightpen: 14, charcoal: 15 }[type] ?? 13) * size;
       // cień na kartce — im wyżej narzędzie, tym dalej i bardziej rozmyty
       ctx.save();
       ctx.rotate(ang);
@@ -930,6 +930,7 @@ export class Sketch {
       else if (type === 'quill') this.#quillSprite(len, wd, size, o);
       else if (type === 'gouge') this.#gougeSprite(len, wd, size, o);
       else if (type === 'lightpen') this.#lightpenSprite(len, wd, size, o);
+      else if (type === 'charcoal') this.#charcoalSprite(len, wd, size, o);
       else this.#pencilSprite(len, wd, size, o);
     }
     ctx.restore();
@@ -1432,6 +1433,40 @@ export class Sketch {
   }
 
   /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */
+  /** Węgiel rysunkowy: nierówny, matowy patyk ze skośnie startym czubkiem. */
+  #charcoalSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const r = rng(7);
+    ctx.fillStyle = '#1c1a19';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(7 * size, -wd * 0.5);
+    // nierówny brzeg zwęglonej gałązki
+    for (let x = 12; x <= len; x += 10) ctx.lineTo(x, -wd * (0.48 + r() * 0.08));
+    ctx.lineTo(len + 2 * size, 0);
+    for (let x = len; x >= 12; x -= 10) ctx.lineTo(x, wd * (0.46 + r() * 0.08));
+    ctx.lineTo(9 * size, wd * 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.save();
+    ctx.clip();
+    // matowy połysk wzdłuż i ziarno
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.fillRect(0, -wd / 2, len, wd * 0.22);
+    ctx.globalAlpha *= 0.35;
+    ctx.fillStyle = ctx.createPattern(chalkTexture(), 'repeat');
+    ctx.fillRect(0, -wd / 2, len, wd);
+    ctx.restore();
+    // starta, szara płaszczyzna czubka
+    ctx.fillStyle = 'rgba(120,115,110,0.6)';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(7 * size, -wd * 0.5);
+    ctx.lineTo(9 * size, wd * 0.5);
+    ctx.closePath();
+    ctx.fill();
+  }
+
   /** Ołówek z pikseli, jak kursor w programie do rysowania: zawsze ukośnie, grot w (0,0). */
   #pixelPencilSprite(size, lift, o) {
     const { ctx } = this;

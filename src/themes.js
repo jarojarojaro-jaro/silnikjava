@@ -823,6 +823,50 @@ export const THEMES = {
       vignette(ctx, w, h, 0.45);
     },
   },
+  charcoal: {
+    name: 'Węgiel',
+    palette: {
+      // węgiel w kilku naciskach + sangwina / żar jako jedyny kolor
+      paper: '#e8e1d3', ink: '#1d1b1a', inkSoft: '#6d6863', pen: '#c2410c', penDark: '#8f2d07',
+      teal: '#4f6b66', sky: '#6a7f94', ochre: '#b7862f', coral: '#c2410c', plum: '#5d4a5a', white: '#f7f3ea',
+    },
+    fonts: { hand: '"Spectral", "Kalam", serif', title: '"Cinzel", "Kalam", serif' },
+    writeScale: 1.25,
+    // węgiel: gruba, ziarnista kreska, mocny nacisk, ząbek papieru prześwituje
+    pen: { style: 'graphite', width: 1.75, jitter: 1.2, grain: 0.7, pressure: 0.55, taper: 0.8 },
+    // roztarty palcem pył węglowy: miękka plama bez brzegu
+    crayon: { wash: true, soft: 9, w: 34, spacing: 26, alpha: 0.75, grain: 0.6 },
+    highlight: { blend: 'multiply', alpha: 0.3 },
+    tools: { pencil: 'charcoal', crayon: 'charcoal', marker: 'charcoal' },
+    outline: '#1d1b1a',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // papier Ingres: żeberkowanie i szary pył po wcześniejszych roztarciach
+      ctx.fillStyle = ctx.createPattern(texture('ingres', 300, (c, S, r) => {
+        for (let x = 0; x < S; x += 5) {
+          c.fillStyle = `rgba(90,80,70,${0.03 + r() * 0.03})`;
+          c.fillRect(x, 0, 1.4, S);
+        }
+        for (let i = 0; i < 2200; i++) {
+          c.fillStyle = `rgba(40,35,30,${r() * 0.07})`;
+          c.fillRect(r() * S, r() * S, 1 + r() * 1.5, 1 + r() * 1.5);
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      const r = rng(79);
+      for (let i = 0; i < 5; i++) {
+        const x = r() * w, y = r() * h, rad = 120 + r() * 200;
+        const g = ctx.createRadialGradient(x, y, 0, x, y, rad);
+        g.addColorStop(0, 'rgba(40,36,32,0.06)');
+        g.addColorStop(1, 'rgba(40,36,32,0)');
+        ctx.fillStyle = g;
+        ctx.fillRect(x - rad, y - rad, rad * 2, rad * 2);
+      }
+      vignette(ctx, w, h, 0.16);
+    },
+  },
   sumi: {
     name: 'Tusz i pędzel',
     palette: {
