@@ -26,14 +26,14 @@ export function buildComic(voice) {
     sb.write('Dlaczego niebo jest niebieskie?', 640, 104, { size: 48, font: 'title', align: 'center', color: 'ink' });
   });
 
-  // 2. "Światło słońca to mieszanka wszystkich kolorów."
+  // 2. "Światło słońca to tak naprawdę mieszanka wszystkich kolorów."
   sb.say(B(2), () => {
     sb.pen(ellipse(SUN[0], SUN[1], 78, 78, { seed: 3, overshoot: 0.06 }), { color: 'ink', w: 3, seed: 3, cue: 'słońca' });
+    sb.crayon(ellipse(SUN[0], SUN[1], 80, 80, { seed: 4 }), { color: 'ochre', seed: 4 });
     [['pen', -0.35], ['teal', 0], ['sky', 0.35]].forEach(([color, a], i) => {
       const [sx, sy] = [SUN[0] + Math.cos(a) * 95, SUN[1] + Math.sin(a) * 95];
       sb.pen(line(sx, sy, sx + Math.cos(a) * 170, sy + Math.sin(a) * 170, { seed: 5 + i }), { color, w: 4, seed: 5 + i, speed: 1600, ...(i ? {} : { cue: 'wszystkich' }) });
     });
-    sb.crayon(ellipse(SUN[0], SUN[1], 80, 80, { seed: 4 }), { color: 'ochre', seed: 4 });
   });
 
   // 3. "Powietrze rozprasza niebieski najmocniej, więc widzimy go na całym niebie, z każdej strony."

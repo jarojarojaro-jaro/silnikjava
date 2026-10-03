@@ -5,7 +5,7 @@ GŁOS: pl_PL-darkman-medium
 1. Dlaczego niebo jest niebieskie?
 [tytuł]
 
-2. Światło słońca to mieszanka wszystkich kolorów.
+2. Światło słońca to tak naprawdę mieszanka wszystkich kolorów.
 [kadr 1: słońce, promienie w kolorach]
 
 3. Powietrze rozprasza niebieski najmocniej, więc widzimy go na całym niebie, z każdej strony.
