@@ -847,8 +847,8 @@ export class Sketch {
     ctx.lineJoin = 'round';
     if (type === 'eraser') this.#eraserSprite(size, lift, o);
     else {
-      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124, flipmarker: 118, quill: 150, gouge: 112 }[type] ?? 120) * size;
-      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13, flipmarker: 22, quill: 26, gouge: 12 }[type] ?? 13) * size;
+      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124, flipmarker: 118, quill: 150, gouge: 112, lightpen: 120 }[type] ?? 120) * size;
+      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13, flipmarker: 22, quill: 26, gouge: 12, lightpen: 14 }[type] ?? 13) * size;
       // cień na kartce — im wyżej narzędzie, tym dalej i bardziej rozmyty
       ctx.save();
       ctx.rotate(ang);
@@ -870,6 +870,7 @@ export class Sketch {
       else if (type === 'flipmarker') this.#flipmarkerSprite(len, wd, size, o);
       else if (type === 'quill') this.#quillSprite(len, wd, size, o);
       else if (type === 'gouge') this.#gougeSprite(len, wd, size, o);
+      else if (type === 'lightpen') this.#lightpenSprite(len, wd, size, o);
       else this.#pencilSprite(len, wd, size, o);
     }
     ctx.restore();
@@ -1325,6 +1326,50 @@ export class Sketch {
     ctx.beginPath();
     ctx.ellipse((x0 + len) / 2 + 6 * size, -wd * 0.45, (len - x0) * 0.3, wd * 0.18, 0, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  /** Pióro świetlne (lata 60.): szary walec z przyciskiem, świecący czubek, kabel do komputera. */
+  #lightpenSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const ink = this.col(o.color, 'ink');
+    // poświata czubka na ekranie
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 18 * size);
+    g.addColorStop(0, ink);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha *= 0.55;
+    ctx.fillStyle = g;
+    ctx.fillRect(-18 * size, -18 * size, 36 * size, 36 * size);
+    ctx.restore();
+    ctx.strokeStyle = this.theme.outline ?? '#0a0a0a';
+    ctx.lineWidth = 1.2 * size;
+    const tip = 14 * size;
+    ctx.fillStyle = '#9aa0a6';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(tip, -wd * 0.36);
+    ctx.lineTo(tip, wd * 0.36);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#c9cdd1';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(tip, -wd / 2, len - tip, wd, [2 * size, 6 * size, 6 * size, 2 * size]);
+    else ctx.rect(tip, -wd / 2, len - tip, wd);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#3b3f44';
+    ctx.fillRect(tip + 18 * size, -wd / 2 - 2 * size, 12 * size, 4 * size);
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillRect(tip, -wd / 2 + 2 * size, len - tip, wd * 0.2);
+    // kabel
+    ctx.strokeStyle = '#2b2f33';
+    ctx.lineWidth = 3 * size;
+    ctx.beginPath();
+    ctx.moveTo(len, 0);
+    ctx.bezierCurveTo(len + 30 * size, 6 * size, len + 40 * size, 50 * size, len + 80 * size, 70 * size);
+    ctx.stroke();
   }
 
   /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */

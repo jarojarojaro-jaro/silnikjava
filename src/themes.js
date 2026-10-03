@@ -617,6 +617,53 @@ export const THEMES = {
       ctx.restore();
     },
   },
+
+  // ------------------------------------------------------------ terminal CRT
+  terminal: {
+    name: 'Terminal CRT',
+    palette: {
+      // zielony fosfor; bursztyn i czerwień tylko na alarmy
+      paper: '#03110a', ink: '#7dff9b', inkSoft: '#3a9e58', pen: '#d2ffdc', penDark: '#9de6ae',
+      teal: '#5dffc8', sky: '#7dff9b', ochre: '#ffc94a', coral: '#ff6a55', plum: '#9dff7d', white: '#eaffef',
+    },
+    fonts: { hand: '"VT323", monospace', title: '"VT323", monospace' },
+    // wektorowy monitor: cienka, świecąca, równa kreska
+    pen: { style: 'neon', width: 0.8, jitter: 0.25, glow: 0.8 },
+    // wypełnienie świecącymi kreskami (krótkie pociągnięcia w poprzek kształtu)
+    crayon: { w: 4, spacing: 8, wave: 0, alpha: 0.55, grain: 0, blend: 'lighter' },
+    highlight: { blend: 'lighter', alpha: 0.3 },
+    text: { glow: true },
+    tools: { pencil: 'lightpen', crayon: 'lightpen' },
+    outline: '#0a0a0a',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = '#000';
+      ctx.fillRect(0, 0, w, h);
+      // kineskop: zaokrąglony ekran z poświatą fosforu
+      ctx.save();
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(18, 18, w - 36, h - 36, 46);
+      else ctx.rect(18, 18, w - 36, h - 36);
+      ctx.clip();
+      const g = ctx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, Math.hypot(w, h) * 0.55);
+      g.addColorStop(0, '#0b2a17');
+      g.addColorStop(1, sk.col('paper'));
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, w, h);
+      // linie ekranu
+      ctx.fillStyle = 'rgba(0,0,0,0.28)';
+      for (let y = 0; y < h; y += 3) ctx.fillRect(0, y, w, 1);
+      vignette(ctx, w, h, 0.6);
+      ctx.restore();
+      // ramka obudowy
+      ctx.strokeStyle = '#1d2a22';
+      ctx.lineWidth = 14;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(11, 11, w - 22, h - 22, 52);
+      else ctx.rect(11, 11, w - 22, h - 22);
+      ctx.stroke();
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */
