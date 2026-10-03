@@ -24,6 +24,7 @@ import { clamp, ease, easing, lerp, noise1 } from './math.js';
 import { bounds } from './paths.js';
 import { StrokePlan, HandTrack, HAND, travelTime, minDuration } from './hand.js';
 import { arrowParts, crayonTrace } from './sketch.js';
+import { subtitleCues, toSRT, toVTT } from './narration.js';
 
 const PEN_SPEED = HAND.speed;
 // rodzaje kroków, które po zakończeniu wyglądają tak samo (poza drganiem kreski) — można je buforować
@@ -63,6 +64,8 @@ export class Storyboard {
     this.hand = null; // HandTrack — budowany leniwie przy pierwszym rysowaniu
     this.caches = [];
     this.lastCamKey = null;
+    this.audio = []; // klipy lektora na osi czasu: { id, src, start, dur, text, words }
+    this.beat = null; // beat, w którym aktualnie układamy rysunek (sb.say)
   }
 
   // ------------------------------------------------------------ rejestracja kroków
@@ -78,9 +81,25 @@ export class Storyboard {
     const name = o.name ?? `${kind}#${this.n++}`;
     const useHand = !!hand && o.pencil !== false;
     const timing = { ...o };
+    // kotwica do słowa lektora: ołówek dotyka kartki `lead` s przed słowem
+    // (nie wcześniej, niż ręka zdąży dojechać)
+    let cue = null;
+    if (o.cue != null && this.beat) {
+      const w = this.beat.beat.word(o.cue, o.cueNth ?? 0);
+      const target = this.beat.start + w.s - (o.lead ?? this.beat.lead);
+      let need = 0;
+      if (useHand && this.lastHand?.to && hand.from) {
+        const [ax, ay] = this.lastHand.to, [bx, by] = hand.from;
+        const idle = this.tl.cursor - (this.lastHand.seg.start + this.lastHand.seg.dur);
+        need = Math.max(0, travelTime(Math.hypot(bx - ax, by - ay)) + AIM - Math.max(0, idle));
+      }
+      timing.at = Math.max(target, this.tl.cursor + need);
+      delete timing.cue;
+      cue = { word: w.w, target, beat: this.beat.id };
+    }
     // automatyczna przerwa na przelot ręki od poprzedniego elementu
     // (dopełnia brakujący czas, jeśli wcześniej był już wait/kamera)
-    if (useHand && this.handGaps && this.lastHand && !TIMING_KEYS.some((k) => o[k] != null)) {
+    if (useHand && this.handGaps && this.lastHand && !TIMING_KEYS.some((k) => timing[k] != null)) {
       const a = this.lastHand.to, b = hand.from;
       const idle = this.tl.cursor - (this.lastHand.seg.start + this.lastHand.seg.dur);
       // + chwila na "wycelowanie" przed dotknięciem kartki (pokrywa też niedokładność szacunku pozycji)
@@ -98,7 +117,8 @@ export class Storyboard {
     this.tl.add(name, dur, { ...timing, ease: easeName });
     const seg = this.tl.get(name);
     const item = {
-      name, kind, seg, render,
+      name, kind, seg, render, cue,
+      beat: this.beat?.id ?? null,
       chapter: this.chapter,
       keep: !!o.keep,
       // warstwa: kolor (kredka, zakreślacz, wypełnienie) domyślnie pod konturami
@@ -287,6 +307,74 @@ export class Storyboard {
     return this.#add('custom', o.dur ?? 1, o, fn, hand);
   }
 
+  /**
+   * Zdanie lektora (beat z Voice) i rysunek, który mu towarzyszy.
+   * Głos startuje `lead` s po tym, jak ręka zacznie rysować (obraz lekko wyprzedza
+   * słowo). Kroki dodane w `build` idą po kolei; krok z opcją `cue: 'słowo'` czeka
+   * na to słowo. Następne zdanie zaczyna się dopiero, gdy skończy się i głos,
+   * i rysunek — jeśli rysunek jest dłuższy niż zdanie, powstaje pauza
+   * (lint ostrzeże, gdy przekracza ~1 s).
+   * @param {import('./narration.js').Beat} beat
+   * @param {(beat) => void} [build]
+   * @param {object} o lead (0.3 s), after (pauza po zdaniu, 0.25 s), gap (przed zdaniem),
+   *                   maxWait (1,5 s — o ile lektor może poczekać na rękę), voiceWaits (false = nie czekaj)
+   *
+   * Lektor czeka na rękę: jeśli rysunek nie zdąży na swoje słowo (`cue`), zdanie
+   * zaczyna się odpowiednio później (maks. maxWait) — tak pracuje rysownik z lektorem.
+   */
+  say(beat, build, o = {}) {
+    const lead = o.lead ?? 0.3;
+    const maxWait = o.maxWait ?? 1.5;
+    // stan do wycofania, gdy trzeba przesunąć głos (lektor czeka na rękę)
+    const snap = {
+      names: new Set(this.items.map((it) => it.name)), segs: new Set(this.tl.segments.keys()), cursor: this.tl.cursor,
+      lastHand: this.lastHand, n: this.n, cams: new Set(this.cams), clears: this.clears.length, chapter: this.chapter, audio: this.audio.length,
+    };
+    const rollback = () => {
+      this.items = this.items.filter((it) => snap.names.has(it.name));
+      for (const k of [...this.tl.segments.keys()]) if (!snap.segs.has(k)) this.tl.segments.delete(k);
+      this.tl.cursor = snap.cursor;
+      this.lastHand = snap.lastHand;
+      this.n = snap.n;
+      this.cams = this.cams.filter((c) => snap.cams.has(c));
+      this.clears.length = snap.clears;
+      this.chapter = snap.chapter;
+      this.audio.length = snap.audio;
+      this.hand = null;
+    };
+    let wait = 0;
+    for (let attempt = 0; ; attempt++) {
+      const start = snap.cursor + (o.gap ?? 0) + lead + wait;
+      const clip = { id: beat.id, src: beat.src, start, dur: beat.duration, text: beat.text, words: beat.words, wait };
+      this.audio.push(clip);
+      const outer = this.beat;
+      this.beat = { ...clip, beat, lead };
+      this.tl.cursor += o.gap ?? 0;
+      build?.(beat);
+      this.beat = outer;
+      const mine = this.items.filter((it) => !snap.names.has(it.name));
+      // o ile pierwsza kotwica spóźnia się względem swojego słowa — o tyle przesuwamy głos
+      // (kolejnych kotwic w tym samym zdaniu przesunięcie nie naprawi: słowa padają
+      // szybciej, niż ręka rysuje to, co między nimi — to zgłasza lint)
+      const firstCue = mine.filter((it) => it.cue).sort((p, q) => p.seg.start - q.seg.start)[0];
+      const late = firstCue ? Math.max(0, firstCue.seg.start - firstCue.cue.target) : 0;
+      if (late > 0.12 && wait + late <= maxWait && attempt < 3 && o.voiceWaits !== false) {
+        rollback();
+        wait += late;
+        continue;
+      }
+      clip.drawEnd = mine.reduce((m, it) => Math.max(m, it.seg.start + it.seg.dur), start);
+      this.tl.cursor = Math.max(this.tl.cursor, start + beat.duration + (o.after ?? 0.25));
+      return this;
+    }
+  }
+
+  /** Napisy z lektora: 'srt' | 'vtt' | 'cues' (tablica). */
+  subtitles(format = 'srt', opts) {
+    const cues = subtitleCues(this.audio, opts);
+    return format === 'vtt' ? toVTT(cues) : format === 'cues' ? cues : toSRT(cues);
+  }
+
   wait(sec) {
     this.tl.wait(sec);
     return this;
@@ -340,6 +428,7 @@ export class Storyboard {
   get duration() {
     let d = this.tl.duration;
     for (const c of this.cams) d = Math.max(d, c.start + c.dur);
+    for (const c of this.audio) d = Math.max(d, c.start + c.dur);
     return d;
   }
 
@@ -363,6 +452,8 @@ export class Storyboard {
       duration: this.duration,
       idle: this.idle,
       fps: this.fps,
+      audio: this.audio.map(({ src, start, dur }) => ({ src, start, dur })),
+      subtitles: (format, opts) => this.subtitles(format, opts),
       draw: (sk, t) => this.draw(sk, t),
     };
   }
@@ -426,6 +517,18 @@ export class Storyboard {
       else if (r.status === 'unreachable') add(it, 'ręka nie zdąży dojechać przed końcem kroku — element narysowałby się sam (dodaj gap)');
       else if (r.status === 'late' && r.late > tolerance) add(it, `ręka spóźniona o ${r.late.toFixed(2)} s — początek narysowałby się sam (dodaj gap lub usuń at/with)`);
     }
+    // synchronizacja z lektorem (ostrzeżenia o tempie, nie błędy fizyki)
+    const warn = (name, kind, time, problem) => issues.push({ name, kind, time, problem, level: 'warn' });
+    for (const it of this.items) {
+      if (it.cue && it.seg.start - it.cue.target > 0.35) {
+        warn(it.name, it.kind, it.seg.start, `rysunek spóźniony o ${(it.seg.start - it.cue.target).toFixed(2)} s względem słowa „${it.cue.word}” (${it.cue.beat}) — za dużo rysunku przed nim`);
+      }
+    }
+    for (const c of this.audio) {
+      const lag = c.drawEnd - (c.start + c.dur);
+      if (lag > 1.0) warn(c.id, 'say', c.start, `rysunek kończy się ${lag.toFixed(1)} s po zdaniu — następne zdanie czeka w ciszy (skróć rysunek albo dopisz zdanie)`);
+    }
+    for (const i of issues) i.level ??= 'error';
     return issues.sort((a, b) => a.time - b.time);
   }
 

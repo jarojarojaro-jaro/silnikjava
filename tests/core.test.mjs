@@ -293,3 +293,80 @@ test('zmiana narzędzia w powietrzu: kredka w kolorze wypełnienia', () => {
   assert.equal(hand.at(pen.seg.start + pen.seg.dur / 2).tool.color, 'ink');
   assert.equal(hand.at(crayon.seg.start + crayon.seg.dur / 2).tool.color, 'coral');
 });
+
+// ---------------------------------------------------------------- lektor
+import { readFileSync } from 'node:fs';
+import { Voice, subtitleCues, toSRT } from '../src/index.js';
+import { buildNarrated } from '../examples/scenes/narrated.js';
+
+const fakeVoice = () => new Voice({
+  beats: [
+    { id: 'b1', text: 'Pierwsze zdanie tutaj.', audio: 'b1.ogg', duration: 2, words: [{ w: 'Pierwsze', s: 0.1, e: 0.6 }, { w: 'zdanie', s: 0.6, e: 1.1 }, { w: 'tutaj.', s: 1.1, e: 1.8 }] },
+    { id: 'b2', text: 'Drugie.', audio: 'b2.ogg', duration: 1, words: [{ w: 'Drugie.', s: 0.1, e: 0.8 }] },
+  ],
+}, 'v/');
+
+test('Voice: beat po numerze i id, słowo po treści/prefiksie/numerze', () => {
+  const v = fakeVoice();
+  assert.equal(v.beat(1).id, 'b1');
+  assert.equal(v.beat('b2').src, 'v/b2.ogg');
+  assert.equal(v.beat(1).word('TUTAJ').s, 1.1);
+  assert.equal(v.beat(1).word('zda').s, 0.6);
+  assert.equal(v.beat(1).word(0).w, 'Pierwsze');
+  assert.throws(() => v.beat(1).word('nieistniejące'));
+});
+
+test('say: głos na osi czasu, kotwica do słowa, następne zdanie po głosie i rysunku', () => {
+  const v = fakeVoice();
+  const sb = new Storyboard({ w: 800, h: 600, warn: false });
+  sb.say(v.beat(1), () => {
+    sb.pen([[100, 100], [140, 100]], { name: 'kreska', cue: 'tutaj' });
+  });
+  sb.say(v.beat(2));
+  const [c1, c2] = sb.audio;
+  close(c1.start, 0.3); // głos 0,3 s po starcie rysunku
+  const k = sb.tl.get('kreska');
+  close(k.start, c1.start + 1.1 - 0.3, 1e-9); // ołówek 0,3 s przed słowem "tutaj"
+  assert.ok(c2.start >= c1.start + c1.dur, 'drugie zdanie po pierwszym');
+  assert.ok(sb.duration >= c2.start + c2.dur);
+  assert.equal(sb.scene().audio.length, 2);
+});
+
+test('say: lektor czeka na rękę, gdy rysunek nie zdąży na słowo', () => {
+  const v = fakeVoice();
+  const sb = new Storyboard({ w: 800, h: 600, warn: false });
+  sb.say(v.beat(1), () => {
+    sb.pen([[0, 0], [300, 0], [300, 150], [0, 150], [0, 0]], { name: 'duza' }); // rysunek bez kotwicy, dłuższy niż czas do słowa
+    sb.pen([[100, 500], [140, 500]], { name: 'na-slowo', cue: 'zdanie' });
+  });
+  const c = sb.audio[0];
+  assert.ok(c.wait > 0, 'głos przesunięty');
+  const it = sb.tl.get('na-slowo');
+  const target = c.start + 0.6 - 0.3;
+  assert.ok(it.start - target < 0.15, `ołówek na czas: ${(it.start - target).toFixed(2)} s`);
+  assert.equal(sb.items.filter((x) => x.name === 'duza').length, 1, 'po wycofaniu brak duplikatów');
+});
+
+test('napisy: podział na linie ≤ 42 znaki, maks. 2 linie, bez nakładania', () => {
+  const words = 'To jest dość długie zdanie lektora, które na pewno nie zmieści się w jednej linii napisów i musi zostać podzielone na kilka części'
+    .split(' ').map((w, i) => ({ w, s: i * 0.3, e: i * 0.3 + 0.25 }));
+  const cues = subtitleCues([{ start: 10, words }]);
+  assert.ok(cues.length >= 2);
+  for (const c of cues) {
+    assert.ok(c.lines.length <= 2);
+    for (const l of c.lines) assert.ok(l.length <= 42, l);
+  }
+  for (let i = 1; i < cues.length; i++) assert.ok(cues[i].start >= cues[i - 1].end);
+  assert.match(toSRT(cues), /^1\n00:00:10,000 --> /);
+});
+
+test('demo z lektorem: fizyka OK, kotwice w oknie synchronizacji', () => {
+  const v = new Voice(JSON.parse(readFileSync(new URL('../examples/voice/agent/voice.json', import.meta.url), 'utf8')), 'voice/agent/');
+  const sb = buildNarrated(v);
+  const issues = sb.lint();
+  assert.deepEqual(issues.filter((i) => i.level !== 'warn').map((i) => i.problem), []);
+  for (const it of sb.items.filter((x) => x.cue)) {
+    const lag = it.seg.start - it.cue.target; // >0 = później niż 0,3 s przed słowem
+    assert.ok(lag < 0.85, `${it.name} „${it.cue.word}”: ${lag.toFixed(2)} s`);
+  }
+});

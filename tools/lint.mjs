@@ -25,9 +25,11 @@ for (const target of list) {
     const issues = sb.lint(window.__player.sk);
     return { duration: sb.duration, items: sb.items.length, issues };
   }, { file, fn });
-  total += res.issues.length;
-  console.log(`${target}: ${res.items} kroków, ${res.duration.toFixed(1)} s — ${res.issues.length ? `${res.issues.length} problem(ów)` : 'OK'}`);
-  for (const i of res.issues) console.log(`  ${i.time.toFixed(2)} s  ${i.name}: ${i.problem}`);
+  const errors = res.issues.filter((i) => i.level !== 'warn');
+  const warns = res.issues.length - errors.length;
+  total += errors.length;
+  console.log(`${target}: ${res.items} kroków, ${res.duration.toFixed(1)} s — ${errors.length ? `${errors.length} błąd(ów) fizyki` : 'fizyka OK'}${warns ? `, ${warns} ostrzeżeń o tempie` : ''}`);
+  for (const i of res.issues) console.log(`  ${i.level === 'warn' ? 'uwaga' : 'BŁĄD '}  ${i.time.toFixed(2)} s  ${i.name}: ${i.problem}`);
 }
 await close();
 process.exit(total ? 1 : 0);

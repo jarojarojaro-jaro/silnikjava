@@ -12,6 +12,7 @@
 //   }
 
 import { Sketch, BOIL_FPS, BOIL_CYCLE, loadFonts } from './sketch.js';
+import { AudioTrack } from './audio.js';
 
 const ticks = new Set();
 let rafId = 0;
@@ -31,7 +32,8 @@ export class Player {
    * @param {object} scene
    * @param {object} o trigger ('mount'|'view'|'manual'), delay [s], speed, fit ('contain'|'cover'),
    *                   maxDpr, state (obiekt przekazywany do draw), sketch (opcje Sketch),
-   *                   onTime(t) — callback co klatkę, restartPause [s] dla idle 'restart'
+   *                   onTime(t) — callback co klatkę, restartPause [s] dla idle 'restart',
+   *                   audio (false = bez dźwięku, nawet jeśli scena ma lektora)
    */
   constructor(canvas, scene, o = {}) {
     this.canvas = canvas;
@@ -70,6 +72,8 @@ export class Player {
     // gotowość czcionek — po ich wczytaniu przerysowujemy klatkę
     this.sk.fontsReady = false;
     this.ready = loadFonts(this.sk.fonts).then(() => { this.sk.fontsReady = true; this.dirty = true; });
+    // lektor: scena z klipami audio (Storyboard.say) dostaje ścieżkę dźwiękową
+    this.audio = this.o.audio === false || !scene.audio?.length ? null : new AudioTrack(scene.audio);
     this.unsub = subscribe((now) => this.#tick(now));
     if (this.o.trigger === 'mount') this.#start();
     else this.render();
@@ -95,11 +99,21 @@ export class Player {
     if (this.t >= this.duration && this.scene.idle !== 'loop' && this.scene.idle !== 'boil') this.t = 0;
     this.playing = true;
     this.lastNow = null;
+    // dźwięk startuje od bieżącego czasu (przeglądarka wymaga gestu — wołaj play() z kliknięcia)
+    if (this.audio && this.o.speed === 1) {
+      // obraz czeka, aż dźwięk się wczyta i ruszy — start równo z głosem
+      this.waitAudio = true;
+      this.audio.play(Math.max(0, this.t)).then(() => {
+        this.waitAudio = false;
+        this.lastNow = null;
+      });
+    }
     return this;
   }
 
   pause() {
     this.playing = false;
+    this.audio?.stop();
     return this;
   }
 
@@ -113,6 +127,7 @@ export class Player {
     this.started = true;
     this.dirty = true;
     this.render();
+    if (this.audio?.playing) this.audio.play(Math.max(0, t));
     return this;
   }
 
@@ -162,10 +177,13 @@ export class Player {
 
   #tick(now) {
     if (!this.inView) { this.lastNow = null; return; }
+    if (this.playing && this.waitAudio) return;
     if (this.playing) {
       const dt = this.lastNow == null ? 0 : Math.min(0.1, (now - this.lastNow) / 1000);
       this.lastNow = now;
-      this.t += dt * this.o.speed;
+      // gdy gra lektor, zegarem jest dźwięk — obraz nie odjeżdża od głosu
+      if (this.audio?.playing) this.t = this.audio.time();
+      else this.t += dt * this.o.speed;
       const idle = this.scene.idle ?? 'boil';
       if (this.t > this.duration) {
         if (idle === 'still') {
@@ -190,6 +208,7 @@ export class Player {
   }
 
   destroy() {
+    this.audio?.stop();
     this.unsub?.();
     this.ro?.disconnect();
     this.io?.disconnect();

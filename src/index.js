@@ -11,3 +11,5 @@ export { Timeline } from './timeline.js';
 export { Storyboard } from './storyboard.js';
 export { Player, scrollDrive } from './player.js';
 export { recordWebM, download, snapshot } from './record.js';
+export { Voice, Beat, subtitleCues, toSRT, toVTT, normWord } from './narration.js';
+export { AudioTrack } from './audio.js';

@@ -131,6 +131,18 @@ Koszt fizyki: filmy są dłuższe (explainer ~60 s, hero ~44 s), bo ręka nie
 może rysować szybciej niż człowiek. Krótszy film to mniej elementów albo
 mniej detali postaci, a nie szybsza ręka.
 
+## Etap 2c — lektor (zrobione)
+
+- [x] `tools/voice/voice.py`: tekst → głos (Piper lokalnie), nagranie +
+  tekst → znaczniki słów, samo nagranie → transkrypcja. Wspólny wynik:
+  `voice.json`.
+- [x] `sb.say(beat, build)`, kotwice `cue: 'słowo'`; lektor czeka na rękę
+  (do 1,5 s); `lint` ostrzega o ciszy i spóźnionych kotwicach.
+- [x] `AudioTrack` w Playerze (dźwięk jest zegarem animacji), napisy SRT/VTT,
+  eksport MP4 z lektorem i ścieżką napisów.
+- [x] Pomiar na gotowym MP4: przy 9 z 11 kotwic ołówek dotyka kartki
+  0,26–0,32 s przed słowem; pozostałe dwie to 0,19 s i 0,70 s.
+
 ## Etap 3 — rozbudowa (kolejne iteracje)
 
 - Wysokopoziomowy format sceny (węzły z id, strzałki między id z
@@ -139,8 +151,6 @@ mniej detali postaci, a nie szybsza ręka.
   mniejszymi modelami).
 - Biblioteka ikon rysowanych (terminal, globus, plik, chmura, baza, żarówka,
   zębatka, człowiek…), każda jako zestaw kresek z kolejnością rysowania.
-- Narracja: znaczniki lektora → napisy (SRT/VTT), synchronizacja kroków z
-  audio (czas kroku = czas zdania).
 - Narzędzia: marker, kreda na tablicy, dłoń trzymająca pisak; styl „tablica
   szkolna” (ciemne tło, kreda).
 - Przejścia: przesunięcie kartki, przewrócenie strony, zoom-through.
