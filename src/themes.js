@@ -259,6 +259,42 @@ export const THEMES = {
       vignette(ctx, w, h, 0.08);
     },
   },
+
+  // ------------------------------------------------------------ komiks
+  comic: {
+    name: 'Komiks',
+    palette: {
+      paper: '#fffaf0', ink: '#141414', inkSoft: '#4d4d4d', pen: '#e63946', penDark: '#b71f2c',
+      teal: '#2ec4b6', sky: '#3a86ff', ochre: '#ffbe0b', coral: '#ff5d8f', plum: '#8338ec', white: '#ffffff',
+    },
+    fonts: { hand: '"Shantell Sans", "Kalam", cursive', title: '"Bangers", "Kalam", cursive' },
+    // pędzelek: gruba kreska z mocnym naciskiem i długim zwężeniem końców
+    pen: { style: 'ink', width: 1.35, jitter: 0.35, pressure: 0.9, taper: 1.5 },
+    // płaski kolor markera z rastrem kropek (jak w druku)
+    crayon: { halftone: true, w: 24, spacing: 18, alpha: 1 },
+    highlight: { blend: 'multiply', alpha: 0.45 },
+    tools: { pencil: 'brushpen', crayon: 'marker' },
+    outline: '#141414',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // papier gazetowy: drobne włókna i ślad rastra
+      ctx.fillStyle = ctx.createPattern(texture('comic-paper', 240, (c, S, r) => {
+        for (let i = 0; i < 1400; i++) {
+          c.fillStyle = `rgba(120,100,60,${r() * 0.05})`;
+          c.fillRect(r() * S, r() * S, 1 + r() * 2, 1);
+        }
+        c.fillStyle = 'rgba(230,57,70,0.035)';
+        for (let y = 0; y < S; y += 8) for (let x = (y / 8) % 2 ? 4 : 0; x < S; x += 8) {
+          c.beginPath();
+          c.arc(x, y, 1.2, 0, Math.PI * 2);
+          c.fill();
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */

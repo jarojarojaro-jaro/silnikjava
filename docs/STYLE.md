@@ -27,15 +27,15 @@ bez zmian i synchronizacja z lektorem też.
 
 Kolejne style:
 
-| | Zeszyt w kratkę (`notebook`) | Akwarela (`watercolor`) |
-| --- | --- | --- |
-| podłoże | biała kartka, kratka 5 mm, czerwony margines | ciepły papier akwarelowy, miękkie nierówności, ziarno |
-| kreska | długopis: cienko, lekki nacisk, prawie bez zwężeń; czerwony długopis do poprawek | cienkopis w kolorze sepii |
-| kolorowanie | kredki; zakreślacze (`highlight`) żółty, zielony, różowy | plama farby (`wash`): rozlany brzeg, pigment zebrany na krawędzi, przejaśnienia, granulacja; odsłaniana mokrym, rozmytym frontem za pędzlem |
-| pismo | Shadows Into Light Two (pismo ucznia) | Amatic SC (tytuły), Mynerve |
-| w ręce | długopis z przezroczystym korpusem, wkład i zatyczka w kolorze tuszu | cienkopis do kresek, pędzel z farbą do kolorowania (zmiana w powietrzu) |
-| do czego | „wytłumacz jak na lekcji”, finanse osobiste, notatki | przyroda, podróże, opowieści, łagodne tematy |
-| przykład | `examples/scenes/styles/notebook.js`: procent składany | `…/watercolor.js`: obieg wody |
+| | Zeszyt w kratkę (`notebook`) | Akwarela (`watercolor`) | Komiks (`comic`) |
+| --- | --- | --- | --- |
+| podłoże | biała kartka, kratka 5 mm, czerwony margines | ciepły papier akwarelowy, miękkie nierówności, ziarno | kremowy papier gazetowy, ślad rastra |
+| kreska | długopis: cienko, lekki nacisk, prawie bez zwężeń; czerwony długopis do poprawek | cienkopis w kolorze sepii | pędzelek: gruba, mocny nacisk na zakrętach, długie zwężenia końców |
+| kolorowanie | kredki; zakreślacze (`highlight`) żółty, zielony, różowy | plama farby (`wash`): rozlany brzeg, pigment zebrany na krawędzi, przejaśnienia, granulacja; odsłaniana mokrym, rozmytym frontem za pędzlem | płaski kolor markera z rastrem kropek (`halftone`), mnożony — czarny kontur zostaje czarny |
+| pismo | Shadows Into Light Two (pismo ucznia) | Amatic SC (tytuły), Mynerve | Bangers (tytuły, onomatopeje), Shantell Sans |
+| w ręce | długopis z przezroczystym korpusem, wkład i zatyczka w kolorze tuszu | cienkopis do kresek, pędzel z farbą do kolorowania (zmiana w powietrzu) | pisak pędzelkowy; do koloru marker |
+| do czego | „wytłumacz jak na lekcji”, finanse osobiste, notatki | przyroda, podróże, opowieści, łagodne tematy | ciekawostki, popularyzacja nauki, social media |
+| przykład | `examples/scenes/styles/notebook.js`: procent składany | `…/watercolor.js`: obieg wody | `…/comic.js`: dlaczego niebo jest niebieskie |
 
 Podgląd: `examples/styles.html?s=chalk` (zakładki z wszystkimi stylami).
 Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
@@ -54,7 +54,8 @@ Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
 
   `width` i `jitter` skalują grubość i drżenie z opcji sceny.
 * **Kolorowanie** (`crayon`): `theme.crayon` to domyślne opcje (kąt, gęstość,
-  ziarno, tryb mieszania; `wash: true` to plama akwareli). Storyboard używa
+  ziarno, tryb mieszania; `wash: true` to plama akwareli, `halftone: true`
+  kolor z rastrem). Storyboard używa
   ich także do śladu ręki, więc ręka jedzie dokładnie tym zygzakiem, który
   zostawia kolor.
 * **Zakreślacz**: `theme.highlight.blend`. Na papierze `multiply`, na ciemnym
@@ -63,7 +64,7 @@ Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
   odmalowuje fragment tła (siatkę, tablicę) zamiast kłaść płaski kolor.
 * **Narzędzie**: `theme.tools` mapuje `pencil` / `marker` / `crayon`
   (kolorowanie) na sprite motywu (`chalk`, `techpen`, `neon`, `ballpoint`,
-  `brush`). Gąbka zostaje gąbką.
+  `brush`, `brushpen`, `marker`). Gąbka zostaje gąbką.
 
 ## Własny styl
 
@@ -100,8 +101,6 @@ Na co uważać:
 * **Papier pakowy.** Wystarczy tło i paleta; kreska jak `ink`.
 * **Marker na flipcharcie.** Gruba kreska o stałej grubości, smugi markera.
   Wariant `tech` z dużą grubością i teksturą.
-* **Komiks.** Czarny kontur z dużą zmianą grubości, kolorowanie płaskie
-  z rastrem kropek.
 * **Szkic ołówkiem.** Szary grafit, `sketchy: true` (podwójna linia),
   lekkie cieniowanie.
 

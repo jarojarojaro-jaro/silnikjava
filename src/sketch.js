@@ -289,6 +289,10 @@ export class Sketch {
       this.#wash(poly, p, o, z, count, box, width);
       return p >= 1 ? null : crayonTip(z, p, seed);
     }
+    if (o.halftone) {
+      this.#halftone(poly, p, o, z, count, box, width);
+      return p >= 1 ? null : crayonTip(z, p, seed);
+    }
 
     lc.save();
     lc.setTransform(1, 0, 0, 1, 0, 0);
@@ -398,6 +402,54 @@ export class Sketch {
     }
     lc.restore();
     this.#composite(box, { grain: o.grain ?? 0.35, granule: true, alpha: o.alpha ?? 0.9, blend: 'multiply' });
+  }
+
+  /**
+   * Komiks: płaski kolor markera w konturze + raster kropek (cień drukarski),
+   * odsłaniany pasami markera (ten sam zygzak co ślad ręki). Mnożenie — czarny
+   * kontur pod spodem zostaje czarny.
+   */
+  #halftone(poly, p, o, z, count, box, width) {
+    const { ctx } = this;
+    const lc = this.layerCtx;
+    const [x0, y0, x1, y1] = box;
+    lc.save();
+    lc.setTransform(1, 0, 0, 1, 0, 0);
+    lc.clearRect(x0, y0, x1 - x0, y1 - y0);
+    lc.setTransform(ctx.getTransform());
+    lc.beginPath();
+    poly.forEach(([x, y], i) => (i ? lc.lineTo(x, y) : lc.moveTo(x, y)));
+    lc.closePath();
+    for (const hole of o.holes ?? []) {
+      hole.forEach(([x, y], i) => (i ? lc.lineTo(x, y) : lc.moveTo(x, y)));
+      lc.closePath();
+    }
+    lc.clip('evenodd');
+    lc.fillStyle = this.col(o.color, 'sky');
+    lc.globalAlpha = 0.88;
+    lc.fill('evenodd');
+    // raster w układzie urządzenia (kropki nie skalują się z kamerą — jak w druku)
+    lc.setTransform(1, 0, 0, 1, 0, 0);
+    lc.globalAlpha = o.dots ?? 0.3;
+    lc.fillStyle = lc.createPattern(halftoneTexture(), 'repeat');
+    lc.fillRect(x0, y0, x1 - x0, y1 - y0);
+    if (p < 1) {
+      lc.setTransform(ctx.getTransform());
+      lc.globalCompositeOperation = 'destination-in';
+      lc.globalAlpha = 1;
+      lc.strokeStyle = '#000';
+      lc.lineCap = 'round';
+      lc.lineJoin = 'round';
+      lc.lineWidth = width * 1.25;
+      lc.beginPath();
+      for (let i = 0; i < count; i++) {
+        const [x, y] = z.path[i];
+        i ? lc.lineTo(x, y) : lc.moveTo(x, y);
+      }
+      lc.stroke();
+    }
+    lc.restore();
+    this.#composite(box, { alpha: o.alpha ?? 1, blend: 'multiply' });
   }
 
   /** Gdzie jest ręka przy kolorowaniu kredką (bez rysowania) — jedzie zygzakiem wewnątrz konturu. */
@@ -763,8 +815,8 @@ export class Sketch {
     ctx.lineJoin = 'round';
     if (type === 'eraser') this.#eraserSprite(size, lift, o);
     else {
-      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150 }[type] ?? 120) * size;
-      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9 }[type] ?? 13) * size;
+      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124 }[type] ?? 120) * size;
+      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13 }[type] ?? 13) * size;
       // cień na kartce — im wyżej narzędzie, tym dalej i bardziej rozmyty
       ctx.save();
       ctx.rotate(ang);
@@ -782,6 +834,7 @@ export class Sketch {
       else if (type === 'neon') this.#neonSprite(len, wd, size, o);
       else if (type === 'ballpoint') this.#ballpointSprite(len, wd, size, o);
       else if (type === 'brush') this.#brushSprite(len, wd, size, o);
+      else if (type === 'brushpen') this.#brushpenSprite(len, wd, size, o);
       else this.#pencilSprite(len, wd, size, o);
     }
     ctx.restore();
@@ -1076,6 +1129,38 @@ export class Sketch {
     ctx.stroke();
   }
 
+  /** Pisak pędzelkowy (komiks): elastyczna końcówka w kolorze tuszu, czarny korpus z kolorowym paskiem. */
+  #brushpenSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const ink = this.col(o.color, 'ink');
+    const tip = 20 * size, grip = 18 * size;
+    ctx.strokeStyle = this.theme.outline ?? '#141414';
+    ctx.lineWidth = 1.4 * size;
+    // końcówka-pędzelek
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(tip * 0.5, -wd * 0.45, tip, -wd * 0.3);
+    ctx.lineTo(tip, wd * 0.3);
+    ctx.quadraticCurveTo(tip * 0.5, wd * 0.45, 0, 0);
+    ctx.fill();
+    ctx.stroke();
+    // uchwyt i korpus
+    ctx.fillStyle = '#2b2b2b';
+    ctx.fillRect(tip, -wd * 0.38, grip, wd * 0.76);
+    ctx.strokeRect(tip, -wd * 0.38, grip, wd * 0.76);
+    ctx.fillStyle = '#1b1b1b';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(tip + grip, -wd / 2, len - tip - grip, wd, [2 * size, 6 * size, 6 * size, 2 * size]);
+    else ctx.rect(tip + grip, -wd / 2, len - tip - grip, wd);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = ink === this.col('ink') ? this.col('pen') : ink;
+    ctx.fillRect(len - 30 * size, -wd / 2, 9 * size, wd);
+    ctx.fillStyle = 'rgba(255,255,255,0.16)';
+    ctx.fillRect(tip + grip, -wd / 2 + 2 * size, len - tip - grip, wd * 0.2);
+  }
+
   /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */
   #eraserSprite(size, lift, o) {
     const { ctx } = this;
@@ -1323,6 +1408,23 @@ function chalkTexture() {
     g.fillRect(x, y, s * (1 + r() * 2.5), s);
   }
   chalkCache = c;
+  return c;
+}
+
+let halftoneCache = null;
+/** Raster drukarski: kropki w siatce przesuniętej co drugi rząd (układ 45°). */
+function halftoneTexture() {
+  if (halftoneCache) return halftoneCache;
+  const S = 14;
+  const c = makeCanvas(S, S);
+  const g = c.getContext('2d');
+  g.fillStyle = '#000';
+  for (const [x, y] of [[0, 0], [S, 0], [0, S], [S, S], [S / 2, S / 2]]) {
+    g.beginPath();
+    g.arc(x, y, 2.6, 0, Math.PI * 2);
+    g.fill();
+  }
+  halftoneCache = c;
   return c;
 }
 

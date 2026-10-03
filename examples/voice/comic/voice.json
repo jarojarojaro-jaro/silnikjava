@@ -1,0 +1,202 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-darkman-medium",
+ "meta": {
+  "głos": "pl_PL-darkman-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Dlaczego niebo jest niebieskie?",
+   "notes": [
+    "tytuł"
+   ],
+   "audio": "b1.ogg",
+   "duration": 2.02,
+   "words": [
+    {
+     "w": "Dlaczego",
+     "s": 0.0,
+     "e": 0.48
+    },
+    {
+     "w": "niebo",
+     "s": 0.48,
+     "e": 0.84
+    },
+    {
+     "w": "jest",
+     "s": 0.84,
+     "e": 1.08
+    },
+    {
+     "w": "niebieskie?",
+     "s": 1.08,
+     "e": 1.72
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Światło słońca to mieszanka wszystkich kolorów.",
+   "notes": [
+    "kadr 1: słońce, promienie w kolorach"
+   ],
+   "audio": "b2.ogg",
+   "duration": 2.694,
+   "words": [
+    {
+     "w": "Światło",
+     "s": 0.0,
+     "e": 0.38
+    },
+    {
+     "w": "słońca",
+     "s": 0.38,
+     "e": 0.84
+    },
+    {
+     "w": "to",
+     "s": 0.84,
+     "e": 1.0
+    },
+    {
+     "w": "mieszanka",
+     "s": 1.0,
+     "e": 1.46
+    },
+    {
+     "w": "wszystkich",
+     "s": 1.46,
+     "e": 1.88
+    },
+    {
+     "w": "kolorów.",
+     "s": 1.88,
+     "e": 2.58
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Powietrze rozprasza niebieski najmocniej, więc widzimy go na całym niebie, z każdej strony.",
+   "notes": [
+    "kadr 2: niebo w rastrze, rozproszone promienie"
+   ],
+   "audio": "b3.ogg",
+   "duration": 5.968,
+   "words": [
+    {
+     "w": "Powietrze",
+     "s": 0.0,
+     "e": 0.48
+    },
+    {
+     "w": "rozprasza",
+     "s": 0.48,
+     "e": 1.06
+    },
+    {
+     "w": "niebieski",
+     "s": 1.06,
+     "e": 1.58
+    },
+    {
+     "w": "najmocniej,",
+     "s": 1.58,
+     "e": 2.26
+    },
+    {
+     "w": "więc",
+     "s": 2.62,
+     "e": 2.86
+    },
+    {
+     "w": "widzimy",
+     "s": 2.86,
+     "e": 3.34
+    },
+    {
+     "w": "go",
+     "s": 3.34,
+     "e": 3.48
+    },
+    {
+     "w": "na",
+     "s": 3.48,
+     "e": 3.64
+    },
+    {
+     "w": "całym",
+     "s": 3.64,
+     "e": 4.0
+    },
+    {
+     "w": "niebie,",
+     "s": 4.0,
+     "e": 4.38
+    },
+    {
+     "w": "z",
+     "s": 4.64,
+     "e": 4.92
+    },
+    {
+     "w": "każdej",
+     "s": 4.92,
+     "e": 5.38
+    },
+    {
+     "w": "strony.",
+     "s": 5.38,
+     "e": 5.62
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "I właśnie dlatego niebo jest niebieskie!",
+   "notes": [
+    "dymek: Aha!"
+   ],
+   "audio": "b4.ogg",
+   "duration": 2.937,
+   "words": [
+    {
+     "w": "I",
+     "s": 0.0,
+     "e": 0.18
+    },
+    {
+     "w": "właśnie",
+     "s": 0.18,
+     "e": 0.6
+    },
+    {
+     "w": "dlatego",
+     "s": 0.6,
+     "e": 1.06
+    },
+    {
+     "w": "niebo",
+     "s": 1.06,
+     "e": 1.6
+    },
+    {
+     "w": "jest",
+     "s": 1.6,
+     "e": 1.86
+    },
+    {
+     "w": "niebieskie!",
+     "s": 1.86,
+     "e": 2.64
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}
