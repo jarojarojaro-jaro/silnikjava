@@ -1,0 +1,145 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-gosia-medium",
+ "meta": {
+  "głos": "pl_PL-gosia-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Twierdzenie Pitagorasa. Weźmy trójkąt prostokątny.",
+   "notes": [
+    "tytuł, trójkąt z kątem prostym"
+   ],
+   "audio": "b1.ogg",
+   "duration": 3.587,
+   "words": [
+    {
+     "w": "Twierdzenie",
+     "s": 0.0,
+     "e": 0.42
+    },
+    {
+     "w": "Pitagorasa.",
+     "s": 0.42,
+     "e": 1.2
+    },
+    {
+     "w": "Weźmy",
+     "s": 1.52,
+     "e": 2.0
+    },
+    {
+     "w": "trójkąt",
+     "s": 2.0,
+     "e": 2.52
+    },
+    {
+     "w": "prostokątny.",
+     "s": 2.52,
+     "e": 3.44
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Na każdym boku budujemy kwadrat.",
+   "notes": [
+    "kwadraty a, b, c"
+   ],
+   "audio": "b2.ogg",
+   "duration": 2.334,
+   "words": [
+    {
+     "w": "Na",
+     "s": 0.0,
+     "e": 0.2
+    },
+    {
+     "w": "każdym",
+     "s": 0.2,
+     "e": 0.7
+    },
+    {
+     "w": "boku",
+     "s": 0.7,
+     "e": 0.98
+    },
+    {
+     "w": "budujemy",
+     "s": 0.98,
+     "e": 1.5
+    },
+    {
+     "w": "kwadrat.",
+     "s": 1.5,
+     "e": 2.1
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "A kwadrat plus b kwadrat równa się c kwadrat. Zawsze.",
+   "notes": [
+    "wzór, ramka"
+   ],
+   "audio": "b3.ogg",
+   "duration": 4.029,
+   "words": [
+    {
+     "w": "A",
+     "s": 0.0,
+     "e": 0.12
+    },
+    {
+     "w": "kwadrat",
+     "s": 0.12,
+     "e": 0.56
+    },
+    {
+     "w": "plus",
+     "s": 0.56,
+     "e": 0.84
+    },
+    {
+     "w": "b",
+     "s": 0.84,
+     "e": 1.08
+    },
+    {
+     "w": "kwadrat",
+     "s": 1.08,
+     "e": 1.64
+    },
+    {
+     "w": "równa",
+     "s": 1.64,
+     "e": 2.02
+    },
+    {
+     "w": "się",
+     "s": 2.02,
+     "e": 2.2
+    },
+    {
+     "w": "c",
+     "s": 2.2,
+     "e": 2.4
+    },
+    {
+     "w": "kwadrat.",
+     "s": 2.4,
+     "e": 3.16
+    },
+    {
+     "w": "Zawsze.",
+     "s": 3.3,
+     "e": 3.66
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

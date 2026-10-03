@@ -370,3 +370,55 @@ test('demo z lektorem: fizyka OK, kotwice w oknie synchronizacji', () => {
     assert.ok(lag < 0.85, `${it.name} „${it.cue.word}”: ${lag.toFixed(2)} s`);
   }
 });
+
+// ------------------------------------------------------------------ motywy (style)
+
+import { THEMES, resolveTheme, themeNames, polyline, crayonTrace } from '../src/index.js';
+import { buildChalk } from '../examples/scenes/styles/chalk.js';
+import { buildBlueprint } from '../examples/scenes/styles/blueprint.js';
+import { buildNeon } from '../examples/scenes/styles/neon.js';
+
+test('motywy: nazwy, uzupełnione domyślne pola, nieznany motyw to błąd', () => {
+  assert.deepEqual(themeNames().map((t) => t.id), ['paper', 'chalk', 'blueprint', 'neon']);
+  for (const id of Object.keys(THEMES)) {
+    const t = resolveTheme(id);
+    for (const k of ['pen', 'crayon', 'highlight', 'tools', 'text']) assert.ok(t[k], `${id}.${k}`);
+  }
+  assert.equal(resolveTheme('chalk').tools.pencil, 'chalk');
+  assert.throws(() => resolveTheme('akwarela'), /Nieznany motyw/);
+});
+
+test('polyline: ostre rogi — przechodzi przez wierzchołki, zamknięta wraca do startu', () => {
+  const pts = [[0, 0], [100, 0], [100, 60]];
+  const p = polyline(pts, { seed: 3 });
+  for (const [x, y] of pts) assert.ok(p.some((q) => Math.hypot(q[0] - x, q[1] - y) < 1e-6), `wierzchołek ${x},${y}`);
+  assert.deepEqual(p[p.length - 1], [0, 0]);
+  assert.deepEqual(polyline(pts, { closed: false }).at(-1), [100, 60]);
+});
+
+test('motyw w Storyboardzie: scena niesie motyw, ślad kredki idzie kreskowaniem motywu', () => {
+  const sb = new Storyboard({ theme: 'blueprint' });
+  const poly = [[0, 0], [200, 0], [200, 100], [0, 100]];
+  sb.crayon(poly, { color: 'teal' });
+  assert.equal(sb.scene().theme, 'blueprint');
+  const it = sb.items[0];
+  const o = { ...resolveTheme('blueprint').crayon, color: 'teal' };
+  for (const p of [0.2, 0.5, 0.8]) {
+    const a = it.trace(null, p), b = crayonTrace(poly, p, o);
+    close(a.x, b.x);
+    close(a.y, b.y);
+  }
+});
+
+test('filmy w trzech stylach: fizyka OK, ~15–18 s, kotwice na czas', () => {
+  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon]]) {
+    const v = new Voice(JSON.parse(readFileSync(new URL(`../examples/voice/${id}/voice.json`, import.meta.url), 'utf8')), `voice/${id}/`);
+    const sb = build(v);
+    assert.equal(sb.scene().theme, id);
+    assert.deepEqual(sb.lint().filter((i) => i.level !== 'warn').map((i) => i.problem), [], id);
+    assert.ok(sb.duration > 12 && sb.duration < 20, `${id}: ${sb.duration.toFixed(1)} s`);
+    for (const it of sb.items.filter((x) => x.cue)) {
+      assert.ok(it.seg.start - it.cue.target < 0.85, `${id} ${it.name} „${it.cue.word}”`);
+    }
+  }
+});

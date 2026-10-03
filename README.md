@@ -18,7 +18,7 @@ npm start            # serwer statyczny na http://localhost:8080
 npm test             # testy jednostkowe (node:test)
 ```
 
-Otwórz `http://localhost:8080` — galeria z trzema demami:
+Otwórz `http://localhost:8080` — galeria z demami:
 
 | demo | co pokazuje |
 | --- | --- |
@@ -26,6 +26,7 @@ Otwórz `http://localhost:8080` — galeria z trzema demami:
 | `examples/explainer.html` | film ze `Storyboard`: kamera, ścieranie, odtwarzacz z suwakiem, nagrywanie WebM |
 | `examples/narrated.html` | explainer z lektorem: głos, synchronizacja ze słowami, napisy na żywo |
 | `examples/scroll.html` | diagram budujący się podczas przewijania (sticky canvas + lista) |
+| `examples/styles.html` | trzy style (kreda, blueprint, neon), każdy jako ~15 s film z lektorem |
 
 ## Najkrótszy film
 
@@ -62,7 +63,7 @@ podnosi ołówek. Można też podać czas wprost przez `dur`.
 src/
   math.js        clamp, lerp, szum 1D, RNG z ziarnem, easingi
   paths.js       ścieżki jako tablice punktów: catmull, resample, pointAt,
-                 line/rect/ellipse/circle/arc/polygon/star/wave/spiral, svgPath(d)
+                 line/polyline/rect/ellipse/circle/arc/polygon/star/wave/spiral, svgPath(d)
   sketch.js      Sketch — pędzle: pen, strokes, arrow, crayon, fill, liquid,
                  highlight, dot, write, pencil, paper, group, occlude
   hand.js        model ręki: StrokePlan (profil prędkości, podnoszenie ołówka),
@@ -76,6 +77,7 @@ src/
   record.js      recordWebM, snapshot, download
   narration.js   Voice/Beat (voice.json: klipy zdań + czasy słów), napisy SRT/VTT
   audio.js       AudioTrack — ścieżka lektora (Web Audio), zegar animacji
+  themes.js      style: papier, tablica kredowa, blueprint, neon (tło, kreska, narzędzie)
 tools/render.mjs render klatka po klatce (Playwright) -> PNG / MP4 (ffmpeg)
 tools/audit.mjs  pomiar: czas renderu klatki, teleporty, prędkość i znikanie ręki
 tools/lint.mjs   kontrola fizyki scen w przeglądarce (nic nie pojawia się bez ręki)
@@ -227,6 +229,21 @@ new Player(canvas, sb.scene()).play();     // play() z kliknięcia — przegląd
 
 Jak dać głos, format skryptu i polecenia: [docs/LEKTOR.md](docs/LEKTOR.md).
 Demo: `examples/narrated.html`.
+
+## Style
+
+Ta sama scena w innym stylu wymaga zmiany jednej linijki:
+`new Storyboard({ theme: 'chalk' })`. Wbudowane style:
+
+* `paper`: pióro na kremowym papierze (domyślny);
+* `chalk`: kreda na tablicy;
+* `blueprint`: rapidograf na kalce z siatką, kreskowanie 45°;
+* `neon`: świecące kreski na szybie.
+
+![Trzy style](docs/img/style-sheet.png)
+
+Co zmienia motyw, jak zrobić własny i pomysły na kolejne style:
+[docs/STYLE.md](docs/STYLE.md). Demo: `examples/styles.html`.
 
 ## Od skryptu do filmu
 

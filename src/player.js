@@ -41,7 +41,7 @@ export class Player {
     this.o = { trigger: 'mount', delay: 0, speed: 1, fit: 'contain', maxDpr: 2, restartPause: 1.5, ...o };
     this.state = this.o.state ?? {};
     this.ctx = canvas.getContext('2d');
-    this.sk = new Sketch(this.ctx, this.o.sketch);
+    this.sk = new Sketch(this.ctx, { theme: scene.theme, ...this.o.sketch });
     this.t = 0;
     this.playing = false;
     this.inView = true;
@@ -158,6 +158,7 @@ export class Player {
     ctx.globalCompositeOperation = 'source-over';
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     ctx.setTransform(dpr * this.scale, 0, 0, dpr * this.scale, dpr * this.ox, dpr * this.oy);
+    sk.base = ctx.getTransform();
     this.scene.draw(sk, Math.max(0, t), this.state);
     this.lastBoil = boilIdx;
   }

@@ -4,6 +4,7 @@
 // rysowane równolegle. Kod wyjścia 1, gdy są problemy (do CI / pętli poprawek).
 //
 //   node tools/lint.mjs examples/scenes/explainer.js:buildExplainer [inne...]
+//   node tools/lint.mjs examples/scenes/styles/neon.js:buildNeon:examples/voice/neon/voice.json   # scena z lektorem
 //   node tools/lint.mjs            # wszystkie dema
 
 import { parseArgs, openPlayer } from './lib/page.mjs';
@@ -12,19 +13,31 @@ const { opt } = parseArgs(process.argv);
 const targets = process.argv.slice(2).filter((a) => !a.startsWith('--'));
 const list = targets.length
   ? targets
-  : ['examples/scenes/explainer.js:buildExplainer', 'examples/scenes/hero.js:buildHero', 'examples/scenes/diagram.js:buildScrollDiagram'];
+  : [
+      'examples/scenes/explainer.js:buildExplainer',
+      'examples/scenes/hero.js:buildHero',
+      'examples/scenes/diagram.js:buildScrollDiagram',
+      'examples/scenes/narrated.js:buildNarrated:examples/voice/agent/voice.json',
+      'examples/scenes/styles/chalk.js:buildChalk:examples/voice/chalk/voice.json',
+      'examples/scenes/styles/blueprint.js:buildBlueprint:examples/voice/blueprint/voice.json',
+      'examples/scenes/styles/neon.js:buildNeon:examples/voice/neon/voice.json',
+    ];
 
-// strona-gospodarz: ładuje czcionki i Player (Sketch z prawdziwym canvasem)
-const { tab, close } = await openPlayer(opt('host', 'examples/explainer.html'), { width: 1280 });
+// strona-gospodarz: ładuje czcionki wszystkich motywów i Player (Sketch z prawdziwym canvasem)
+const { tab, close } = await openPlayer(opt('host', 'examples/styles.html'), { width: 1280 });
 let total = 0;
 for (const target of list) {
-  const [file, fn] = target.split(':');
-  const res = await tab.evaluate(async ({ file, fn }) => {
+  const [file, fn, voice] = target.split(':');
+  const res = await tab.evaluate(async ({ file, fn, voice }) => {
     const m = await import(`/${file}`);
-    const sb = m[fn]();
-    const issues = sb.lint(window.__player.sk);
+    const { Voice, Sketch, loadFonts } = await import('/src/index.js');
+    const sb = m[fn](voice ? await Voice.load(`/${voice}`) : undefined);
+    // ślad pisma zależy od czcionek motywu sceny
+    const sk = new Sketch(window.__player.ctx, { theme: sb.theme ?? 'paper' });
+    await loadFonts(sk.fonts);
+    const issues = sb.lint(sk);
     return { duration: sb.duration, items: sb.items.length, issues };
-  }, { file, fn });
+  }, { file, fn, voice });
   const errors = res.issues.filter((i) => i.level !== 'warn');
   const warns = res.issues.length - errors.length;
   total += errors.length;

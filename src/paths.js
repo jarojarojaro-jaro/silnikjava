@@ -92,6 +92,26 @@ export function line(x1, y1, x2, y2, { bow = 0.02, seed = 1 } = {}) {
   return catmull([[x1, y1], [mx, my], [x2, y2]], 16);
 }
 
+/**
+ * Łamana o ostrych rogach (trójkąt, kwadrat, wielokąt "z linijki"): każdy bok to
+ * odręczna linia, rogi zostają rogami. closed — wraca do pierwszego punktu;
+ * overshoot — ostatni bok lekko "przejeżdża" za róg, jak przy szybkim szkicu.
+ */
+export function polyline(pts, { closed = true, seed = 1, bow = 0.012, overshoot = 0 } = {}) {
+  const P = closed ? [...pts, pts[0]] : pts;
+  const out = [];
+  for (let i = 0; i < P.length - 1; i++) {
+    let [x2, y2] = P[i + 1];
+    if (overshoot && i === P.length - 2) {
+      x2 += (x2 - P[i][0]) * overshoot;
+      y2 += (y2 - P[i][1]) * overshoot;
+    }
+    const seg = line(P[i][0], P[i][1], x2, y2, { bow, seed: seed + i * 7.3 });
+    out.push(...(i ? seg.slice(1) : seg));
+  }
+  return out;
+}
+
 /** Krzywa przez podane punkty. */
 export const curve = (pts, seg = 12) => catmull(pts, seg);
 

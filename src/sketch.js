@@ -10,6 +10,7 @@ import { clamp, hash, noise1, rng } from './math.js';
 import { resample, bounds, pathInfo } from './paths.js';
 import { StrokePlan } from './hand.js';
 import { textGeometry, hasDOM, IMG_SCALE } from './handwriting.js';
+import { resolveTheme } from './themes.js';
 
 export const PALETTE = {
   paper: '#f7f3ea',
@@ -43,10 +44,12 @@ export class Sketch {
    * @param {object} [opts.palette] nadpisania kolorów
    * @param {object} [opts.fonts]   { hand, title, mono } — rodziny czcionek
    */
-  constructor(ctx, { palette = {}, fonts = {} } = {}) {
+  constructor(ctx, { palette = {}, fonts = {}, theme = 'paper' } = {}) {
     this.ctx = ctx;
-    this.palette = { ...PALETTE, ...palette };
-    this.fonts = { hand: '"Caveat", "Comic Sans MS", cursive', title: '"Caveat Brush", "Caveat", cursive', mono: 'monospace', ...fonts };
+    this.theme = resolveTheme(theme);
+    this.palette = { ...PALETTE, ...this.theme.palette, ...palette };
+    this.fonts = { hand: '"Caveat", "Comic Sans MS", cursive', title: '"Caveat Brush", "Caveat", cursive', mono: 'monospace', ...this.theme.fonts, ...fonts };
+    this.base = null; // transformacja "ekranu" sceny (ustawia Player) — do odmalowania tła
     this.boil = 0; // numer "klatki drgania" — zmienia się BOIL_FPS razy na sekundę
     this.time = 0; // aktualny czas sceny w sekundach (do animacji idle)
     this.layer = null; // pomocnicze płótno dla kredki
@@ -68,6 +71,13 @@ export class Sketch {
   /** Papier: kolor bazowy + ziarno + delikatne włókna. */
   paper(w, h, { color = 'paper', grain = 1 } = {}) {
     const { ctx } = this;
+    this.paperSize = [w, h];
+    if (this.theme.background && color === 'paper') {
+      ctx.save();
+      this.theme.background(this, w, h);
+      ctx.restore();
+      return;
+    }
     ctx.save();
     ctx.fillStyle = this.col(color);
     ctx.fillRect(0, 0, w, h);
@@ -97,13 +107,17 @@ export class Sketch {
     const info = pathInfo(pts, step);
     const { r, n, curv } = info;
     if (n < 2) return null;
-    const w = o.w ?? 3.2;
-    const jitter = o.jitter ?? 1.1;
+    const style = this.theme.pen;
+    const kind = style.style ?? 'ink';
+    const w = (o.w ?? 3.2) * (style.width ?? 1);
+    const jitter = (o.jitter ?? 1.1) * (style.jitter ?? 1);
     const seed = o.seed ?? 3;
     const boil = o.still ? 0 : this.boil;
     const L = info.len;
-    const taper = o.taper ?? Math.min(26, L * 0.3);
-    const pressure = o.pressure ?? 0.35;
+    // kreślarski cienkopis i neon mają stałą grubość (bez nacisku i zwężeń)
+    const uniform = kind === 'tech' || kind === 'neon';
+    const taper = uniform ? 0 : o.taper ?? Math.min(26, L * 0.3);
+    const pressure = uniform ? 0 : o.pressure ?? 0.35;
     // ułamkowy indeks końca: ostatni odcinek dorysowujemy częściowo — płynny ruch końcówki
     const f = p >= 1 ? n - 1 : Math.max(0.0001, (n - 1) * p);
     const last = Math.ceil(f);
@@ -117,39 +131,103 @@ export class Sketch {
     };
     const pt = (i) => (i <= Math.floor(f) ? J(i) : J(Math.floor(f), f - Math.floor(f)));
 
-    ctx.save();
-    ctx.strokeStyle = this.col(o.color);
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    if (o.alpha != null) ctx.globalAlpha *= o.alpha;
-
+    const color = this.col(o.color);
     const dash = o.dash;
-    let prev = pt(0);
-    for (let i = 1; i <= last; i += 2) {
-      const end = Math.min(last, i + 1);
-      const d = i * step;
-      if (dash && d % (dash[0] + dash[1]) > dash[0]) {
-        prev = pt(end);
-        continue;
+    const P = [];
+    for (let i = 0; i <= last; i++) P.push(pt(i));
+    const visible = (i) => !dash || (i * step) % (dash[0] + dash[1]) <= dash[0];
+
+    if (uniform) {
+      // jedna ścieżka o stałej grubości (szybko; neon i cienkopis tak wyglądają)
+      const path = new Path2D();
+      let open = false;
+      for (let i = 0; i < P.length; i++) {
+        if (!visible(i)) { open = false; continue; }
+        if (!open) { path.moveTo(P[i][0], P[i][1]); open = true; } else path.lineTo(P[i][0], P[i][1]);
       }
-      ctx.beginPath();
-      ctx.moveTo(prev[0], prev[1]);
-      for (let k = i; k <= end; k++) {
-        prev = pt(k);
-        ctx.lineTo(prev[0], prev[1]);
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      if (o.alpha != null) ctx.globalAlpha *= o.alpha;
+      if (kind === 'neon') {
+        // poświata: szerokie, przezroczyste warstwy dodawane światłem + białawy rdzeń
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = color;
+        for (const [k, a] of [[5, 0.07], [3, 0.14], [1.8, 0.35]]) {
+          ctx.globalAlpha = (o.alpha ?? 1) * a;
+          ctx.lineWidth = w * k;
+          ctx.stroke(path);
+        }
+        ctx.globalAlpha = o.alpha ?? 1;
+        ctx.lineWidth = w;
+        ctx.stroke(path);
+        ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+        ctx.lineWidth = Math.max(0.6, w * 0.38);
+        ctx.stroke(path);
+      } else {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = w;
+        ctx.stroke(path);
+        // kreślarskie przedłużenia: linie konstrukcyjne wychodzą lekko poza końce
+        const ov = style.overshoot ?? 0;
+        if (ov && p >= 1 && n > 4 && Math.hypot(r[n - 1][0] - r[0][0], r[n - 1][1] - r[0][1]) > 6) {
+          ctx.globalAlpha *= 0.45;
+          ctx.lineWidth = w * 0.6;
+          const ext = (a, b) => {
+            const d = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1;
+            ctx.beginPath();
+            ctx.moveTo(a[0], a[1]);
+            ctx.lineTo(a[0] + ((a[0] - b[0]) / d) * ov, a[1] + ((a[1] - b[1]) / d) * ov);
+            ctx.stroke();
+          };
+          ext(P[0], P[Math.min(3, P.length - 1)]);
+          ext(P[P.length - 1], P[Math.max(0, P.length - 4)]);
+        }
       }
-      // nacisk: zwężenie na końcach, więcej tuszu na zakrętach (ręka tam zwalnia),
-      // lekkie wahania jak przy prawdziwym piórze
-      const press = taper > 0 ? Math.min(1, d / taper + 0.3, (L - d) / taper + 0.3) : 1;
-      const bend = 1 + pressure * Math.min(1, curv[Math.min(i, n - 1)] * 8);
-      const wob = 0.84 + 0.26 * noise1(seed * 3.7 + d * 0.02);
-      ctx.lineWidth = Math.max(0.4, w * press * wob * bend);
-      ctx.stroke();
+      ctx.restore();
+    } else {
+      // pióro / kreda: grubość zależna od nacisku, krzywizny i drżenia ręki
+      const chalk = kind === 'chalk';
+      let target = ctx, box = null;
+      if (chalk) {
+        this.#ensureLayer();
+        info.bounds ??= bounds(r);
+        box = this.#deviceBox(info.bounds, w + jitter + 2);
+        if (box) {
+          target = this.layerCtx;
+          target.save();
+          target.setTransform(1, 0, 0, 1, 0, 0);
+          target.clearRect(box[0], box[1], box[2] - box[0], box[3] - box[1]);
+          target.setTransform(ctx.getTransform());
+        }
+      }
+      if (!chalk || box) {
+        if (!chalk) target.save();
+        target.strokeStyle = color;
+        target.lineCap = 'round';
+        target.lineJoin = 'round';
+        if (o.alpha != null && !chalk) target.globalAlpha *= o.alpha;
+        for (let i = 1; i <= last; i += 2) {
+          const end = Math.min(last, i + 1);
+          if (!visible(i)) continue;
+          const d = i * step;
+          target.beginPath();
+          target.moveTo(P[i - 1][0], P[i - 1][1]);
+          for (let k = i; k <= end; k++) target.lineTo(P[k][0], P[k][1]);
+          const press = taper > 0 ? Math.min(1, d / taper + 0.3, (L - d) / taper + 0.3) : 1;
+          const bend = 1 + pressure * Math.min(1, curv[Math.min(i, n - 1)] * 8);
+          const wob = 0.84 + 0.26 * noise1(seed * 3.7 + d * 0.02);
+          target.lineWidth = Math.max(0.4, w * press * wob * bend);
+          target.stroke();
+        }
+        target.restore();
+        // kreda: ziarno tablicy wydrapuje "dziury" w kresce
+        if (chalk) this.#composite(box, { grain: style.grain ?? 0.6, chalk: true, alpha: o.alpha ?? 0.95 });
+      }
     }
-    ctx.restore();
 
     if (o.sketchy) {
-      this.pen(pts, p, { ...o, sketchy: false, seed: seed + 101, w: w * 0.45, alpha: (o.alpha ?? 1) * 0.45, jitter: jitter * 2.2 });
+      this.pen(pts, p, { ...o, sketchy: false, seed: seed + 101, w: (o.w ?? 3.2) * 0.45, alpha: (o.alpha ?? 1) * 0.45, jitter: (o.jitter ?? 1.1) * 2.2 });
     }
     const a = pt(last), b = pt(Math.max(0, last - 1));
     return { x: a[0], y: a[1], angle: Math.atan2(a[1] - b[1], a[0] - b[0]), done: p >= 1 };
@@ -194,6 +272,7 @@ export class Sketch {
    */
   crayon(poly, p = 1, o = {}) {
     if (p <= 0 || !poly || poly.length < 3) return null;
+    if (!o.solid) o = { ...this.theme.crayon, ...o };
     const { ctx } = this;
     this.#ensureLayer();
     const lc = this.layerCtx;
@@ -226,7 +305,7 @@ export class Sketch {
     lc.lineWidth = width;
     lc.beginPath();
     for (let i = 0; i < count; i++) {
-      const wv = z.wave[i];
+      const wv = o.wave === 0 ? 0 : z.wave[i];
       const [x, y] = z.path[i];
       i ? lc.lineTo(x + wv, y - wv) : lc.moveTo(x, y);
     }
@@ -238,28 +317,50 @@ export class Sketch {
     }
     lc.restore();
 
-    // ziarno: wydrapujemy drobne białe rysy jak przy kredce na fakturze papieru
-    if (!o.solid && (o.grain ?? 1) > 0) {
-      lc.save();
-      lc.setTransform(1, 0, 0, 1, 0, 0);
-      lc.globalCompositeOperation = 'destination-out';
-      lc.globalAlpha = clamp(o.grain ?? 1);
-      lc.fillStyle = lc.createPattern(grainTexture(), 'repeat');
-      lc.fillRect(x0, y0, x1 - x0, y1 - y0);
-      lc.restore();
-    }
-
-    ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.globalAlpha *= o.alpha ?? (o.solid ? 1 : 0.85);
-    ctx.drawImage(this.layer, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
-    ctx.restore();
+    // ziarno: wydrapujemy drobne rysy jak przy kredce/kredzie na fakturze podłoża
+    this.#composite(box, {
+      grain: o.solid ? 0 : o.grain ?? 1,
+      chalk: !!o.chalk,
+      alpha: o.alpha ?? (o.solid ? 1 : 0.85),
+      blend: o.blend,
+    });
     return p >= 1 ? null : crayonTip(z, p, seed);
   }
 
   /** Gdzie jest ręka przy kolorowaniu kredką (bez rysowania) — jedzie zygzakiem wewnątrz konturu. */
   crayonTrace(poly, p, o = {}) {
     return crayonTrace(poly, p, o);
+  }
+
+  /**
+   * Przenosi fragment pomocniczego płótna (warstwy) na scenę z efektem motywu:
+   * grain — wydrapanie ziarna (kredka/kreda), glow — poświata (neon), blend — tryb mieszania.
+   */
+  #composite(box, { grain = 0, chalk = false, alpha = 1, blend, glow = false } = {}) {
+    if (!box) return;
+    const [x0, y0, x1, y1] = box;
+    const lc = this.layerCtx, ctx = this.ctx;
+    if (grain > 0) {
+      lc.save();
+      lc.setTransform(1, 0, 0, 1, 0, 0);
+      lc.globalCompositeOperation = 'destination-out';
+      lc.globalAlpha = clamp(grain);
+      lc.fillStyle = lc.createPattern(chalk ? chalkTexture() : grainTexture(), 'repeat');
+      lc.fillRect(x0, y0, x1 - x0, y1 - y0);
+      lc.restore();
+    }
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha *= alpha;
+    if (blend) ctx.globalCompositeOperation = blend;
+    if (glow) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.filter = 'blur(7px)';
+      ctx.drawImage(this.layer, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
+      ctx.filter = 'none';
+    }
+    ctx.drawImage(this.layer, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
+    ctx.restore();
   }
 
   /** Prostokąt w pikselach urządzenia obejmujący bbox (w układzie bieżącej transformacji) + margines. */
@@ -307,6 +408,19 @@ export class Sketch {
 
   /** Zasłania to, co pod spodem, kolorem papieru (np. tablica przed nogami statywu). */
   occlude(poly, color = 'paper') {
+    // tło z fakturą (siatka, tablica, papier) odmalowujemy w kształcie — płaski kolor by je zakrył
+    if (color === 'paper' && this.base && this.paperSize) {
+      const { ctx } = this;
+      ctx.save();
+      ctx.beginPath();
+      poly.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      ctx.closePath();
+      ctx.clip();
+      ctx.setTransform(this.base);
+      this.paper(...this.paperSize);
+      ctx.restore();
+      return;
+    }
     this.fill(poly, color, 1);
   }
 
@@ -344,8 +458,8 @@ export class Sketch {
     const r = resample(pts, 3);
     const last = Math.max(1, Math.floor((r.length - 1) * clamp(p)));
     ctx.save();
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.globalAlpha *= o.alpha ?? 0.45;
+    ctx.globalCompositeOperation = o.blend ?? this.theme.highlight.blend ?? 'multiply';
+    ctx.globalAlpha *= o.alpha ?? this.theme.highlight.alpha ?? 0.45;
     ctx.strokeStyle = this.col(o.color, 'ochre');
     ctx.lineWidth = width;
     ctx.lineCap = o.cap ?? 'butt';
@@ -363,6 +477,17 @@ export class Sketch {
     const { ctx } = this;
     ctx.save();
     ctx.globalAlpha *= alpha;
+    if (this.theme.pen.style === 'neon' && rad > 0) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = this.col(color);
+      for (const [k, a] of [[2.6, 0.12], [1.7, 0.25]]) {
+        ctx.globalAlpha = alpha * a;
+        ctx.beginPath();
+        ctx.arc(x, y, rad * k, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = alpha;
+    }
     ctx.fillStyle = this.col(color);
     ctx.beginPath();
     ctx.arc(x, y, Math.max(0, rad), 0, Math.PI * 2);
@@ -391,6 +516,7 @@ export class Sketch {
     const jx = o.still ? 0 : noise1(this.boil * 1.7 + geo.size) * 0.45;
     const jy = o.still ? 0 : noise1(this.boil * 2.3 + 7) * 0.45;
     const images = geo.image(color);
+    const fx = this.#textFx();
 
     ctx.save();
     if (o.alpha != null) ctx.globalAlpha *= o.alpha;
@@ -399,7 +525,7 @@ export class Sketch {
       const im = images[i];
       g.drawImage(im, ln.dx - ln.pad, ln.dy - ln.asc, im.width / IMG_SCALE, im.height / IMG_SCALE);
     });
-    if (!st) {
+    if (!st && !fx) {
       drawImages(ctx);
       ctx.restore();
       return null;
@@ -422,7 +548,8 @@ export class Sketch {
       lc.lineJoin = 'round';
       const mw = geo.weight * 1.8 + 1.5;
       lc.lineWidth = mw;
-      geo.strokes.forEach((s, i) => {
+      if (!st) drawImages(lc);
+      else geo.strokes.forEach((s, i) => {
         const q = st.progress[i];
         if (q <= 0) return;
         if (s.length < 2) {
@@ -440,17 +567,25 @@ export class Sketch {
         if (k < r.length - 1) lc.lineTo(r[k][0] + (r[k + 1][0] - r[k][0]) * (f - k), r[k][1] + (r[k + 1][1] - r[k][1]) * (f - k));
         lc.stroke();
       });
-      lc.globalCompositeOperation = 'source-in';
-      drawImages(lc);
+      if (st) {
+        lc.globalCompositeOperation = 'source-in';
+        drawImages(lc);
+      }
       lc.restore();
-      ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.drawImage(this.layer, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
-      ctx.restore();
+      this.#composite(box, fx ?? {});
     }
     ctx.restore();
+    if (!st) return null;
     const t = st.tip;
     return t && { x: x + t.x, y: y + t.y, angle: t.angle, lift: t.lift };
+  }
+
+  /** Efekt motywu dla pisma: ziarno kredy, poświata neonu (null = zwykły tusz). */
+  #textFx() {
+    const kind = this.theme.pen.style;
+    if (kind === 'chalk') return { grain: (this.theme.pen.grain ?? 0.6) * 0.8, chalk: true, alpha: 0.95 };
+    if (kind === 'neon' || this.theme.text.glow) return { glow: true };
+    return null;
   }
 
   /** Gdzie jest ręka przy pisaniu (bez rysowania). */
@@ -541,7 +676,8 @@ export class Sketch {
    */
   tool(x, y, o = {}) {
     const { ctx } = this;
-    const type = o.type ?? 'pencil';
+    // motyw podmienia narzędzie: na tablicy kreda, na kalce rapidograf, na szybie neonowy pisak
+    const type = this.theme.tools[o.type ?? 'pencil'] ?? o.type ?? 'pencil';
     const lift = clamp(o.lift ?? 0);
     const size = (o.size ?? 1) * (1 + 0.07 * lift); // uniesione narzędzie jest bliżej "kamery"
     const t = this.time;
@@ -552,8 +688,8 @@ export class Sketch {
     ctx.lineJoin = 'round';
     if (type === 'eraser') this.#eraserSprite(size, lift, o);
     else {
-      const len = (type === 'marker' ? 110 : 120) * size;
-      const wd = (type === 'marker' ? 20 : 13) * size;
+      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118 }[type] ?? 120) * size;
+      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18 }[type] ?? 13) * size;
       // cień na kartce — im wyżej narzędzie, tym dalej i bardziej rozmyty
       ctx.save();
       ctx.rotate(ang);
@@ -566,6 +702,9 @@ export class Sketch {
       ctx.translate(0, -lift * 12);
       ctx.rotate(ang);
       if (type === 'marker') this.#markerSprite(len, wd, size, o);
+      else if (type === 'chalk') this.#chalkSprite(len, wd, size, o);
+      else if (type === 'techpen') this.#techpenSprite(len, wd, size, o);
+      else if (type === 'neon') this.#neonSprite(len, wd, size, o);
       else this.#pencilSprite(len, wd, size, o);
     }
     ctx.restore();
@@ -677,6 +816,106 @@ export class Sketch {
     ctx.stroke();
   }
 
+  /** Kawałek kredy w kolorze kreski: starta, zaokrąglona końcówka, matowa faktura. */
+  #chalkSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const col = this.col(o.color, 'ink');
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    // starty czubek (skos), dalej walec
+    ctx.moveTo(0, -wd * 0.12);
+    ctx.quadraticCurveTo(-1 * size, wd * 0.2, 6 * size, wd * 0.5);
+    ctx.lineTo(len - wd * 0.3, wd / 2);
+    ctx.quadraticCurveTo(len + wd * 0.15, 0, len - wd * 0.3, -wd / 2);
+    ctx.lineTo(9 * size, -wd / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillRect(0, -wd / 2, len, wd * 0.28);
+    ctx.fillStyle = 'rgba(0,0,0,0.16)';
+    ctx.fillRect(0, wd * 0.18, len, wd * 0.32);
+    ctx.globalAlpha *= 0.5;
+    ctx.fillStyle = ctx.createPattern(chalkTexture(), 'repeat');
+    ctx.fillRect(0, -wd / 2, len, wd);
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(20,24,22,0.55)';
+    ctx.lineWidth = 1.2 * size;
+    ctx.stroke();
+  }
+
+  /** Rapidograf (cienkopis kreślarski): stalowa rurka, ciemny korpus, kolorowy pierścień. */
+  #techpenSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const ring = this.col(o.color, 'teal');
+    const tube = 16 * size, cone = 16 * size;
+    ctx.strokeStyle = 'rgba(5,15,30,0.7)';
+    ctx.lineWidth = 1.2 * size;
+    // stalowa rurka
+    ctx.fillStyle = '#d7dee6';
+    ctx.fillRect(0, -1.2 * size, tube, 2.4 * size);
+    ctx.strokeRect(0, -1.2 * size, tube, 2.4 * size);
+    // stożek
+    ctx.fillStyle = '#9aa6b2';
+    ctx.beginPath();
+    ctx.moveTo(tube, -2.2 * size);
+    ctx.lineTo(tube + cone, -wd * 0.42);
+    ctx.lineTo(tube + cone, wd * 0.42);
+    ctx.lineTo(tube, 2.2 * size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // korpus
+    const x0 = tube + cone;
+    ctx.fillStyle = '#20262e';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x0, -wd / 2, len - x0, wd, [1, 4 * size, 4 * size, 1]);
+    else ctx.rect(x0, -wd / 2, len - x0, wd);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = ring;
+    ctx.fillRect(x0 + 6 * size, -wd / 2, 6 * size, wd);
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fillRect(x0, -wd / 2 + 1.5 * size, len - x0, wd * 0.22);
+  }
+
+  /** Pisak do szyby (lightboard): czarny korpus, świecąca końcówka w kolorze kreski. */
+  #neonSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const ink = this.col(o.color, 'pen');
+    const tip = 12 * size;
+    // poświata wokół końcówki
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 26 * size);
+    g.addColorStop(0, ink);
+    g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha *= 0.45;
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(0, 0, 26 * size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(tip, -wd * 0.3);
+    ctx.lineTo(tip, wd * 0.3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#16181f';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(tip, -wd / 2, len - tip, wd, [3 * size, 7 * size, 7 * size, 3 * size]);
+    else ctx.rect(tip, -wd / 2, len - tip, wd);
+    ctx.fill();
+    ctx.fillStyle = ink;
+    ctx.globalAlpha *= 0.9;
+    ctx.fillRect(len - 26 * size, -wd / 2, 10 * size, wd);
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.fillRect(tip, -wd / 2 + 2 * size, len - tip, wd * 0.2);
+  }
+
   /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */
   #eraserSprite(size, lift, o) {
     const { ctx } = this;
@@ -699,7 +938,7 @@ export class Sketch {
     ctx.fillRect(-w / 2 + 6 * size, -h / 2 - back, w - 12 * size, back);
     ctx.fillStyle = 'rgba(255,255,255,0.18)';
     ctx.fillRect(-w / 2 + 6 * size, -h / 2 - back, w - 12 * size, back * 0.3);
-    ctx.strokeStyle = this.col('ink');
+    ctx.strokeStyle = this.theme.outline ?? this.col('ink');
     ctx.lineWidth = 1.6 * size;
     ctx.strokeRect(-w / 2, -h / 2, w, h);
     ctx.strokeRect(-w / 2 + 6 * size, -h / 2 - back, w - 12 * size, back);
@@ -874,6 +1113,23 @@ function grainTexture() {
     }
   }
   grainCache = c;
+  return c;
+}
+
+let chalkCache = null;
+/** Ziarno kredy na tablicy: gęste drobne "dziury" i krótkie poziome przetarcia. */
+function chalkTexture() {
+  if (chalkCache) return chalkCache;
+  const S = 160;
+  const c = makeCanvas(S, S);
+  const g = c.getContext('2d');
+  const r = rng(31);
+  for (let i = 0; i < 2300; i++) {
+    g.fillStyle = `rgba(0,0,0,${0.4 + r() * 0.6})`;
+    const x = r() * S, y = r() * S, s = 0.6 + r() * 1.6;
+    g.fillRect(x, y, s * (1 + r() * 2.5), s);
+  }
+  chalkCache = c;
   return c;
 }
 

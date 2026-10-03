@@ -143,6 +143,18 @@ mniej detali postaci, a nie szybsza ręka.
 - [x] Pomiar na gotowym MP4: przy 9 z 11 kotwic ołówek dotyka kartki
   0,26–0,32 s przed słowem; pozostałe dwie to 0,19 s i 0,70 s.
 
+## Etap 2d — style (zrobione)
+
+- [x] Motywy (`src/themes.js`): podłoże, paleta, czcionki, rodzaj kreski
+  (`ink` / `chalk` / `tech` / `neon`), kolorowanie, tryb zakreślacza,
+  narzędzie w ręce. `Storyboard({ theme })` → `scene.theme` → `Player`.
+- [x] Trzy style z filmami ~15–18 s z lektorem: tablica kredowa, blueprint,
+  neon (`examples/styles.html`). Fizyka: 0 błędów; kotwice na czas.
+- [x] Ślad ręki przy kolorowaniu idzie zygzakiem motywu; `occlude` i gąbka
+  odmalowują tło z fakturą; tempo pisma nie zależy od tempa kresek sceny.
+- [x] `polyline()` — wielokąty o ostrych rogach (geometria, schematy).
+- Opis i przepis na własny styl: [STYLE.md](STYLE.md).
+
 ## Etap 3 — rozbudowa (kolejne iteracje)
 
 - Wysokopoziomowy format sceny (węzły z id, strzałki między id z
@@ -151,8 +163,8 @@ mniej detali postaci, a nie szybsza ręka.
   mniejszymi modelami).
 - Biblioteka ikon rysowanych (terminal, globus, plik, chmura, baza, żarówka,
   zębatka, człowiek…), każda jako zestaw kresek z kolejnością rysowania.
-- Narzędzia: marker, kreda na tablicy, dłoń trzymająca pisak; styl „tablica
-  szkolna” (ciemne tło, kreda).
+- Narzędzia: dłoń trzymająca pisak; kolejne style (akwarela, flipchart,
+  komiks, notatnik w kratkę — patrz STYLE.md).
 - Przejścia: przesunięcie kartki, przewrócenie strony, zoom-through.
 - Postacie: rig z emocjami (radość, zdziwienie, myślenie), gesty wskazywania.
 - Eksport: WebCodecs (szybszy niż MediaRecorder), dźwięk w eksporcie.

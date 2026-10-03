@@ -147,6 +147,8 @@ def align(script_words, heard):
             # inne brzmienie (liczby, skróty): rozkładamy fragment proporcjonalnie
             s, e = heard[j1]["s"], heard[j2 - 1]["e"]
             n = i2 - i1
+            if e - s < 0.08 * n:
+                continue  # zdegenerowane czasy — lepiej interpolować między sąsiadami
             for k in range(n):
                 times[i1 + k] = (s + (e - s) * k / n, s + (e - s) * (k + 1) / n)
     matched = sum(1 for t in times if t)
@@ -175,6 +177,12 @@ def cmd_tts(args):
             words = tokens(b["text"])
             heard = transcribe(wav, args.asr, prompt=b["text"])
             timed, score = align(words, heard)
+            if score < 0.6:
+                # podpowiedź potrafi zamienić mowę na symbole ("a kwadrat" -> "A²"); bez niej
+                # rozpoznanie jest dosłowne — bierzemy lepsze dopasowanie
+                t2, s2 = align(words, transcribe(wav, args.asr))
+                if s2 > score:
+                    timed, score = t2, s2
             dst = out / f"{b['id']}.ogg"
             encode(wav, dst)
             result.append({**b, "audio": dst.name, "duration": round(duration(wav), 3), "words": timed, "match": round(score, 2)})

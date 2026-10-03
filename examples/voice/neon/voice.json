@@ -1,0 +1,192 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-gosia-medium",
+ "meta": {
+  "głos": "pl_PL-gosia-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Jak uczy się sieć neuronowa?",
+   "notes": [
+    "tytuł"
+   ],
+   "audio": "b1.ogg",
+   "duration": 2.09,
+   "words": [
+    {
+     "w": "Jak",
+     "s": 0.0,
+     "e": 0.24
+    },
+    {
+     "w": "uczy",
+     "s": 0.24,
+     "e": 0.58
+    },
+    {
+     "w": "się",
+     "s": 0.58,
+     "e": 0.8
+    },
+    {
+     "w": "sieć",
+     "s": 0.8,
+     "e": 1.16
+    },
+    {
+     "w": "neuronowa?",
+     "s": 1.16,
+     "e": 1.8
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Dane trafiają do warstwy wejściowej.",
+   "notes": [
+    "neurony wejścia"
+   ],
+   "audio": "b2.ogg",
+   "duration": 2.345,
+   "words": [
+    {
+     "w": "Dane",
+     "s": 0.0,
+     "e": 0.26
+    },
+    {
+     "w": "trafiają",
+     "s": 0.26,
+     "e": 0.82
+    },
+    {
+     "w": "do",
+     "s": 0.82,
+     "e": 0.98
+    },
+    {
+     "w": "warstwy",
+     "s": 0.98,
+     "e": 1.5
+    },
+    {
+     "w": "wejściowej.",
+     "s": 1.5,
+     "e": 2.06
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Każdy neuron waży sygnały i przekazuje je dalej.",
+   "notes": [
+    "warstwa ukryta, połączenia"
+   ],
+   "audio": "b3.ogg",
+   "duration": 3.297,
+   "words": [
+    {
+     "w": "Każdy",
+     "s": 0.0,
+     "e": 0.395
+    },
+    {
+     "w": "neuron",
+     "s": 0.395,
+     "e": 0.79
+    },
+    {
+     "w": "waży",
+     "s": 0.79,
+     "e": 1.185
+    },
+    {
+     "w": "sygnały",
+     "s": 1.185,
+     "e": 1.58
+    },
+    {
+     "w": "i",
+     "s": 1.58,
+     "e": 1.975
+    },
+    {
+     "w": "przekazuje",
+     "s": 1.975,
+     "e": 2.37
+    },
+    {
+     "w": "je",
+     "s": 2.37,
+     "e": 2.765
+    },
+    {
+     "w": "dalej.",
+     "s": 2.765,
+     "e": 3.16
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Na końcu sieć zgaduje wynik, a błąd poprawia wagi.",
+   "notes": [
+    "wyjście, strzałka wstecz"
+   ],
+   "audio": "b4.ogg",
+   "duration": 3.413,
+   "words": [
+    {
+     "w": "Na",
+     "s": 0.0,
+     "e": 0.16
+    },
+    {
+     "w": "końcu",
+     "s": 0.16,
+     "e": 0.56
+    },
+    {
+     "w": "sieć",
+     "s": 0.56,
+     "e": 0.82
+    },
+    {
+     "w": "zgaduje",
+     "s": 0.82,
+     "e": 1.28
+    },
+    {
+     "w": "wynik,",
+     "s": 1.28,
+     "e": 1.8
+    },
+    {
+     "w": "a",
+     "s": 1.96,
+     "e": 2.06
+    },
+    {
+     "w": "błąd",
+     "s": 2.06,
+     "e": 2.4
+    },
+    {
+     "w": "poprawia",
+     "s": 2.4,
+     "e": 2.92
+    },
+    {
+     "w": "wagi.",
+     "s": 2.92,
+     "e": 3.2
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

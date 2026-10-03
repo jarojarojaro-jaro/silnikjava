@@ -25,6 +25,7 @@ import { bounds } from './paths.js';
 import { StrokePlan, HandTrack, HAND, travelTime, minDuration } from './hand.js';
 import { arrowParts, crayonTrace } from './sketch.js';
 import { subtitleCues, toSRT, toVTT } from './narration.js';
+import { resolveTheme } from './themes.js';
 
 const PEN_SPEED = HAND.speed;
 // rodzaje kroków, które po zakończeniu wyglądają tak samo (poza drganiem kreski) — można je buforować
@@ -42,7 +43,8 @@ export class Storyboard {
    *                   cache (domyślnie true — bufor ukończonych elementów), fps (limit klatek w idle 'loop'),
    *                   warn (domyślnie true — ostrzeżenia lint w konsoli przy pierwszym rysowaniu)
    */
-  constructor({ w = 1280, h = 720, pencil = true, paper = true, idle = 'boil', speed = PEN_SPEED, background, handGaps = true, cache = true, fps, warn = true } = {}) {
+  constructor({ w = 1280, h = 720, pencil = true, paper = true, idle = 'boil', speed = PEN_SPEED, background, handGaps = true, cache = true, fps, warn = true, theme } = {}) {
+    this.theme = theme;
     this.w = w;
     this.h = h;
     this.fps = fps;
@@ -175,6 +177,8 @@ export class Storyboard {
 
   /** Zamalowanie kredką w kolorze — ręka jedzie środkiem kolorowanego pasa. */
   crayon(poly, o = {}) {
+    // domyślne kreskowanie motywu (np. 45° w blueprincie) — ślad ręki musi iść tym samym zygzakiem
+    if (this.theme) o = { ...resolveTheme(this.theme).crayon, ...o };
     const b = bounds(poly);
     const from = crayonTrace(poly, 0, o), to = crayonTrace(poly, 1, o);
     return this.#add('crayon', o.dur ?? clamp(0.35 + Math.sqrt(b.w * b.h) / 400, 0.4, 1.4), { ease: 'inOut', ...o }, (sk, p) => {
@@ -250,7 +254,8 @@ export class Storyboard {
     const chars = String(text).replace(/\s/g, '').length;
     // droga ręki rośnie proporcjonalnie do wielkości liter — kalibracja z pomiarów
     // minimalnego czasu (lint w przeglądarce): ~0,0019 s na znak i piksel wysokości
-    const est = (chars * (0.012 + size * 0.0019) + (String(text).split(/\s+/).length - 1) * 0.08) * ((PEN_SPEED / (o.speed ?? this.speed)) || 1);
+    // tempo sceny (`speed`) dotyczy kresek; pismo ma własne tempo — zmienia je tylko o.speed
+    const est = (0.1 + chars * (0.012 + size * 0.0019) + (String(text).split(/\s+/).length - 1) * 0.08) * ((PEN_SPEED / (o.speed ?? PEN_SPEED)) || 1);
     const dur = o.dur ?? clamp(est, 0.3, 8);
     // szacunek szerokości linii (pismo odręczne ~0,4 em na znak); dokładny ślad liczy się przy rysowaniu
     const lines = String(text).split('\n');
@@ -452,6 +457,7 @@ export class Storyboard {
       duration: this.duration,
       idle: this.idle,
       fps: this.fps,
+      theme: this.theme,
       audio: this.audio.map(({ src, start, dur }) => ({ src, start, dur })),
       subtitles: (format, opts) => this.subtitles(format, opts),
       draw: (sk, t) => this.draw(sk, t),
@@ -568,6 +574,7 @@ export class Storyboard {
     const canCache = this.useCache && camStill && typeof document !== 'undefined' && ctx.canvas?.width > 0 && !this.background;
 
     const base = ctx.getTransform();
+    sk.base = base; // occlude() odmalowuje tło (siatkę, tablicę) w układzie sceny
     const applyCam = (c) => {
       c.translate(this.w / 2, this.h / 2);
       c.scale(cam.zoom, cam.zoom);
@@ -694,7 +701,7 @@ export class Storyboard {
       poly.push([xa, yb]);
       for (let y = yb; y >= ya; y -= 24) poly.push([xb + noise1(seed + 9 + y * 0.03) * 5, y]);
       poly.push([xb, ya]);
-      sk.fill(poly, 'paper', 1);
+      sk.occlude(poly);
     };
     const y0 = e.y0 - 40, y1 = e.y0 + e.vh + 40;
     for (let i = 0; i < e.k; i++) {
