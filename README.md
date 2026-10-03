@@ -1,32 +1,134 @@
 # silnikjava
 
-Silnik JavaScript do **rysowanych animacji i filmów objaśniających** (explainer
-videos): kreska piórem z naciskiem i drganiem, zamalowywanie kredką z ziarnem
-papieru, pismo odręczne, ołówek rysujący na oczach widza, kamera, ścieranie
-tablicy, sterowanie scrollem i eksport do wideo. Czysty JS (moduły ES), canvas
-2D, bez zależności i bez kroku budowania.
+Silnik JavaScript do **rysowanych filmów objaśniających** (explainer videos,
+whiteboard animation). Na ekranie widać jedną rękę, która naprawdę rysuje:
+kreskę z naciskiem i drganiem, kolorowanie, pismo odręczne (litera po
+literze), strzałki i schematy. Do tego lektor zsynchronizowany ze słowami,
+napisy, kamera, ścieranie tablicy i eksport do MP4. Czysty JS (moduły ES),
+canvas 2D, bez zależności i bez kroku budowania.
 
 ![Scena Tablica](docs/img/silnik-hero.gif)
 
-Styl i technika wzorowane na animacjach z [stentor.studio](https://stentor.studio)
-— szczegółowa analiza klatka po klatce w [docs/ANALIZA.md](docs/ANALIZA.md).
+**Co potrafi**
+
+* **Ręka rysuje naprawdę.** Każdy ślad prowadzi jedna ręka w ludzkim tempie, a
+  `lint` pilnuje fizyki i kolejności (np. słońce maluje się zaraz po obrysie,
+  a nie po narysowaniu morza). Zasady: [docs/ZASADY.md](docs/ZASADY.md).
+* **9 stylów** zmienianych jedną linijką: `new Storyboard({ theme: 'chalk' })`.
+* **Lektor**: głos z tekstu (TTS) albo z Twojego nagrania. Rysunek trafia
+  w słowa (`cue: 'słowo'`), są napisy SRT/VTT i MP4 z dźwiękiem.
+* **Rolki 9:16** (Reels, TikTok, Shorts): strefy bezpieczne i napisy słowo po
+  słowie wypalone w obraz.
+
+## Galeria stylów
+
+Każdy styl ma ~15–19-sekundowy film z lektorem. Podglądy są przyspieszone
+2,2×; pełne filmy z dźwiękiem: `examples/styles.html?s=<styl>`.
+
+<table>
+<tr>
+<td width="33%" valign="top">
+<img src="docs/img/styles/chalk.gif" alt="Tablica kredowa: Twierdzenie Pitagorasa" width="100%"><br>
+<b>Tablica kredowa</b> · <code>theme: 'chalk'</code><br>
+<sub>Film: „Twierdzenie Pitagorasa”<br>kreda z ziarnem tablicy, kolorowa kreda, drewniana rama.<br>Do czego: lekcje, matematyka.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/blueprint.gif" alt="Blueprint: Co się dzieje po kliknięciu?" width="100%"><br>
+<b>Blueprint</b> · <code>theme: 'blueprint'</code><br>
+<sub>Film: „Co się dzieje po kliknięciu?”<br>rapidograf o stałej grubości, siatka, kreskowanie 45°.<br>Do czego: architektura systemów, inżynieria.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/neon.gif" alt="Neon (lightboard): Jak uczy się sieć neuronowa?" width="100%"><br>
+<b>Neon (lightboard)</b> · <code>theme: 'neon'</code><br>
+<sub>Film: „Jak uczy się sieć neuronowa?”<br>świecące kreski na ciemnej szybie, pisak z poświatą.<br>Do czego: technologia, AI.</sub>
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
+<img src="docs/img/styles/notebook.gif" alt="Zeszyt w kratkę: Procent składany" width="100%"><br>
+<b>Zeszyt w kratkę</b> · <code>theme: 'notebook'</code><br>
+<sub>Film: „Procent składany”<br>długopis, czerwony długopis, zakreślacze, kratka i margines.<br>Do czego: finanse osobiste, nauka.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/watercolor.gif" alt="Akwarela: Obieg wody" width="100%"><br>
+<b>Akwarela</b> · <code>theme: 'watercolor'</code><br>
+<sub>Film: „Obieg wody”<br>cienkopis i plamy farby z rozlanym brzegiem, pędzel w ręce.<br>Do czego: przyroda, opowieści.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/comic.gif" alt="Komiks: Dlaczego niebo jest niebieskie?" width="100%"><br>
+<b>Komiks</b> · <code>theme: 'comic'</code><br>
+<sub>Film: „Dlaczego niebo jest niebieskie?”<br>pędzelek z naciskiem, raster kropek, dymki, Bangers.<br>Do czego: ciekawostki, social media.</sub>
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
+<img src="docs/img/styles/flipchart.gif" alt="Flipchart: Lejek sprzedażowy" width="100%"><br>
+<b>Flipchart</b> · <code>theme: 'flipchart'</code><br>
+<sub>Film: „Lejek sprzedażowy”<br>gruby marker ze smugą filcu, arkusz z bloku.<br>Do czego: warsztaty, sprzedaż.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/kraft.gif" alt="Papier pakowy: Kawa z dripa" width="100%"><br>
+<b>Papier pakowy</b> · <code>theme: 'kraft'</code><br>
+<sub>Film: „Kawa z dripa”<br>czarny pisak, biały żelopis, kredki na kraftowym papierze.<br>Do czego: przepisy, rękodzieło.</sub>
+</td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/sketch.gif" alt="Szkic ołówkiem: Jak działa dźwignia?" width="100%"><br>
+<b>Szkic ołówkiem</b> · <code>theme: 'sketch'</code><br>
+<sub>Film: „Jak działa dźwignia?”<br>grafit z ziarnem papieru, szkicowe linie, kreskowanie.<br>Do czego: fizyka, technika.</sub>
+</td>
+</tr>
+</table>
+
+Jak działa motyw, czym różnią się kreski (`ink`, `chalk`, `tech`, `neon`,
+`marker`, `graphite`) i jak zrobić własny styl: [docs/STYLE.md](docs/STYLE.md).
+
+## Rolki 9:16 — przykłady
+
+<table>
+<tr>
+<td width="33%" align="center" valign="top">
+<img src="docs/img/reels/notebook.gif" alt="Rolka: Zasada 50/30/20" width="220"><br>
+<b>Zeszyt w kratkę</b><br><sub>„Zasada 50/30/20”</sub>
+</td>
+<td width="33%" align="center" valign="top">
+<img src="docs/img/reels/neon.gif" alt="Rolka: Jak AI pisze tekst?" width="220"><br>
+<b>Neon</b><br><sub>„Jak AI pisze tekst?”</sub>
+</td>
+<td width="33%" align="center" valign="top">
+<img src="docs/img/reels/comic.gif" alt="Rolka: Dlaczego lód pływa?" width="220"><br>
+<b>Komiks</b><br><sub>„Dlaczego lód pływa?”</sub>
+</td>
+</tr>
+</table>
+
+```js
+const sb = new Storyboard({ format: 'reel', theme: 'neon' }); // kadr 720×1280 → render 1080×1920
+```
+
+Szczegóły (strefy bezpieczne, napisy, tempo): sekcja [Rolki 9:16](#rolki-916-reels-tiktok-shorts)
+niżej. Podgląd w ramce telefonu: `examples/reels.html`.
 
 ## Start
 
 ```bash
 npm start            # serwer statyczny na http://localhost:8080
 npm test             # testy jednostkowe (node:test)
+node tools/lint.mjs  # kontrola fizyki i kolejności wszystkich scen (Playwright)
 ```
 
 Otwórz `http://localhost:8080` — galeria z demami:
 
 | demo | co pokazuje |
 | --- | --- |
-| `examples/hero.html` | nagłówek w stylu stentor.studio: jedna ręka prowadzi główny wątek, tło dorysowuje się równolegle, maskotka śledzi ołówek wzrokiem |
-| `examples/explainer.html` | film ze `Storyboard`: kamera, ścieranie, odtwarzacz z suwakiem, nagrywanie WebM |
+| `examples/styles.html` | 9 stylów, każdy jako film z lektorem i napisami |
+| `examples/reels.html` | rolki 9:16 w ramce telefonu, przełącznik stref interfejsu |
 | `examples/narrated.html` | explainer z lektorem: głos, synchronizacja ze słowami, napisy na żywo |
+| `examples/hero.html` | nagłówek w stylu stentor.studio: jedna ręka prowadzi główny wątek, maskotka śledzi ołówek wzrokiem |
+| `examples/explainer.html` | film ze `Storyboard`: kamera, ścieranie, odtwarzacz z suwakiem, nagrywanie WebM |
 | `examples/scroll.html` | diagram budujący się podczas przewijania (sticky canvas + lista) |
-| `examples/styles.html` | style (kreda, blueprint, neon, zeszyt, akwarela, komiks, flipchart, kraft, szkic), każdy jako ~15 s film z lektorem |
+
+Styl i technika wzorowane na animacjach z [stentor.studio](https://stentor.studio)
+— szczegółowa analiza klatka po klatce w [docs/ANALIZA.md](docs/ANALIZA.md).
 
 ## Najkrótszy film
 
@@ -239,18 +341,10 @@ Demo: `examples/narrated.html`.
 ## Style
 
 Ta sama scena w innym stylu wymaga zmiany jednej linijki:
-`new Storyboard({ theme: 'chalk' })`. Wbudowane style:
-
-* `paper`: pióro na kremowym papierze (domyślny);
-* `chalk`: kreda na tablicy;
-* `blueprint`: rapidograf na kalce z siatką, kreskowanie 45°;
-* `neon`: świecące kreski na szybie;
-* `notebook`: długopis i zakreślacze w zeszycie w kratkę;
-* `watercolor`: cienkopis i plamy akwareli;
-* `comic`: pędzelek, raster kropek, dymki;
-* `flipchart`: gruby marker na arkuszu z bloku;
-* `kraft`: cienkopis, biały żelopis i kredki na papierze pakowym;
-* `sketch`: grafit, szkicowe linie i kreskowanie w szkicowniku.
+`new Storyboard({ theme: 'chalk' })`. Wbudowane motywy: `paper` (domyślny,
+pióro na kremowym papierze), `chalk`, `blueprint`, `neon`, `notebook`,
+`watercolor`, `comic`, `flipchart`, `kraft`, `sketch`. Podglądy wszystkich są
+w [galerii](#galeria-stylów) na górze.
 
 ![Dziewięć stylów](docs/img/style-sheet.png)
 
@@ -307,3 +401,16 @@ Produkcja seryjna mniejszymi modelami: [docs/SKALOWANIE.md](docs/SKALOWANIE.md).
 (oddech przez skalę `group`, mruganie co kilka sekund, wzrok śledzący ołówek).
 Gotowe rysunki z Figmy/Inkscape można wczytać przez `svgPath(d)` i animować
 ołówkiem jak każdą inną ścieżkę.
+
+## Dokumentacja
+
+| plik | o czym |
+| --- | --- |
+| [docs/ZASADY.md](docs/ZASADY.md) | zasady rysownika: prompt źródłowy dla człowieka i modelu (fizyka ręki, obiekt w całości, lektor, rolki) |
+| [docs/STYLE.md](docs/STYLE.md) | motywy: co zmieniają, jak zrobić własny |
+| [docs/LEKTOR.md](docs/LEKTOR.md) | głos z tekstu albo nagrania, format skryptu, synchronizacja |
+| [docs/PRODUKCJA.md](docs/PRODUKCJA.md) | jak powstaje film ze skryptu |
+| [docs/SKALOWANIE.md](docs/SKALOWANIE.md) | produkcja seryjna mniejszymi modelami (specyfikacja, linter, few-shot) |
+| [docs/PLAN.md](docs/PLAN.md) | historia zmian silnika i pomiary |
+| [docs/ANALIZA.md](docs/ANALIZA.md) | analiza animacji stentor.studio klatka po klatce |
+| [CLAUDE.md](CLAUDE.md) | instrukcje dla Claude Code w tym repozytorium |
