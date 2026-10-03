@@ -760,7 +760,7 @@ export class Storyboard {
   #drawCaptions(sk, t) {
     const o = this.captions;
     this.reelCues ??= reelCues(this.audio, o);
-    const cue = this.reelCues.find((c) => t >= c.start && t <= c.end);
+    const cue = this.reelCues.find((c) => t >= c.start && t < c.end);
     if (!cue) return;
     const { ctx } = sk;
     const size = o.size ?? Math.round(this.w * 0.078);
@@ -770,15 +770,14 @@ export class Storyboard {
     ctx.lineJoin = 'round';
     // odstęp między słowami: część czcionek ma prawie zerową spację
     const space = Math.max(ctx.measureText(' ').width, size * 0.4);
-    const pop = 0.86 + 0.14 * ease.out(clamp((t - cue.start) / 0.12));
-    // każde słowo z własną skalą (mówione większe); układ liczony po skali, żeby nic nie nachodziło
+    // wejście porcji: krótkie, delikatne "wskoczenie" (bez znikania między porcjami)
+    const pop = 0.94 + 0.06 * ease.out(clamp((t - cue.start) / 0.1));
+    // układ liczony RAZ, bez powiększenia — mówione słowo rośnie tylko wokół własnego
+    // środka, więc nic w linii się nie przesuwa (odstęp mieści powiększenie i obrys)
     const words = cue.words.map((w) => {
       const text = o.upper === false ? w.w : w.w.toUpperCase();
-      const active = t >= w.s - 0.05 && t <= w.e + 0.05;
-      const k = (active ? 1.1 : 1) * pop;
-      return { text, active, k, width: ctx.measureText(text).width * k };
+      return { text, s: w.s, e: w.e, width: ctx.measureText(text).width };
     });
-    // zawijanie do szerokości strefy bezpiecznej
     const maxW = (this.safe ? this.safe.x1 - this.safe.x0 : this.w) * 0.94;
     const lines = [[]];
     let lw = 0;
@@ -789,18 +788,25 @@ export class Storyboard {
     }
     const cx = this.safe ? (this.safe.x0 + this.safe.x1) / 2 : this.w / 2;
     const y0 = o.y ?? (this.safe ? this.safe.y1 + 70 : this.h * 0.86);
+    // słowo aktywne od swojego początku do początku następnego (bez przerw na pauzy w mowie)
+    const flat = lines.flat();
+    const activeIdx = flat.reduce((k, w, i) => (t >= w.s - 0.05 ? i : k), -1);
+    let idx = 0;
     lines.forEach((ln, li) => {
       const width = ln.reduce((a, w) => a + w.width, 0) + space * (ln.length - 1);
       let x = cx - width / 2;
       const y = y0 + (li - (lines.length - 1) / 2) * size * 1.08;
       for (const w of ln) {
+        const active = idx++ === activeIdx;
+        const k = (active ? 1.08 : 1) * pop;
         ctx.save();
-        ctx.translate(x, y - size * 0.35 * (w.k - 1));
-        ctx.scale(w.k, w.k);
+        ctx.translate(x + w.width / 2, y - size * 0.35);
+        ctx.scale(k, k);
+        ctx.translate(-w.width / 2, size * 0.35);
         ctx.lineWidth = size * 0.15;
         ctx.strokeStyle = o.stroke ?? '#111111';
         ctx.strokeText(w.text, 0, 0);
-        ctx.fillStyle = w.active ? o.highlight ?? '#ffd23f' : o.color ?? '#ffffff';
+        ctx.fillStyle = active ? o.highlight ?? '#ffd23f' : o.color ?? '#ffffff';
         ctx.fillText(w.text, 0, 0);
         ctx.restore();
         x += w.width + space;

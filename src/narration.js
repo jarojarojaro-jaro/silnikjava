@@ -113,7 +113,7 @@ export function subtitleCues(clips, { maxChars = 42, maxLines = 2, minDur = 1.0 
  * z własnym czasem — do podświetlania słowa, które właśnie pada.
  * Zwraca [{ start, end, words: [{ w, s, e }] }] (czasy bezwzględne).
  */
-export function reelCues(clips, { maxChars = 16, maxWords = 3, tail = 0.35 } = {}) {
+export function reelCues(clips, { maxChars = 16, maxWords = 3, hold = 0.8, bridge = 3 } = {}) {
   const cues = [];
   for (const c of clips) {
     let cur = null;
@@ -121,17 +121,22 @@ export function reelCues(clips, { maxChars = 16, maxWords = 3, tail = 0.35 } = {
       const word = { w: w.w, s: c.start + w.s, e: c.start + w.e };
       const text = cur ? cur.words.map((x) => x.w).join(' ') + ' ' + w.w : w.w;
       if (!cur || cur.words.length >= maxWords || text.length > maxChars || /[.!?…]$/.test(cur.words[cur.words.length - 1].w)) {
-        cur = { start: word.s, words: [] };
+        cur = { start: word.s, clip: c, words: [] };
         cues.push(cur);
       }
       cur.words.push(word);
     }
   }
+  // napis trzyma się do następnej porcji — bez mrugania w pauzach lektora:
+  // w zdaniu zawsze ciągle, między zdaniami gdy przerwa ≤ bridge, inaczej `hold` po ostatnim słowie
   for (let i = 0; i < cues.length; i++) {
     const last = cues[i].words[cues[i].words.length - 1];
-    const next = cues[i + 1]?.start ?? Infinity;
-    cues[i].end = Math.min(next - 0.02, last.e + tail);
+    const next = cues[i + 1];
+    if (!next) cues[i].end = last.e + hold;
+    else if (next.clip === cues[i].clip || next.start - last.e <= bridge) cues[i].end = next.start;
+    else cues[i].end = last.e + hold;
   }
+  for (const c of cues) delete c.clip;
   return cues;
 }
 

@@ -489,7 +489,15 @@ test('rolka 9:16: kadr 720×1280, strefy bezpieczne w lint, napisy po 2–3 sło
   ] }]);
   assert.deepEqual(cues.map((c) => c.words.map((w) => w.w).join(' ')), ['Nie wiesz, gdzie', 'znika wypłata?', 'Zasada']);
   assert.equal(cues[0].start, 10);
-  for (let i = 0; i + 1 < cues.length; i++) assert.ok(cues[i].end < cues[i + 1].start);
+  // bez mrugania: w zdaniu porcje stykają się, napis nie znika w pauzie (tu 0,3 s przed „Zasada”)
+  for (let i = 0; i + 1 < cues.length; i++) assert.equal(cues[i].end, cues[i + 1].start);
+  // między zdaniami: krótka przerwa — napis trwa do następnego; długa — znika po chwili
+  const two = (gap) => reelCues([
+    { start: 0, words: [{ w: 'Raz.', s: 0, e: 0.5 }] },
+    { start: 0.5 + gap, words: [{ w: 'Dwa.', s: 0, e: 0.5 }] },
+  ]);
+  assert.equal(two(2.5)[0].end, 3);
+  assert.ok(Math.abs(two(5)[0].end - 1.3) < 1e-9);
 });
 
 import { buildReelNotebook } from '../examples/scenes/reels/notebook.js';
