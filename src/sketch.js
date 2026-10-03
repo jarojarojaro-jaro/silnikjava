@@ -285,6 +285,10 @@ export class Sketch {
     if (!box) return null;
     const [x0, y0, x1, y1] = box;
     const T = ctx.getTransform();
+    if (o.wash) {
+      this.#wash(poly, p, o, z, count, box, width);
+      return p >= 1 ? null : crayonTip(z, p, seed);
+    }
 
     lc.save();
     lc.setTransform(1, 0, 0, 1, 0, 0);
@@ -327,6 +331,75 @@ export class Sketch {
     return p >= 1 ? null : crayonTip(z, p, seed);
   }
 
+  /**
+   * Akwarela: plama farby o nieregularnym brzegu, z ciemniejszym pigmentem przy
+   * krawędzi, przejaśnieniami i ziarnem papieru. Odsłania się mokrym, rozmytym
+   * frontem za pędzlem (ten sam zygzak co ślad ręki).
+   */
+  #wash(poly, p, o, z, count, box, width) {
+    const { ctx } = this;
+    const lc = this.layerCtx;
+    const [x0, y0, x1, y1] = box;
+    const g = washGeometry(poly, o.seed ?? 5, o.holes);
+    const col = this.col(o.color, 'sky');
+    const shape = () => {
+      lc.beginPath();
+      for (const ring of g.rings) {
+        ring.forEach(([x, y], i) => (i ? lc.lineTo(x, y) : lc.moveTo(x, y)));
+        lc.closePath();
+      }
+    };
+    lc.save();
+    lc.setTransform(1, 0, 0, 1, 0, 0);
+    lc.clearRect(x0, y0, x1 - x0, y1 - y0);
+    lc.setTransform(ctx.getTransform());
+    // warstwa farby
+    shape();
+    lc.fillStyle = col;
+    lc.globalAlpha = 0.5;
+    lc.fill('evenodd');
+    // nierówne rozłożenie pigmentu: kilka miękkich plam ciemniej i jaśniej
+    lc.save();
+    lc.clip('evenodd');
+    for (const b of g.blots) {
+      const gr = lc.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+      gr.addColorStop(0, col);
+      gr.addColorStop(1, 'rgba(0,0,0,0)');
+      lc.globalAlpha = b.a;
+      lc.globalCompositeOperation = b.a > 0.2 ? 'source-over' : 'destination-out';
+      lc.fillStyle = gr;
+      lc.fillRect(b.x - b.r, b.y - b.r, b.r * 2, b.r * 2);
+    }
+    lc.restore();
+    // pigment zbiera się na brzegu wysychającej plamy
+    shape();
+    lc.strokeStyle = col;
+    lc.globalAlpha = 0.75;
+    lc.lineWidth = 2.4;
+    lc.filter = 'blur(1px)';
+    lc.stroke();
+    lc.filter = 'none';
+    // mokry front: widać tylko to, przez co przeszedł pędzel
+    if (p < 1) {
+      lc.globalCompositeOperation = 'destination-in';
+      lc.globalAlpha = 1;
+      lc.filter = 'blur(5px)';
+      lc.strokeStyle = '#000';
+      lc.lineCap = 'round';
+      lc.lineJoin = 'round';
+      lc.lineWidth = width * 1.7;
+      lc.beginPath();
+      for (let i = 0; i < count; i++) {
+        const [x, y] = z.path[i];
+        i ? lc.lineTo(x, y) : lc.moveTo(x, y);
+      }
+      lc.stroke();
+      lc.filter = 'none';
+    }
+    lc.restore();
+    this.#composite(box, { grain: o.grain ?? 0.35, granule: true, alpha: o.alpha ?? 0.9, blend: 'multiply' });
+  }
+
   /** Gdzie jest ręka przy kolorowaniu kredką (bez rysowania) — jedzie zygzakiem wewnątrz konturu. */
   crayonTrace(poly, p, o = {}) {
     return crayonTrace(poly, p, o);
@@ -336,7 +409,7 @@ export class Sketch {
    * Przenosi fragment pomocniczego płótna (warstwy) na scenę z efektem motywu:
    * grain — wydrapanie ziarna (kredka/kreda), glow — poświata (neon), blend — tryb mieszania.
    */
-  #composite(box, { grain = 0, chalk = false, alpha = 1, blend, glow = false } = {}) {
+  #composite(box, { grain = 0, chalk = false, granule = false, alpha = 1, blend, glow = false } = {}) {
     if (!box) return;
     const [x0, y0, x1, y1] = box;
     const lc = this.layerCtx, ctx = this.ctx;
@@ -345,7 +418,7 @@ export class Sketch {
       lc.setTransform(1, 0, 0, 1, 0, 0);
       lc.globalCompositeOperation = 'destination-out';
       lc.globalAlpha = clamp(grain);
-      lc.fillStyle = lc.createPattern(chalk ? chalkTexture() : grainTexture(), 'repeat');
+      lc.fillStyle = lc.createPattern(chalk ? chalkTexture() : granule ? granuleTexture() : grainTexture(), 'repeat');
       lc.fillRect(x0, y0, x1 - x0, y1 - y0);
       lc.restore();
     }
@@ -690,8 +763,8 @@ export class Sketch {
     ctx.lineJoin = 'round';
     if (type === 'eraser') this.#eraserSprite(size, lift, o);
     else {
-      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128 }[type] ?? 120) * size;
-      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11 }[type] ?? 13) * size;
+      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150 }[type] ?? 120) * size;
+      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9 }[type] ?? 13) * size;
       // cień na kartce — im wyżej narzędzie, tym dalej i bardziej rozmyty
       ctx.save();
       ctx.rotate(ang);
@@ -708,6 +781,7 @@ export class Sketch {
       else if (type === 'techpen') this.#techpenSprite(len, wd, size, o);
       else if (type === 'neon') this.#neonSprite(len, wd, size, o);
       else if (type === 'ballpoint') this.#ballpointSprite(len, wd, size, o);
+      else if (type === 'brush') this.#brushSprite(len, wd, size, o);
       else this.#pencilSprite(len, wd, size, o);
     }
     ctx.restore();
@@ -961,6 +1035,47 @@ export class Sketch {
     ctx.stroke();
   }
 
+  /** Pędzel do akwareli: włosie nasączone farbą, srebrna skuwka, długa drewniana rączka. */
+  #brushSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const paint = this.col(o.color, 'sky');
+    const hair = 26 * size, ferrule = 20 * size;
+    ctx.strokeStyle = this.theme.outline ?? '#333';
+    ctx.lineWidth = 1.2 * size;
+    // włosie: kropla, czubek w (0,0)
+    ctx.fillStyle = '#6b4a2e';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(hair * 0.45, -wd * 0.75, hair, -wd * 0.42);
+    ctx.lineTo(hair, wd * 0.42);
+    ctx.quadraticCurveTo(hair * 0.45, wd * 0.75, 0, 0);
+    ctx.fill();
+    ctx.save();
+    ctx.clip();
+    ctx.fillStyle = paint;
+    ctx.globalAlpha *= 0.9;
+    ctx.fillRect(0, -wd, hair * 0.6, wd * 2);
+    ctx.restore();
+    ctx.stroke();
+    // skuwka
+    ctx.fillStyle = '#c9ccd1';
+    ctx.fillRect(hair, -wd * 0.45, ferrule, wd * 0.9);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(hair, -wd * 0.4, ferrule, wd * 0.2);
+    ctx.strokeRect(hair, -wd * 0.45, ferrule, wd * 0.9);
+    // rączka zwężająca się ku końcowi
+    const x0 = hair + ferrule;
+    ctx.fillStyle = '#b5683a';
+    ctx.beginPath();
+    ctx.moveTo(x0, -wd * 0.45);
+    ctx.lineTo(len - 6 * size, -wd * 0.28);
+    ctx.quadraticCurveTo(len, 0, len - 6 * size, wd * 0.28);
+    ctx.lineTo(x0, wd * 0.45);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  }
+
   /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */
   #eraserSprite(size, lift, o) {
     const { ctx } = this;
@@ -1010,7 +1125,8 @@ export class Sketch {
 export function loadFonts(fonts, timeout = 2500) {
   if (typeof document === 'undefined' || !document.fonts) return Promise.resolve();
   const sample = 'Aa Ąą Ćć Ęę Łł Óó Śś Żż 0123';
-  const loads = Object.values(fonts).map((f) => document.fonts.load(`32px ${f}`, sample).catch(() => null));
+  // zwykła i pogrubiona waga (tytuły pisane `weight: 700`)
+  const loads = Object.values(fonts).flatMap((f) => [`32px ${f}`, `700 32px ${f}`]).map((css) => document.fonts.load(css, sample).catch(() => null));
   return Promise.race([Promise.all(loads), new Promise((r) => setTimeout(r, timeout))]);
 }
 
@@ -1101,6 +1217,38 @@ function zigzag(poly, o) {
 }
 
 /** Pozycja ręki przy kolorowaniu kredką (bez rysowania). */
+const washCache = new WeakMap();
+/** Kształt plamy akwareli: brzeg lekko rozlany (szum wzdłuż normalnej) + plamy pigmentu. */
+function washGeometry(poly, seed, holes = []) {
+  const key = `${seed}|${holes.length}`;
+  let m = washCache.get(poly);
+  if (m?.has(key)) return m.get(key);
+  const bleed = (ring, k) => {
+    const r = resample([...ring, ring[0]], 5);
+    const n = r.length;
+    return r.map(([x, y], i) => {
+      const a = r[(i - 1 + n) % n], c = r[(i + 1) % n];
+      const tx = c[0] - a[0], ty = c[1] - a[1], d = Math.hypot(tx, ty) || 1;
+      const off = 3.2 * noise1(seed * 7.1 + k * 31 + i * 0.09) + 1.4 * noise1(seed + i * 0.43);
+      return [x - (ty / d) * off, y + (tx / d) * off];
+    });
+  };
+  const b = bounds(poly);
+  const r = rng(seed * 13 + 1);
+  const blots = Array.from({ length: 7 }, (_, i) => {
+    let pt;
+    for (let t = 0; t < 12; t++) {
+      pt = [b.x + r() * b.w, b.y + r() * b.h];
+      if (pointInPoly(pt, poly)) break;
+    }
+    return { x: pt[0], y: pt[1], r: Math.max(16, Math.min(b.w, b.h) * (0.5 + r() * 0.45)), a: i % 3 === 2 ? 0.12 : 0.13 + r() * 0.12 };
+  });
+  const g = { rings: [bleed(poly, 0), ...holes.map((h, k) => bleed(h, k + 1))], blots };
+  if (!m) washCache.set(poly, (m = new Map()));
+  m.set(key, g);
+  return g;
+}
+
 export function crayonTrace(poly, p, o = {}) {
   return crayonTip(zigzag(poly, o), p, o.seed ?? 5);
 }
@@ -1175,6 +1323,24 @@ function chalkTexture() {
     g.fillRect(x, y, s * (1 + r() * 2.5), s);
   }
   chalkCache = c;
+  return c;
+}
+
+let granuleCache = null;
+/** Granulacja akwareli: pigment osiada w zagłębieniach papieru — drobne, nieregularne kropki. */
+function granuleTexture() {
+  if (granuleCache) return granuleCache;
+  const S = 192;
+  const c = makeCanvas(S, S);
+  const g = c.getContext('2d');
+  const r = rng(77);
+  for (let i = 0; i < 2600; i++) {
+    g.fillStyle = `rgba(0,0,0,${0.15 + r() * 0.5})`;
+    g.beginPath();
+    g.arc(r() * S, r() * S, 0.5 + r() * 1.3, 0, Math.PI * 2);
+    g.fill();
+  }
+  granuleCache = c;
   return c;
 }
 

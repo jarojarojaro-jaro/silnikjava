@@ -1,0 +1,212 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-gosia-medium",
+ "meta": {
+  "głos": "pl_PL-gosia-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Obieg wody w przyrodzie.",
+   "notes": [
+    "tytuł"
+   ],
+   "audio": "b1.ogg",
+   "duration": 1.579,
+   "words": [
+    {
+     "w": "Obieg",
+     "s": 0.0,
+     "e": 0.3
+    },
+    {
+     "w": "wody",
+     "s": 0.3,
+     "e": 0.64
+    },
+    {
+     "w": "w",
+     "s": 0.64,
+     "e": 0.74
+    },
+    {
+     "w": "przyrodzie.",
+     "s": 0.74,
+     "e": 1.36
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Słońce ogrzewa morze, a woda powoli zamienia się w parę.",
+   "notes": [
+    "słońce, morze, para"
+   ],
+   "audio": "b2.ogg",
+   "duration": 3.773,
+   "words": [
+    {
+     "w": "Słońce",
+     "s": 0.0,
+     "e": 0.4
+    },
+    {
+     "w": "ogrzewa",
+     "s": 0.4,
+     "e": 0.9
+    },
+    {
+     "w": "morze,",
+     "s": 0.9,
+     "e": 1.3
+    },
+    {
+     "w": "a",
+     "s": 1.58,
+     "e": 1.76
+    },
+    {
+     "w": "woda",
+     "s": 1.76,
+     "e": 2.04
+    },
+    {
+     "w": "powoli",
+     "s": 2.04,
+     "e": 2.44
+    },
+    {
+     "w": "zamienia",
+     "s": 2.44,
+     "e": 2.9
+    },
+    {
+     "w": "się",
+     "s": 2.9,
+     "e": 3.12
+    },
+    {
+     "w": "w",
+     "s": 3.12,
+     "e": 3.22
+    },
+    {
+     "w": "parę.",
+     "s": 3.22,
+     "e": 3.56
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Para unosi się, stygnie i skrapla w chmury.",
+   "notes": [
+    "strzałka w górę, chmura"
+   ],
+   "audio": "b3.ogg",
+   "duration": 3.1,
+   "words": [
+    {
+     "w": "Para",
+     "s": 0.0,
+     "e": 0.24
+    },
+    {
+     "w": "unosi",
+     "s": 0.24,
+     "e": 0.72
+    },
+    {
+     "w": "się,",
+     "s": 0.72,
+     "e": 0.96
+    },
+    {
+     "w": "stygnie",
+     "s": 1.26,
+     "e": 1.72
+    },
+    {
+     "w": "i",
+     "s": 1.72,
+     "e": 1.88
+    },
+    {
+     "w": "skrapla",
+     "s": 1.88,
+     "e": 2.38
+    },
+    {
+     "w": "w",
+     "s": 2.38,
+     "e": 2.5
+    },
+    {
+     "w": "chmury.",
+     "s": 2.5,
+     "e": 2.84
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "A z chmur woda wraca do morza jako deszcz.",
+   "notes": [
+    "deszcz"
+   ],
+   "audio": "b4.ogg",
+   "duration": 2.659,
+   "words": [
+    {
+     "w": "A",
+     "s": 0.0,
+     "e": 0.14
+    },
+    {
+     "w": "z",
+     "s": 0.14,
+     "e": 0.28
+    },
+    {
+     "w": "chmur",
+     "s": 0.28,
+     "e": 0.52
+    },
+    {
+     "w": "woda",
+     "s": 0.52,
+     "e": 0.86
+    },
+    {
+     "w": "wraca",
+     "s": 0.86,
+     "e": 1.24
+    },
+    {
+     "w": "do",
+     "s": 1.24,
+     "e": 1.42
+    },
+    {
+     "w": "morza",
+     "s": 1.42,
+     "e": 1.72
+    },
+    {
+     "w": "jako",
+     "s": 1.72,
+     "e": 1.92
+    },
+    {
+     "w": "deszcz.",
+     "s": 1.92,
+     "e": 2.48
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

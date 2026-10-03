@@ -27,15 +27,15 @@ bez zmian i synchronizacja z lektorem też.
 
 Kolejne style:
 
-| | Zeszyt w kratkę (`notebook`) |
-| --- | --- |
-| podłoże | biała kartka, kratka 5 mm, czerwony margines |
-| kreska | długopis: cienko, lekki nacisk, prawie bez zwężeń; czerwony długopis do poprawek |
-| kolorowanie | kredki; zakreślacze (`highlight`) żółty, zielony, różowy |
-| pismo | Shadows Into Light Two (pismo ucznia) |
-| w ręce | długopis z przezroczystym korpusem, wkład i zatyczka w kolorze tuszu |
-| do czego | „wytłumacz jak na lekcji”, finanse osobiste, notatki |
-| przykład | `examples/scenes/styles/notebook.js`: procent składany |
+| | Zeszyt w kratkę (`notebook`) | Akwarela (`watercolor`) |
+| --- | --- | --- |
+| podłoże | biała kartka, kratka 5 mm, czerwony margines | ciepły papier akwarelowy, miękkie nierówności, ziarno |
+| kreska | długopis: cienko, lekki nacisk, prawie bez zwężeń; czerwony długopis do poprawek | cienkopis w kolorze sepii |
+| kolorowanie | kredki; zakreślacze (`highlight`) żółty, zielony, różowy | plama farby (`wash`): rozlany brzeg, pigment zebrany na krawędzi, przejaśnienia, granulacja; odsłaniana mokrym, rozmytym frontem za pędzlem |
+| pismo | Shadows Into Light Two (pismo ucznia) | Amatic SC (tytuły), Mynerve |
+| w ręce | długopis z przezroczystym korpusem, wkład i zatyczka w kolorze tuszu | cienkopis do kresek, pędzel z farbą do kolorowania (zmiana w powietrzu) |
+| do czego | „wytłumacz jak na lekcji”, finanse osobiste, notatki | przyroda, podróże, opowieści, łagodne tematy |
+| przykład | `examples/scenes/styles/notebook.js`: procent składany | `…/watercolor.js`: obieg wody |
 
 Podgląd: `examples/styles.html?s=chalk` (zakładki z wszystkimi stylami).
 Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
@@ -54,14 +54,16 @@ Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
 
   `width` i `jitter` skalują grubość i drżenie z opcji sceny.
 * **Kolorowanie** (`crayon`): `theme.crayon` to domyślne opcje (kąt, gęstość,
-  ziarno, tryb mieszania). Storyboard używa ich także do śladu ręki, więc
-  ręka jedzie dokładnie tym zygzakiem, który zostawia kolor.
+  ziarno, tryb mieszania; `wash: true` to plama akwareli). Storyboard używa
+  ich także do śladu ręki, więc ręka jedzie dokładnie tym zygzakiem, który
+  zostawia kolor.
 * **Zakreślacz**: `theme.highlight.blend`. Na papierze `multiply`, na ciemnym
   tle `screen` / `lighter`, bo mnożenie na ciemnym tle nic nie widać.
 * **Zasłanianie i gąbka** (`occlude`, `clear`): na podłożu z fakturą silnik
   odmalowuje fragment tła (siatkę, tablicę) zamiast kłaść płaski kolor.
-* **Narzędzie**: `theme.tools` mapuje `pencil` / `marker` na sprite motywu
-  (`chalk`, `techpen`, `neon`, `ballpoint`). Gąbka zostaje gąbką.
+* **Narzędzie**: `theme.tools` mapuje `pencil` / `marker` / `crayon`
+  (kolorowanie) na sprite motywu (`chalk`, `techpen`, `neon`, `ballpoint`,
+  `brush`). Gąbka zostaje gąbką.
 
 ## Własny styl
 
@@ -96,8 +98,6 @@ Na co uważać:
 ## Kolejne style (pomysły)
 
 * **Papier pakowy.** Wystarczy tło i paleta; kreska jak `ink`.
-* **Akwarela.** Kolorowanie miękką plamą z rozlanym brzegiem, a kontur
-  cienkim piórem. Potrzebny nowy pędzel `wash`.
 * **Marker na flipcharcie.** Gruba kreska o stałej grubości, smugi markera.
   Wariant `tech` z dużą grubością i teksturą.
 * **Komiks.** Czarny kontur z dużą zmianą grubości, kolorowanie płaskie

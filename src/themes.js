@@ -215,6 +215,50 @@ export const THEMES = {
       ctx.fillRect(0, 0, w, h);
     },
   },
+
+  // ------------------------------------------------------------ akwarela
+  watercolor: {
+    name: 'Akwarela',
+    palette: {
+      paper: '#fbf6ec', ink: '#3b2f2a', inkSoft: '#8c7f76', pen: '#2f5d8a', penDark: '#22476b',
+      teal: '#4fa39a', sky: '#5d9fd8', ochre: '#f0b445', coral: '#e57b62', plum: '#9a78b8', white: '#ffffff',
+    },
+    fonts: { hand: '"Mynerve", "Kalam", cursive', title: '"Amatic SC", "Kalam", cursive' },
+    // cienkopis (sepia): cienko, prawie bez nacisku
+    pen: { style: 'ink', width: 0.55, jitter: 0.7, pressure: 0.15, taper: 0.5 },
+    // pędzel: szeroki, rzadki zygzak — plama, nie kreskowanie
+    crayon: { wash: true, w: 30, spacing: 22, alpha: 0.9, grain: 0.35 },
+    highlight: { blend: 'multiply', alpha: 0.35 },
+    tools: { pencil: 'techpen', crayon: 'brush' },
+    outline: '#3b2f2a',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // papier czerpany: duże, miękkie nierówności + drobne ziarno
+      ctx.fillStyle = ctx.createPattern(texture('wc-mottle', 512, (c, S, r) => {
+        for (let i = 0; i < 70; i++) {
+          const x = r() * S, y = r() * S, rad = 30 + r() * 80;
+          const rgb = r() > 0.5 ? '150,120,80' : '255,255,255';
+          const a = rgb[0] === '1' ? 0.035 : 0.22;
+          // plama zawinięta na brzegach kafla (bez szwów); gradient do przezroczystego TEGO SAMEGO koloru
+          for (const dx of [-S, 0, S]) for (const dy of [-S, 0, S]) {
+            const g = c.createRadialGradient(x + dx, y + dy, 0, x + dx, y + dy, rad);
+            g.addColorStop(0, `rgba(${rgb},${a})`);
+            g.addColorStop(1, `rgba(${rgb},0)`);
+            c.fillStyle = g;
+            c.fillRect(x + dx - rad, y + dy - rad, rad * 2, rad * 2);
+          }
+        }
+        for (let i = 0; i < 5000; i++) {
+          c.fillStyle = r() > 0.5 ? `rgba(110,90,60,${r() * 0.05})` : `rgba(255,255,255,${r() * 0.4})`;
+          c.fillRect(r() * S, r() * S, 1 + r() * 1.5, 1 + r() * 1.5);
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      vignette(ctx, w, h, 0.08);
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */

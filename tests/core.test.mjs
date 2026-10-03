@@ -378,6 +378,7 @@ import { buildChalk } from '../examples/scenes/styles/chalk.js';
 import { buildBlueprint } from '../examples/scenes/styles/blueprint.js';
 import { buildNeon } from '../examples/scenes/styles/neon.js';
 import { buildNotebook } from '../examples/scenes/styles/notebook.js';
+import { buildWatercolor } from '../examples/scenes/styles/watercolor.js';
 
 test('motywy: nazwy, uzupełnione domyślne pola, nieznany motyw to błąd', () => {
   assert.deepEqual(themeNames().map((t) => t.id).slice(0, 5), ['paper', 'chalk', 'blueprint', 'neon', 'notebook']);
@@ -412,7 +413,7 @@ test('motyw w Storyboardzie: scena niesie motyw, ślad kredki idzie kreskowaniem
 });
 
 test('filmy w trzech stylach: fizyka OK, ~15–18 s, kotwice na czas', () => {
-  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook]]) {
+  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook], ['watercolor', buildWatercolor]]) {
     const v = new Voice(JSON.parse(readFileSync(new URL(`../examples/voice/${id}/voice.json`, import.meta.url), 'utf8')), `voice/${id}/`);
     const sb = build(v);
     assert.equal(sb.scene().theme, id);
@@ -422,4 +423,17 @@ test('filmy w trzech stylach: fizyka OK, ~15–18 s, kotwice na czas', () => {
       assert.ok(it.seg.start - it.cue.target < 0.85, `${id} ${it.name} „${it.cue.word}”`);
     }
   }
+});
+
+test('akwarela: kolorowanie prosi o narzędzie "crayon" (motyw daje pędzel), ślad idzie zygzakiem plamy', () => {
+  const sb = new Storyboard({ theme: 'watercolor' });
+  const poly = [[0, 0], [300, 0], [300, 120], [0, 120]];
+  sb.crayon(poly, { color: 'sky' });
+  const it = sb.items[0];
+  assert.equal(it.tool.type, 'crayon');
+  assert.equal(resolveTheme('watercolor').tools.crayon, 'brush');
+  const o = { ...resolveTheme('watercolor').crayon, color: 'sky' };
+  const a = it.trace(null, 0.5), b = crayonTrace(poly, 0.5, o);
+  close(a.x, b.x);
+  close(a.y, b.y);
 });
