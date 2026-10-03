@@ -5,7 +5,7 @@ GŁOS: pl_PL-gosia-medium
 1. Obieg wody w przyrodzie.
 [tytuł]
 
-2. Słońce ogrzewa morze, a woda powoli zamienia się w parę.
+2. Słońce świeci i ogrzewa morze, a woda powoli zamienia się w parę.
 [słońce, morze, para]
 
 3. Para unosi się, stygnie i skrapla w chmury.

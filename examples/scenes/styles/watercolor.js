@@ -29,13 +29,14 @@ export function buildWatercolor(voice) {
     sb.write('Obieg wody', 640, 104, { size: 92, font: 'title', weight: 700, align: 'center', color: 'ink', dur: 2.2 });
   });
 
-  // 2. "Słońce ogrzewa morze, a woda powoli zamienia się w parę."
+  // 2. "Słońce świeci i ogrzewa morze, a woda powoli zamienia się w parę."
   sb.say(B(2), () => {
+    // obiekt od razu w całości: kontur słońca i zaraz jego plama
     sb.pen(ellipse(SUN[0], SUN[1], 58, 58, { seed: 3, overshoot: 0.08 }), { color: 'ink', w: 2.4, seed: 3, cue: 'Słońce' });
+    sb.crayon(ellipse(SUN[0], SUN[1], 60, 60, { seed: 4 }), { color: 'ochre', seed: 4 });
     // duża plama: szerszy pędzel, rzadsze pociągnięcia
     sb.crayon(SEA, { color: 'sky', seed: 5, w: 44, spacing: 36, cue: 'morze' });
     sb.strokes([steam(760, 0), steam(850, 2), steam(940, 4)], { color: 'inkSoft', w: 2.2, seed: 6, speed: 1500, cue: 'parę' });
-    sb.crayon(ellipse(SUN[0], SUN[1], 60, 60, { seed: 4 }), { color: 'ochre', seed: 4 });
   });
 
   // 3. "Para unosi się, stygnie i skrapla w chmury."
