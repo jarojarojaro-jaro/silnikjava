@@ -44,10 +44,12 @@
     import { Player, Voice } from '../src/index.js';
     import { buildReelNotebook } from './scenes/reels/notebook.js';
     import { buildReelNeon } from './scenes/reels/neon.js';
+    import { buildReelComic } from './scenes/reels/comic.js';
 
     const REELS = {
       notebook: { name: 'Zeszyt: 50/30/20', build: buildReelNotebook, voice: 'reel-notebook', about: 'Finanse osobiste w zeszycie w kratkę: hak w pierwszym zdaniu, segmenty rysowane po kolei, napisy słowo po słowie.' },
       neon: { name: 'Neon: jak AI pisze?', build: buildReelNeon, voice: 'reel-neon', about: 'Technologia na podświetlonej szybie: zdanie, słupki prawdopodobieństwa, zwycięskie słowo dopisane do zdania.' },
+      comic: { name: 'Komiks: dlaczego lód pływa?', build: buildReelComic, voice: 'reel-comic', about: 'Ciekawostka w komiksie: szklanka z wodą w rastrze, kostka lodu tuż pod powierzchnią, powiększenie cząsteczek.' },
     };
     const q = new URLSearchParams(location.search).get('r');
     const id = q in REELS ? q : Object.keys(REELS)[0];
