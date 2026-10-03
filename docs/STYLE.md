@@ -37,15 +37,15 @@ Kolejne style:
 | do czego | „wytłumacz jak na lekcji”, finanse osobiste, notatki | przyroda, podróże, opowieści, łagodne tematy | ciekawostki, popularyzacja nauki, social media |
 | przykład | `examples/scenes/styles/notebook.js`: procent składany | `…/watercolor.js`: obieg wody | `…/comic.js`: dlaczego niebo jest niebieskie |
 
-| | Flipchart (`flipchart`) | Papier pakowy (`kraft`) |
-| --- | --- | --- |
-| podłoże | arkusz z bloku na szarym tle, listwa i perforacja u góry, siatka kropek | brązowy kraft: włókna, nierówne zabarwienie, taśma w rogach |
-| kreska | marker (`style: 'marker'`): stała, gruba kreska, jaśniejsza smuga filcu, ciemniejsze końce (tusz wsiąka, gdy końcówka stoi) | czarny cienkopis z lekkim naciskiem; biały żelopis (`pen`) do podpisów |
-| kolorowanie | marker szerokimi pasami, mnożony (liczby pod kolorem zostają czarne) | kredki: włókna papieru przebijają przez kolor |
-| pismo | Lilita One (nagłówki, liczby), Sriracha | Caveat Brush, Kalam |
-| w ręce | marker z okrągłym filcem, etykieta i skuwka w kolorze tuszu | pisak do kresek, kredka do koloru |
-| do czego | warsztaty, sprzedaż, strategia, szkolenia | przepisy, kawiarnie, rękodzieło, marki „eko” |
-| przykład | `examples/scenes/styles/flipchart.js`: lejek sprzedażowy | `…/kraft.js`: kawa z dripa |
+| | Flipchart (`flipchart`) | Papier pakowy (`kraft`) | Szkic ołówkiem (`sketch`) |
+| --- | --- | --- | --- |
+| podłoże | arkusz z bloku na szarym tle, listwa i perforacja u góry, siatka kropek | brązowy kraft: włókna, nierówne zabarwienie, taśma w rogach | szkicownik na spirali, ząbek papieru |
+| kreska | marker (`style: 'marker'`): stała, gruba kreska, jaśniejsza smuga filcu, ciemniejsze końce (tusz wsiąka, gdy końcówka stoi) | czarny cienkopis z lekkim naciskiem; biały żelopis (`pen`) do podpisów | grafit (`style: 'graphite'`): ziarno papieru w kresce, druga blada linia obok (`sketchy`) |
+| kolorowanie | marker szerokimi pasami, mnożony (liczby pod kolorem zostają czarne) | kredki: włókna papieru przebijają przez kolor | kreskowanie ołówkiem zamiast koloru; jeden kolorowy akcent na siły i strzałki |
+| pismo | Lilita One (nagłówki, liczby), Sriracha | Caveat Brush, Kalam | Caveat |
+| w ręce | marker z okrągłym filcem, etykieta i skuwka w kolorze tuszu | pisak do kresek, kredka do koloru | ołówek |
+| do czego | warsztaty, sprzedaż, strategia, szkolenia | przepisy, kawiarnie, rękodzieło, marki „eko” | fizyka, technika, „jak to działa” |
+| przykład | `examples/scenes/styles/flipchart.js`: lejek sprzedażowy | `…/kraft.js`: kawa z dripa | `…/sketch.js`: dźwignia |
 
 Podgląd: `examples/styles.html?s=chalk` (zakładki z wszystkimi stylami).
 Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
@@ -61,7 +61,8 @@ Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
   * `chalk` rysuje kreskę na warstwie pomocniczej i wydrapuje w niej ziarno;
   * `tech` daje stałą grubość i przedłużenia (`overshoot`);
   * `neon` daje stałą grubość i poświatę;
-  * `marker` daje grubą kreskę ze smugą filcu i ciemniejszymi końcami.
+  * `marker` daje grubą kreskę ze smugą filcu i ciemniejszymi końcami;
+  * `graphite` daje grafit z ziarnem papieru; `pen.sketchy` dodaje drugą, bladą linię.
 
   `width` i `jitter` skalują grubość i drżenie z opcji sceny.
 * **Kolorowanie** (`crayon`): `theme.crayon` to domyślne opcje (kąt, gęstość,
@@ -109,7 +110,11 @@ Na co uważać:
 
 ## Kolejne style (pomysły)
 
-* **Szkic ołówkiem.** Szary grafit, `sketchy: true` (podwójna linia),
-  lekkie cieniowanie.
+* **Karteczki samoprzylepne.** Kolorowe kwadraty przyklejane ręką, pismo
+  markerem; dobre do burzy mózgów i list.
+* **Retro terminal.** Zielony fosfor na czarnym tle, poświata i linie
+  ekranu, pismo „maszynowe” znak po znaku.
+* **Stara mapa / pergamin.** Sepia, przybrudzone brzegi, kreska piórkiem
+  z kałamarza, która blednie, gdy kończy się atrament.
 
 Wszystkie korzystają z tej samej sceny, ręki, lektora i eksportu.

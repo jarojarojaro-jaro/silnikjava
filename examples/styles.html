@@ -47,6 +47,7 @@
     import { buildComic } from './scenes/styles/comic.js';
     import { buildFlipchart } from './scenes/styles/flipchart.js';
     import { buildKraft } from './scenes/styles/kraft.js';
+    import { buildSketch } from './scenes/styles/sketch.js';
 
     const STYLES = {
       chalk: { name: 'Tablica kredowa', build: buildChalk, about: 'Kreda na zielonej tablicy: ziarnista kreska, kolorowa kreda, w ręce kawałek kredy. Lekcja, matematyka, edukacja.' },
@@ -57,6 +58,7 @@
       comic: { name: 'Komiks', build: buildComic, about: 'Kadry, gruba kreska pędzelkiem z mocnym naciskiem, płaski kolor markera z rastrem kropek, dymki i napisy Bangers. Ciekawostki, popularyzacja nauki, social media.' },
       flipchart: { name: 'Flipchart', build: buildFlipchart, about: 'Arkusz z bloku na sztaludze: gruby marker o stałej grubości ze smugami filcu, mocne kolory, wyraźne liczby. Warsztaty, sprzedaż, strategia, szkolenia.' },
       kraft: { name: 'Papier pakowy', build: buildKraft, about: 'Brązowy papier kraft z włóknami i taśmą w rogach: czarny cienkopis, biały żelopis, kredki, przez które przebija papier. Przepisy, kawiarnie, rękodzieło, marki „eko”.' },
+      sketch: { name: 'Szkic ołówkiem', build: buildSketch, about: 'Szkicownik na spirali: grafit z ziarnem papieru, druga blada linia obok, kreskowanie zamiast koloru, jasne linie konstrukcyjne i jeden akcent koloru. Fizyka, technika, „jak to działa”.' },
     };
     const id = new URLSearchParams(location.search).get('s') in STYLES ? new URLSearchParams(location.search).get('s') : 'chalk';
     const $ = (x) => document.getElementById(x);

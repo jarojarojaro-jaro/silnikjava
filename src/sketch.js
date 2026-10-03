@@ -207,8 +207,9 @@ export class Sketch {
       }
       ctx.restore();
     } else {
-      // pióro / kreda: grubość zależna od nacisku, krzywizny i drżenia ręki
-      const chalk = kind === 'chalk';
+      // pióro / kreda / grafit: grubość zależna od nacisku, krzywizny i drżenia ręki;
+      // kreda i grafit idą przez warstwę, w której ziarno podłoża wydrapuje "dziury"
+      const chalk = kind === 'chalk' || kind === 'graphite';
       let target = ctx, box = null;
       if (chalk) {
         this.#ensureLayer();
@@ -243,11 +244,11 @@ export class Sketch {
         }
         target.restore();
         // kreda: ziarno tablicy wydrapuje "dziury" w kresce
-        if (chalk) this.#composite(box, { grain: style.grain ?? 0.6, chalk: true, alpha: o.alpha ?? 0.95 });
+        if (chalk) this.#composite(box, { grain: style.grain ?? 0.6, chalk: kind === 'chalk', granule: kind === 'graphite', alpha: o.alpha ?? 0.95 });
       }
     }
 
-    if (o.sketchy) {
+    if (o.sketchy ?? style.sketchy) {
       this.pen(pts, p, { ...o, sketchy: false, seed: seed + 101, w: (o.w ?? 3.2) * 0.45, alpha: (o.alpha ?? 1) * 0.45, jitter: (o.jitter ?? 1.1) * 2.2 });
     }
     const a = pt(last), b = pt(Math.max(0, last - 1));
@@ -730,6 +731,7 @@ export class Sketch {
   #textFx() {
     const kind = this.theme.pen.style;
     if (kind === 'chalk') return { grain: (this.theme.pen.grain ?? 0.6) * 0.8, chalk: true, alpha: 0.95 };
+    if (kind === 'graphite') return { grain: (this.theme.pen.grain ?? 0.4) * 0.7, granule: true, alpha: 0.95 };
     if (kind === 'neon' || this.theme.text.glow) return { glow: true };
     return null;
   }

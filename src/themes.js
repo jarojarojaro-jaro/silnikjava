@@ -400,6 +400,62 @@ export const THEMES = {
       ctx.restore();
     },
   },
+
+  // ------------------------------------------------------------ szkic ołówkiem
+  sketch: {
+    name: 'Szkic ołówkiem',
+    palette: {
+      // grafit w kilku twardościach + stonowane akcenty (jedna kredka na siły i strzałki)
+      paper: '#f5f2ea', ink: '#3b3b3d', inkSoft: '#8c8c90', pen: '#262628', penDark: '#1b1b1d',
+      teal: '#5f8a83', sky: '#6f8fb0', ochre: '#c7a052', coral: '#c0583f', plum: '#86709c', white: '#ffffff',
+    },
+    fonts: { hand: '"Caveat", "Kalam", cursive', title: '"Caveat", "Kalam", cursive' },
+    // grafit: ziarno papieru w kresce, druga, blada linia obok (szkic)
+    pen: { style: 'graphite', width: 0.85, jitter: 1.1, grain: 0.45, pressure: 0.5, sketchy: true },
+    // kreskowanie ołówkiem: cienkie, gęste, równoległe linie
+    crayon: { color: 'ink', w: 1.8, spacing: 6, alpha: 0.8, grain: 0.5, angle: -0.9 },
+    highlight: { blend: 'multiply', alpha: 0.3 },
+    tools: {},
+    outline: '#3b3b3d',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // ząbek papieru do szkiców
+      ctx.fillStyle = ctx.createPattern(texture('sketch-tooth', 200, (c, S, r) => {
+        for (let i = 0; i < 4200; i++) {
+          c.fillStyle = r() > 0.5 ? `rgba(60,55,45,${r() * 0.05})` : `rgba(255,255,255,${r() * 0.5})`;
+          c.fillRect(r() * S, r() * S, 1, 1);
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      // spirala szkicownika po lewej
+      ctx.save();
+      const g = ctx.createLinearGradient(0, 0, 60, 0);
+      g.addColorStop(0, 'rgba(0,0,0,0.12)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 60, h);
+      for (let y = 26; y < h; y += 34) {
+        // otwór w kartce i zwój drutu przechodzący przez niego za krawędź
+        ctx.fillStyle = '#d6d1c4';
+        ctx.beginPath();
+        ctx.arc(30, y, 5.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineCap = 'round';
+        for (const [col, lw, dy] of [['#55575d', 4, 0], ['rgba(255,255,255,0.55)', 1.2, -1.2]]) {
+          ctx.strokeStyle = col;
+          ctx.lineWidth = lw;
+          ctx.beginPath();
+          ctx.moveTo(30, y + dy);
+          ctx.quadraticCurveTo(16, y - 20 + dy, -2, y - 9 + dy);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+      vignette(ctx, w, h, 0.1);
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */
