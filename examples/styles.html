@@ -53,6 +53,7 @@
     import { buildCosmos } from './scenes/styles/cosmos.js';
     import { buildTerminal } from './scenes/styles/terminal.js';
     import { buildPoster } from './scenes/styles/poster.js';
+    import { buildCorkboard } from './scenes/styles/corkboard.js';
 
     const STYLES = {
       chalk: { name: 'Tablica kredowa', build: buildChalk, about: 'Kreda na zielonej tablicy: ziarnista kreska, kolorowa kreda, w ręce kawałek kredy. Lekcja, matematyka, edukacja.' },
@@ -69,6 +70,7 @@
       cosmos: { name: 'Kosmos', build: buildCosmos, about: 'Rozgwieżdżone niebo, pastelowa świecąca kreska, mgławice malowane plamą, która dodaje światła. Astronomia, fizyka, science fiction.' },
       terminal: { name: 'Terminal CRT', build: buildTerminal, about: 'Wektorowy monitor z lat 60.: zielony fosfor, linie ekranu, zaokrąglony kineskop, w ręce pióro świetlne. Historia techniki, komputery, kosmos.' },
       poster: { name: 'Plakat', build: buildPoster, about: 'Plakat konstruktywistyczny: czerwień, czerń i krem, płaska kryjąca farba z ziarnem druku, wysoki tytuł, sylwetki. Historia XX wieku, wojna, manifesty, kampanie.' },
+      corkboard: { name: 'Tablica korkowa', build: buildCorkboard, about: 'Tablica śledczego: korek w drewnianej ramie, kolorowe karteczki, pinezki, napisy markerem i czerwona nitka łącząca wątki. Zagadki historii, śledztwa, analizy przyczyn.' },
     };
     const id = new URLSearchParams(location.search).get('s') in STYLES ? new URLSearchParams(location.search).get('s') : 'chalk';
     const $ = (x) => document.getElementById(x);

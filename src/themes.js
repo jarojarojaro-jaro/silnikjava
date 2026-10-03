@@ -707,6 +707,50 @@ export const THEMES = {
       vignette(ctx, w, h, 0.18);
     },
   },
+
+  // ------------------------------------------------------------ tablica korkowa (śledztwo)
+  corkboard: {
+    name: 'Tablica korkowa',
+    palette: {
+      // korek, czarny marker, czerwona nitka; karteczki: żółta, różowa, niebieska, zielona, biała
+      paper: '#b98858', ink: '#1d1b19', inkSoft: '#4c4038', pen: '#c62828', penDark: '#9a1d1d',
+      teal: '#a6e3a1', sky: '#9fd3ff', ochre: '#ffe066', coral: '#ff9eb5', plum: '#cdb4f6', white: '#fbfaf3',
+    },
+    fonts: { hand: '"Kalam", "Caveat", cursive', title: '"Special Elite", "Kalam", monospace' },
+    writeScale: 1.25,
+    pen: { style: 'ink', width: 1.05, jitter: 0.6, pressure: 0.3 },
+    // karteczka: kryjący, płaski kolor papieru
+    crayon: { w: 30, spacing: 18, alpha: 1, grain: 0.12, wave: 0 },
+    highlight: { blend: 'multiply', alpha: 0.4 },
+    tools: { pencil: 'flipmarker', crayon: 'flipmarker' },
+    outline: '#2a2a2a',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // korek: ziarna jaśniejsze i ciemniejsze, nieregularne
+      ctx.fillStyle = ctx.createPattern(texture('cork', 220, (c, S, r) => {
+        for (let i = 0; i < 2600; i++) {
+          const dark = r() > 0.45;
+          c.fillStyle = dark ? `rgba(90,55,25,${0.1 + r() * 0.25})` : `rgba(235,195,140,${0.1 + r() * 0.3})`;
+          c.beginPath();
+          c.ellipse(r() * S, r() * S, 0.6 + r() * 2.2, 0.6 + r() * 1.6, r() * 3, 0, Math.PI * 2);
+          c.fill();
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      vignette(ctx, w, h, 0.25);
+      // drewniana rama
+      ctx.save();
+      ctx.strokeStyle = '#6e4a2a';
+      ctx.lineWidth = 22;
+      ctx.strokeRect(0, 0, w, h);
+      ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(11, 11, w - 22, h - 22);
+      ctx.restore();
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */

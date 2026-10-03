@@ -1,0 +1,324 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-gosia-medium",
+ "meta": {
+  "głos": "pl_PL-gosia-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Titanic. Niezatapialny statek, który zatonął w pierwszym rejsie. Jak do tego doszło?",
+   "notes": [
+    "karta TITANIC 1912"
+   ],
+   "audio": "b1.ogg",
+   "duration": 5.875,
+   "words": [
+    {
+     "w": "Titanic.",
+     "s": 0.0,
+     "e": 0.62
+    },
+    {
+     "w": "Niezatapialny",
+     "s": 1.14,
+     "e": 1.66
+    },
+    {
+     "w": "statek,",
+     "s": 1.66,
+     "e": 2.22
+    },
+    {
+     "w": "który",
+     "s": 2.34,
+     "e": 2.64
+    },
+    {
+     "w": "zatonął",
+     "s": 2.64,
+     "e": 3.26
+    },
+    {
+     "w": "w",
+     "s": 3.26,
+     "e": 3.32
+    },
+    {
+     "w": "pierwszym",
+     "s": 3.32,
+     "e": 3.82
+    },
+    {
+     "w": "rejsie.",
+     "s": 3.82,
+     "e": 4.32
+    },
+    {
+     "w": "Jak",
+     "s": 4.52,
+     "e": 4.72
+    },
+    {
+     "w": "do",
+     "s": 4.72,
+     "e": 4.92
+    },
+    {
+     "w": "tego",
+     "s": 4.92,
+     "e": 5.14
+    },
+    {
+     "w": "doszło?",
+     "s": 5.14,
+     "e": 5.64
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Płynął za szybko, mimo ostrzeżeń o lodzie.",
+   "notes": [
+    "żółta karteczka"
+   ],
+   "audio": "b2.ogg",
+   "duration": 3.111,
+   "words": [
+    {
+     "w": "Płynął",
+     "s": 0.0,
+     "e": 0.44
+    },
+    {
+     "w": "za",
+     "s": 0.44,
+     "e": 0.54
+    },
+    {
+     "w": "szybko,",
+     "s": 0.54,
+     "e": 1.08
+    },
+    {
+     "w": "mimo",
+     "s": 1.38,
+     "e": 1.7
+    },
+    {
+     "w": "ostrzeżeń",
+     "s": 1.7,
+     "e": 2.38
+    },
+    {
+     "w": "o",
+     "s": 2.38,
+     "e": 2.5
+    },
+    {
+     "w": "lodzie.",
+     "s": 2.5,
+     "e": 2.86
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Obserwatorzy nie mieli lornetek, więc górę lodową dostrzeżono za późno.",
+   "notes": [
+    "różowa karteczka"
+   ],
+   "audio": "b3.ogg",
+   "duration": 4.551,
+   "words": [
+    {
+     "w": "Obserwatorzy",
+     "s": 0.0,
+     "e": 0.82
+    },
+    {
+     "w": "nie",
+     "s": 0.82,
+     "e": 0.82
+    },
+    {
+     "w": "mieli",
+     "s": 0.82,
+     "e": 1.282
+    },
+    {
+     "w": "lornetek,",
+     "s": 1.282,
+     "e": 1.745
+    },
+    {
+     "w": "więc",
+     "s": 1.745,
+     "e": 2.208
+    },
+    {
+     "w": "górę",
+     "s": 2.208,
+     "e": 2.67
+    },
+    {
+     "w": "lodową",
+     "s": 2.67,
+     "e": 3.132
+    },
+    {
+     "w": "dostrzeżono",
+     "s": 3.132,
+     "e": 3.595
+    },
+    {
+     "w": "za",
+     "s": 3.595,
+     "e": 4.058
+    },
+    {
+     "w": "późno.",
+     "s": 4.058,
+     "e": 4.52
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "A szalup ratunkowych wystarczyło tylko dla połowy ludzi na pokładzie.",
+   "notes": [
+    "niebieska karteczka"
+   ],
+   "audio": "b4.ogg",
+   "duration": 4.214,
+   "words": [
+    {
+     "w": "A",
+     "s": 0.0,
+     "e": 0.1
+    },
+    {
+     "w": "szalup",
+     "s": 0.1,
+     "e": 0.5
+    },
+    {
+     "w": "ratunkowych",
+     "s": 0.5,
+     "e": 1.1
+    },
+    {
+     "w": "wystarczyło",
+     "s": 1.1,
+     "e": 1.86
+    },
+    {
+     "w": "tylko",
+     "s": 1.86,
+     "e": 2.1
+    },
+    {
+     "w": "dla",
+     "s": 2.1,
+     "e": 2.46
+    },
+    {
+     "w": "połowy",
+     "s": 2.46,
+     "e": 2.84
+    },
+    {
+     "w": "ludzi",
+     "s": 2.84,
+     "e": 3.12
+    },
+    {
+     "w": "na",
+     "s": 3.12,
+     "e": 3.36
+    },
+    {
+     "w": "pokładzie.",
+     "s": 3.36,
+     "e": 3.94
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b5",
+   "text": "Żaden z tych błędów osobno nie zatopiłby statku. Razem okazały się zabójcze.",
+   "notes": [
+    "czerwona nitka łączy wszystko"
+   ],
+   "audio": "b5.ogg",
+   "duration": 5.503,
+   "words": [
+    {
+     "w": "Żaden",
+     "s": 0.0,
+     "e": 0.212
+    },
+    {
+     "w": "z",
+     "s": 0.212,
+     "e": 0.424
+    },
+    {
+     "w": "tych",
+     "s": 0.424,
+     "e": 0.636
+    },
+    {
+     "w": "błędów",
+     "s": 0.636,
+     "e": 0.848
+    },
+    {
+     "w": "osobno",
+     "s": 0.848,
+     "e": 1.06
+    },
+    {
+     "w": "nie",
+     "s": 1.06,
+     "e": 1.4
+    },
+    {
+     "w": "zatopiłby",
+     "s": 1.4,
+     "e": 2.05
+    },
+    {
+     "w": "statku.",
+     "s": 2.05,
+     "e": 2.7
+    },
+    {
+     "w": "Razem",
+     "s": 2.7,
+     "e": 3.35
+    },
+    {
+     "w": "okazały",
+     "s": 3.35,
+     "e": 4.0
+    },
+    {
+     "w": "się",
+     "s": 4.0,
+     "e": 4.65
+    },
+    {
+     "w": "zabójcze.",
+     "s": 4.65,
+     "e": 5.3
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}
