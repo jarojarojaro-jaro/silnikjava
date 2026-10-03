@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Silnik — rolki 9:16</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&family=Kalam:wght@400;700&family=Patrick+Hand&family=Shadows+Into+Light+Two&family=Bangers&family=Shantell+Sans&family=Lilita+One&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 14px; }
+    .tabs a { text-decoration: none; }
+    .tabs a[aria-current] { background: var(--ink); color: #fffdf7; }
+    .phone { position: relative; width: min(420px, 100%); margin: 0 auto; border-radius: 28px; overflow: hidden; border: 10px solid #1b1b1d; background: #000; }
+    .phone canvas { width: 100%; }
+    .start { position: absolute; inset: 0; display: grid; place-content: center; background: rgba(0, 0, 0, .35); border: 0; font: inherit; font-size: 30px; cursor: pointer; }
+    .start span { background: #fffdf7; border: 2px solid var(--ink); border-radius: 16px; padding: 10px 22px; }
+    .zones { position: absolute; inset: 0; pointer-events: none; display: none; }
+    .zones.on { display: block; }
+    .zones i { position: absolute; background: rgba(255, 0, 80, .18); border: 1px dashed rgba(255, 0, 80, .6); }
+    .about { color: var(--ink-soft); font-size: 19px; max-width: 60ch; margin: 14px auto; text-align: center; }
+    .controls { justify-content: center; }
+  </style>
+</head>
+<body>
+  <nav class="top"><a href="../index.html">← galeria</a><a href="styles.html">style 16:9</a></nav>
+  <main class="wrap">
+    <div class="tabs" id="tabs"></div>
+    <div class="phone">
+      <canvas id="c" aria-label="Rolka 9:16"></canvas>
+      <div class="zones" id="zones"><i style="left:0;right:0;top:0;height:11.7%"></i><i style="left:0;right:0;bottom:0;height:19.5%"></i><i style="right:0;top:11.7%;bottom:19.5%;width:11.1%"></i></div>
+      <button class="start" id="start"><span>▶ odtwórz z dźwiękiem</span></button>
+    </div>
+    <div class="controls">
+      <button class="btn" id="play">▶ odtwórz</button>
+      <input type="range" id="seek" min="0" max="1" step="0.001" value="0" aria-label="Przewijanie" />
+      <span class="time" id="time"></span>
+      <label><input type="checkbox" id="z" /> strefy interfejsu</label>
+    </div>
+    <p class="about" id="about"></p>
+  </main>
+
+  <script type="module">
+    import { Player, Voice } from '../src/index.js';
+    import { buildReelNotebook } from './scenes/reels/notebook.js';
+
+    const REELS = {
+      notebook: { name: 'Zeszyt: 50/30/20', build: buildReelNotebook, voice: 'reel-notebook', about: 'Finanse osobiste w zeszycie w kratkę: hak w pierwszym zdaniu, segmenty rysowane po kolei, napisy słowo po słowie.' },
+    };
+    const q = new URLSearchParams(location.search).get('r');
+    const id = q in REELS ? q : Object.keys(REELS)[0];
+    const $ = (x) => document.getElementById(x);
+    $('tabs').innerHTML = Object.entries(REELS).map(([k, s]) => `<a class="btn" href="?r=${k}" ${k === id ? 'aria-current="page"' : ''}>${s.name}</a>`).join('');
+    $('about').textContent = REELS[id].about;
+    $('z').onchange = (e) => $('zones').classList.toggle('on', e.target.checked);
+
+    const voice = await Voice.load(`voice/${REELS[id].voice}/voice.json`);
+    const sb = REELS[id].build(voice);
+    const scene = sb.scene();
+    let scrubbing = false;
+    const player = new Player($('c'), scene, {
+      trigger: 'manual',
+      onTime: (t) => {
+        $('time').textContent = `${Math.min(t, scene.duration).toFixed(1)} / ${scene.duration.toFixed(1)} s`;
+        if (!scrubbing) $('seek').value = Math.min(1, t / scene.duration);
+      },
+    });
+    window.__player = player;
+    window.__sb = sb;
+    const sync = () => ($('play').textContent = player.playing ? '❚❚ pauza' : '▶ odtwórz');
+    $('start').onclick = () => { $('start').remove(); player.seek(0); player.play(); sync(); };
+    $('play').onclick = () => { $('start')?.remove(); player.toggle(); sync(); };
+    $('seek').oninput = (e) => { scrubbing = true; player.pause(); player.seek(e.target.value * scene.duration); sync(); };
+    $('seek').onchange = () => (scrubbing = false);
+  </script>
+</body>
+</html>

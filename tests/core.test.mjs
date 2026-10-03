@@ -491,3 +491,17 @@ test('rolka 9:16: kadr 720×1280, strefy bezpieczne w lint, napisy po 2–3 sło
   assert.equal(cues[0].start, 10);
   for (let i = 0; i + 1 < cues.length; i++) assert.ok(cues[i].end < cues[i + 1].start);
 });
+
+import { buildReelNotebook } from '../examples/scenes/reels/notebook.js';
+
+test('rolki 9:16: fizyka OK, w strefie bezpiecznej, kotwice na czas', () => {
+  for (const [id, build] of [['reel-notebook', buildReelNotebook]]) {
+    const v = new Voice(JSON.parse(readFileSync(new URL(`../examples/voice/${id}/voice.json`, import.meta.url), 'utf8')), `voice/${id}/`);
+    const sb = build(v);
+    assert.equal(sb.format, 'reel');
+    const issues = sb.lint();
+    assert.deepEqual(issues.filter((i) => i.level !== 'warn' || /bezpieczną/.test(i.problem)).map((i) => i.problem), [], id);
+    assert.ok(sb.duration > 12 && sb.duration < 25, `${id}: ${sb.duration.toFixed(1)} s`);
+    for (const it of sb.items.filter((x) => x.cue)) assert.ok(it.seg.start - it.cue.target < 0.85, `${id} ${it.name}`);
+  }
+});

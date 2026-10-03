@@ -1,0 +1,232 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-gosia-medium",
+ "meta": {
+  "głos": "pl_PL-gosia-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Nie wiesz, gdzie znika wypłata? Poznaj zasadę pięćdziesiąt, trzydzieści, dwadzieścia.",
+   "notes": [
+    "tytuł 50/30/20 + zakreślacz"
+   ],
+   "audio": "b1.ogg",
+   "duration": 5.538,
+   "words": [
+    {
+     "w": "Nie",
+     "s": 0.0,
+     "e": 0.18
+    },
+    {
+     "w": "wiesz,",
+     "s": 0.18,
+     "e": 0.5
+    },
+    {
+     "w": "gdzie",
+     "s": 0.64,
+     "e": 0.8
+    },
+    {
+     "w": "znika",
+     "s": 0.8,
+     "e": 1.2
+    },
+    {
+     "w": "wypłata?",
+     "s": 1.2,
+     "e": 1.8
+    },
+    {
+     "w": "Poznaj",
+     "s": 2.08,
+     "e": 2.46
+    },
+    {
+     "w": "zasadę",
+     "s": 2.46,
+     "e": 2.94
+    },
+    {
+     "w": "pięćdziesiąt,",
+     "s": 2.94,
+     "e": 3.78
+    },
+    {
+     "w": "trzydzieści,",
+     "s": 3.94,
+     "e": 4.46
+    },
+    {
+     "w": "dwadzieścia.",
+     "s": 4.62,
+     "e": 5.24
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Połowa pensji idzie na potrzeby: czynsz, jedzenie i rachunki.",
+   "notes": [
+    "dolny segment 50%, potrzeby"
+   ],
+   "audio": "b2.ogg",
+   "duration": 4.063,
+   "words": [
+    {
+     "w": "Połowa",
+     "s": 0.0,
+     "e": 0.32
+    },
+    {
+     "w": "pensji",
+     "s": 0.32,
+     "e": 0.8
+    },
+    {
+     "w": "idzie",
+     "s": 0.8,
+     "e": 1.08
+    },
+    {
+     "w": "na",
+     "s": 1.08,
+     "e": 1.16
+    },
+    {
+     "w": "potrzeby:",
+     "s": 1.16,
+     "e": 2.02
+    },
+    {
+     "w": "czynsz,",
+     "s": 2.08,
+     "e": 2.68
+    },
+    {
+     "w": "jedzenie",
+     "s": 2.78,
+     "e": 3.14
+    },
+    {
+     "w": "i",
+     "s": 3.14,
+     "e": 3.34
+    },
+    {
+     "w": "rachunki.",
+     "s": 3.34,
+     "e": 3.9
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Trzydzieści procent wydajesz na przyjemności: kino, wyjścia, hobby.",
+   "notes": [
+    "środkowy segment 30%"
+   ],
+   "audio": "b3.ogg",
+   "duration": 4.354,
+   "words": [
+    {
+     "w": "Trzydzieści",
+     "s": 0.0,
+     "e": 0.38
+    },
+    {
+     "w": "procent",
+     "s": 0.38,
+     "e": 0.76
+    },
+    {
+     "w": "wydajesz",
+     "s": 0.76,
+     "e": 1.26
+    },
+    {
+     "w": "na",
+     "s": 1.26,
+     "e": 1.38
+    },
+    {
+     "w": "przyjemności:",
+     "s": 1.38,
+     "e": 2.06
+    },
+    {
+     "w": "kino,",
+     "s": 2.28,
+     "e": 2.7
+    },
+    {
+     "w": "wyjścia,",
+     "s": 3.04,
+     "e": 3.6
+    },
+    {
+     "w": "hobby.",
+     "s": 3.78,
+     "e": 4.0
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "A dwadzieścia procent od razu odkładasz na oszczędności.",
+   "notes": [
+    "górny segment 20% + ptaszek"
+   ],
+   "audio": "b4.ogg",
+   "duration": 3.251,
+   "words": [
+    {
+     "w": "A",
+     "s": 0.0,
+     "e": 0.1
+    },
+    {
+     "w": "dwadzieścia",
+     "s": 0.1,
+     "e": 0.64
+    },
+    {
+     "w": "procent",
+     "s": 0.64,
+     "e": 0.96
+    },
+    {
+     "w": "od",
+     "s": 0.96,
+     "e": 1.24
+    },
+    {
+     "w": "razu",
+     "s": 1.24,
+     "e": 1.5
+    },
+    {
+     "w": "odkładasz",
+     "s": 1.5,
+     "e": 2.1
+    },
+    {
+     "w": "na",
+     "s": 2.1,
+     "e": 2.18
+    },
+    {
+     "w": "oszczędności.",
+     "s": 2.18,
+     "e": 2.9
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}
