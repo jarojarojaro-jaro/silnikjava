@@ -1,0 +1,492 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-darkman-medium",
+ "meta": {
+  "głos": "pl_PL-darkman-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Jak działa maszyna parowa? Wszystko zaczyna się w kotle pełnym wody. Pod spodem płonie ogień i podgrzewa wodę, aż zamieni się w gorącą parę.",
+   "notes": [
+    "tytuł, kocioł w przekroju, płomienie, odsyłacz 10"
+   ],
+   "audio": "b1.ogg",
+   "duration": 8.998,
+   "words": [
+    {
+     "w": "Jak",
+     "s": 0.0,
+     "e": 0.26
+    },
+    {
+     "w": "działa",
+     "s": 0.26,
+     "e": 0.5
+    },
+    {
+     "w": "maszyna",
+     "s": 0.5,
+     "e": 1.02
+    },
+    {
+     "w": "parowa?",
+     "s": 1.02,
+     "e": 1.54
+    },
+    {
+     "w": "Wszystko",
+     "s": 1.78,
+     "e": 2.2
+    },
+    {
+     "w": "zaczyna",
+     "s": 2.2,
+     "e": 2.66
+    },
+    {
+     "w": "się",
+     "s": 2.66,
+     "e": 2.8
+    },
+    {
+     "w": "w",
+     "s": 2.8,
+     "e": 2.98
+    },
+    {
+     "w": "kotle",
+     "s": 2.98,
+     "e": 3.26
+    },
+    {
+     "w": "pełnym",
+     "s": 3.26,
+     "e": 3.74
+    },
+    {
+     "w": "wody.",
+     "s": 3.74,
+     "e": 4.08
+    },
+    {
+     "w": "Pod",
+     "s": 4.3,
+     "e": 4.42
+    },
+    {
+     "w": "spodem",
+     "s": 4.42,
+     "e": 4.84
+    },
+    {
+     "w": "płonie",
+     "s": 4.84,
+     "e": 5.2
+    },
+    {
+     "w": "ogień",
+     "s": 5.2,
+     "e": 5.66
+    },
+    {
+     "w": "i",
+     "s": 5.66,
+     "e": 5.76
+    },
+    {
+     "w": "podgrzewa",
+     "s": 5.76,
+     "e": 6.3
+    },
+    {
+     "w": "wodę,",
+     "s": 6.3,
+     "e": 6.88
+    },
+    {
+     "w": "aż",
+     "s": 6.88,
+     "e": 7.18
+    },
+    {
+     "w": "zamieni",
+     "s": 7.18,
+     "e": 7.62
+    },
+    {
+     "w": "się",
+     "s": 7.62,
+     "e": 7.8
+    },
+    {
+     "w": "w",
+     "s": 7.8,
+     "e": 7.94
+    },
+    {
+     "w": "gorącą",
+     "s": 7.94,
+     "e": 8.4
+    },
+    {
+     "w": "parę.",
+     "s": 8.4,
+     "e": 8.84
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Para pod wysokim ciśnieniem płynie rurą do metalowego cylindra. W środku napiera na ruchomy tłok i przesuwa go do przodu.",
+   "notes": [
+    "rura, cylinder, tłok w przekroju, strzałka pary, odsyłacze 12 i 14"
+   ],
+   "audio": "b2.ogg",
+   "duration": 6.943,
+   "words": [
+    {
+     "w": "Para",
+     "s": 0.0,
+     "e": 0.14
+    },
+    {
+     "w": "pod",
+     "s": 0.14,
+     "e": 0.38
+    },
+    {
+     "w": "wysokim",
+     "s": 0.38,
+     "e": 0.86
+    },
+    {
+     "w": "ciśnieniem",
+     "s": 0.86,
+     "e": 1.42
+    },
+    {
+     "w": "płynie",
+     "s": 1.42,
+     "e": 1.74
+    },
+    {
+     "w": "rurą",
+     "s": 1.74,
+     "e": 2.02
+    },
+    {
+     "w": "do",
+     "s": 2.02,
+     "e": 2.16
+    },
+    {
+     "w": "metalowego",
+     "s": 2.16,
+     "e": 2.78
+    },
+    {
+     "w": "cylindra.",
+     "s": 2.78,
+     "e": 3.44
+    },
+    {
+     "w": "W",
+     "s": 3.56,
+     "e": 3.64
+    },
+    {
+     "w": "środku",
+     "s": 3.64,
+     "e": 4.1
+    },
+    {
+     "w": "napiera",
+     "s": 4.1,
+     "e": 4.5
+    },
+    {
+     "w": "na",
+     "s": 4.5,
+     "e": 4.66
+    },
+    {
+     "w": "ruchomy",
+     "s": 4.66,
+     "e": 5.08
+    },
+    {
+     "w": "tłok",
+     "s": 5.08,
+     "e": 5.44
+    },
+    {
+     "w": "i",
+     "s": 5.44,
+     "e": 5.54
+    },
+    {
+     "w": "przesuwa",
+     "s": 5.54,
+     "e": 6.04
+    },
+    {
+     "w": "go",
+     "s": 6.04,
+     "e": 6.16
+    },
+    {
+     "w": "do",
+     "s": 6.16,
+     "e": 6.3
+    },
+    {
+     "w": "przodu.",
+     "s": 6.3,
+     "e": 6.68
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Tłok pcha drąg, drąg pcha korbowód, a korbowód obraca wielkie, ciężkie koło zamachowe. Koło jest tak ciężkie, że kręci się równo, nawet gdy tłok zawraca.",
+   "notes": [
+    "drąg, korbowód, koło ze szprychami, odsyłacze 16 i 18"
+   ],
+   "audio": "b3.ogg",
+   "duration": 11.215,
+   "words": [
+    {
+     "w": "Tłok",
+     "s": 0.0,
+     "e": 0.28
+    },
+    {
+     "w": "pcha",
+     "s": 0.28,
+     "e": 0.5
+    },
+    {
+     "w": "drąg,",
+     "s": 0.5,
+     "e": 0.98
+    },
+    {
+     "w": "drąg",
+     "s": 1.14,
+     "e": 1.62
+    },
+    {
+     "w": "pcha",
+     "s": 1.62,
+     "e": 1.86
+    },
+    {
+     "w": "korbowód,",
+     "s": 1.86,
+     "e": 2.56
+    },
+    {
+     "w": "a",
+     "s": 2.84,
+     "e": 2.94
+    },
+    {
+     "w": "korbowód",
+     "s": 2.94,
+     "e": 3.48
+    },
+    {
+     "w": "obraca",
+     "s": 3.48,
+     "e": 3.92
+    },
+    {
+     "w": "wielkie,",
+     "s": 3.92,
+     "e": 4.58
+    },
+    {
+     "w": "ciężkie",
+     "s": 4.8,
+     "e": 5.2
+    },
+    {
+     "w": "koło",
+     "s": 5.2,
+     "e": 5.5
+    },
+    {
+     "w": "zamachowe.",
+     "s": 5.5,
+     "e": 6.08
+    },
+    {
+     "w": "Koło",
+     "s": 6.28,
+     "e": 6.56
+    },
+    {
+     "w": "jest",
+     "s": 6.56,
+     "e": 6.76
+    },
+    {
+     "w": "tak",
+     "s": 6.76,
+     "e": 6.94
+    },
+    {
+     "w": "ciężkie,",
+     "s": 6.94,
+     "e": 7.62
+    },
+    {
+     "w": "że",
+     "s": 7.82,
+     "e": 8.02
+    },
+    {
+     "w": "kręci",
+     "s": 8.02,
+     "e": 8.48
+    },
+    {
+     "w": "się",
+     "s": 8.48,
+     "e": 8.68
+    },
+    {
+     "w": "równo,",
+     "s": 8.68,
+     "e": 9.1
+    },
+    {
+     "w": "nawet",
+     "s": 9.44,
+     "e": 9.76
+    },
+    {
+     "w": "gdy",
+     "s": 9.76,
+     "e": 10.06
+    },
+    {
+     "w": "tłok",
+     "s": 10.06,
+     "e": 10.44
+    },
+    {
+     "w": "zawraca.",
+     "s": 10.44,
+     "e": 10.96
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Tak ruch tam i z powrotem zamienia się w obrót. Ten prosty pomysł napędzał fabryki, statki i lokomotywy.",
+   "notes": [
+    "strzałka tam i z powrotem, strzałka obrotu, FIG. 1"
+   ],
+   "audio": "b4.ogg",
+   "duration": 6.641,
+   "words": [
+    {
+     "w": "Tak",
+     "s": 0.0,
+     "e": 0.16
+    },
+    {
+     "w": "ruch",
+     "s": 0.16,
+     "e": 0.44
+    },
+    {
+     "w": "tam",
+     "s": 0.44,
+     "e": 0.88
+    },
+    {
+     "w": "i",
+     "s": 0.88,
+     "e": 1.0
+    },
+    {
+     "w": "z",
+     "s": 1.0,
+     "e": 1.1
+    },
+    {
+     "w": "powrotem",
+     "s": 1.1,
+     "e": 1.62
+    },
+    {
+     "w": "zamienia",
+     "s": 1.62,
+     "e": 1.98
+    },
+    {
+     "w": "się",
+     "s": 1.98,
+     "e": 2.18
+    },
+    {
+     "w": "w",
+     "s": 2.18,
+     "e": 2.32
+    },
+    {
+     "w": "obrót.",
+     "s": 2.32,
+     "e": 2.78
+    },
+    {
+     "w": "Ten",
+     "s": 2.86,
+     "e": 3.0
+    },
+    {
+     "w": "prosty",
+     "s": 3.0,
+     "e": 3.48
+    },
+    {
+     "w": "pomysł",
+     "s": 3.48,
+     "e": 3.86
+    },
+    {
+     "w": "napędzał",
+     "s": 3.86,
+     "e": 4.44
+    },
+    {
+     "w": "fabryki,",
+     "s": 4.44,
+     "e": 5.0
+    },
+    {
+     "w": "statki",
+     "s": 5.2,
+     "e": 5.82
+    },
+    {
+     "w": "i",
+     "s": 5.82,
+     "e": 5.94
+    },
+    {
+     "w": "lokomotywy.",
+     "s": 5.94,
+     "e": 6.52
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

@@ -753,6 +753,45 @@ export const THEMES = {
   },
 
   // ------------------------------------------------------------ tusz i pędzel
+  patent: {
+    name: 'Rysunek patentowy',
+    palette: {
+      // czarny tusz kreślarski na białym kartonie; jedyny akcent to sepia odsyłaczy
+      paper: '#f8f6ef', ink: '#141414', inkSoft: '#4a4a4a', pen: '#141414', penDark: '#000000',
+      teal: '#2c2c2c', sky: '#3a3a3a', ochre: '#6b5a3a', coral: '#5a2a1a', plum: '#333333', white: '#ffffff',
+    },
+    fonts: { hand: '"EB Garamond", "Kalam", serif', title: '"Libre Baskerville", "Kalam", serif' },
+    writeScale: 1.2,
+    // grafion: cienka, równa kreska, prawie bez drżenia i bez nacisku
+    pen: { style: 'ink', width: 0.75, jitter: 0.12, pressure: 0.08, taper: 0.25 },
+    // przekrój = gęste kreskowanie pod 45°
+    crayon: { w: 1.1, spacing: 7, alpha: 0.95, grain: 0, angle: 0.785, wave: 0 },
+    highlight: { blend: 'multiply', alpha: 0.25 },
+    tools: { pencil: 'techpen', crayon: 'techpen', marker: 'techpen' },
+    outline: '#141414',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // gładki karton z rzadkimi włóknami
+      ctx.fillStyle = ctx.createPattern(texture('patent', 320, (c, S, r) => {
+        for (let i = 0; i < 900; i++) {
+          c.fillStyle = `rgba(120,110,90,${r() * 0.05})`;
+          c.fillRect(r() * S, r() * S, 1 + r() * 2, 1);
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      // podwójna ramka arkusza (drukowana na formularzu)
+      ctx.save();
+      ctx.strokeStyle = 'rgba(20,20,20,0.8)';
+      ctx.lineWidth = 2.2;
+      ctx.strokeRect(26, 26, w - 52, h - 52);
+      ctx.lineWidth = 0.8;
+      ctx.strokeRect(33, 33, w - 66, h - 66);
+      ctx.restore();
+      vignette(ctx, w, h, 0.05);
+    },
+  },
   sumi: {
     name: 'Tusz i pędzel',
     palette: {

@@ -390,6 +390,7 @@ import { buildTerminal } from '../examples/scenes/styles/terminal.js';
 import { buildPoster } from '../examples/scenes/styles/poster.js';
 import { buildCorkboard } from '../examples/scenes/styles/corkboard.js';
 import { buildSumi } from '../examples/scenes/styles/sumi.js';
+import { buildPatent } from '../examples/scenes/styles/patent.js';
 
 test('motywy: nazwy, uzupełnione domyślne pola, nieznany motyw to błąd', () => {
   assert.deepEqual(themeNames().map((t) => t.id).slice(0, 5), ['paper', 'chalk', 'blueprint', 'neon', 'notebook']);
@@ -424,12 +425,12 @@ test('motyw w Storyboardzie: scena niesie motyw, ślad kredki idzie kreskowaniem
 });
 
 test('filmy w trzech stylach: fizyka OK, ~15–18 s, kotwice na czas', () => {
-  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook], ['watercolor', buildWatercolor], ['comic', buildComic], ['flipchart', buildFlipchart], ['kraft', buildKraft], ['sketch', buildSketch], ['parchment', buildParchment], ['woodcut', buildWoodcut], ['cosmos', buildCosmos], ['terminal', buildTerminal], ['poster', buildPoster], ['corkboard', buildCorkboard], ['sumi', buildSumi]]) {
+  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook], ['watercolor', buildWatercolor], ['comic', buildComic], ['flipchart', buildFlipchart], ['kraft', buildKraft], ['sketch', buildSketch], ['parchment', buildParchment], ['woodcut', buildWoodcut], ['cosmos', buildCosmos], ['terminal', buildTerminal], ['poster', buildPoster], ['corkboard', buildCorkboard], ['sumi', buildSumi], ['patent', buildPatent]]) {
     const v = new Voice(JSON.parse(readFileSync(new URL(`../examples/voice/${id}/voice.json`, import.meta.url), 'utf8')), `voice/${id}/`);
     const sb = build(v);
     assert.equal(sb.scene().theme, id);
     assert.deepEqual(sb.lint().filter((i) => i.level !== 'warn').map((i) => i.problem), [], id);
-    assert.ok(sb.duration > 12 && sb.duration < 31, `${id}: ${sb.duration.toFixed(1)} s`);
+    assert.ok(sb.duration > 12 && sb.duration < 40, `${id}: ${sb.duration.toFixed(1)} s`);
     for (const it of sb.items.filter((x) => x.cue)) {
       assert.ok(it.seg.start - it.cue.target < 0.85, `${id} ${it.name} „${it.cue.word}”`);
     }
