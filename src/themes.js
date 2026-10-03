@@ -269,6 +269,7 @@ export const THEMES = {
       teal: '#2ec4b6', sky: '#3a86ff', ochre: '#ffbe0b', coral: '#ff5d8f', plum: '#8338ec', white: '#ffffff',
     },
     fonts: { hand: '"Shantell Sans", "Kalam", cursive', title: '"Bangers", "Kalam", cursive' },
+    writeScale: 1.15,
     // pędzelek: gruba kreska z mocnym naciskiem i długim zwężeniem końców
     pen: { style: 'ink', width: 1.35, jitter: 0.35, pressure: 0.9, taper: 1.5 },
     // płaski kolor markera z rastrem kropek (jak w druku)

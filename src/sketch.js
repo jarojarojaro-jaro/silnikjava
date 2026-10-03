@@ -471,7 +471,8 @@ export class Sketch {
       lc.stroke();
     }
     lc.restore();
-    this.#composite(box, { alpha: o.alpha ?? 1, blend: 'multiply' });
+    // domyślnie mnożenie (czarny kontur pod kolorem zostaje czarny); blend 'source-over' — kolor kryjący (np. biały lód na wodzie)
+    this.#composite(box, { alpha: o.alpha ?? 1, blend: o.blend ?? 'multiply' });
   }
 
   /** Gdzie jest ręka przy kolorowaniu kredką (bez rysowania) — jedzie zygzakiem wewnątrz konturu. */
