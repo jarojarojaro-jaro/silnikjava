@@ -1,0 +1,542 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-darkman-medium",
+ "meta": {
+  "głos": "pl_PL-darkman-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Jak działa agent AI? Zajrzyjmy do środka.",
+   "notes": [
+    "tytuł + podkreślenie"
+   ],
+   "audio": "b1.ogg",
+   "duration": 3.181,
+   "words": [
+    {
+     "w": "Jak",
+     "s": 0.0,
+     "e": 0.2
+    },
+    {
+     "w": "działa",
+     "s": 0.2,
+     "e": 0.52
+    },
+    {
+     "w": "agent",
+     "s": 0.52,
+     "e": 0.96
+    },
+    {
+     "w": "AI?",
+     "s": 0.96,
+     "e": 1.28
+    },
+    {
+     "w": "Zajrzyjmy",
+     "s": 1.62,
+     "e": 2.26
+    },
+    {
+     "w": "do",
+     "s": 2.26,
+     "e": 2.4
+    },
+    {
+     "w": "środka.",
+     "s": 2.4,
+     "e": 2.94
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Wszystko zaczyna się od obserwacji: agent widzi zadanie i to, co dzieje się wokół.",
+   "notes": [
+    "ramka „obserwacja”"
+   ],
+   "audio": "b2.ogg",
+   "duration": 5.039,
+   "words": [
+    {
+     "w": "Wszystko",
+     "s": 0.0,
+     "e": 0.38
+    },
+    {
+     "w": "zaczyna",
+     "s": 0.38,
+     "e": 0.76
+    },
+    {
+     "w": "się",
+     "s": 0.76,
+     "e": 0.88
+    },
+    {
+     "w": "od",
+     "s": 0.88,
+     "e": 1.06
+    },
+    {
+     "w": "obserwacji:",
+     "s": 1.06,
+     "e": 1.74
+    },
+    {
+     "w": "agent",
+     "s": 2.04,
+     "e": 2.34
+    },
+    {
+     "w": "widzi",
+     "s": 2.34,
+     "e": 2.72
+    },
+    {
+     "w": "zadanie",
+     "s": 2.72,
+     "e": 3.16
+    },
+    {
+     "w": "i",
+     "s": 3.16,
+     "e": 3.28
+    },
+    {
+     "w": "to,",
+     "s": 3.28,
+     "e": 3.46
+    },
+    {
+     "w": "co",
+     "s": 3.88,
+     "e": 3.98
+    },
+    {
+     "w": "dzieje",
+     "s": 3.98,
+     "e": 4.3
+    },
+    {
+     "w": "się",
+     "s": 4.3,
+     "e": 4.46
+    },
+    {
+     "w": "wokół.",
+     "s": 4.46,
+     "e": 4.88
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Obserwacja trafia do modelu językowego, który decyduje, co zrobić dalej.",
+   "notes": [
+    "strzałka -> ramka „LLM”"
+   ],
+   "audio": "b3.ogg",
+   "duration": 5.236,
+   "words": [
+    {
+     "w": "Obserwacja",
+     "s": 0.0,
+     "e": 0.68
+    },
+    {
+     "w": "trafia",
+     "s": 0.68,
+     "e": 1.12
+    },
+    {
+     "w": "do",
+     "s": 1.12,
+     "e": 1.26
+    },
+    {
+     "w": "modelu",
+     "s": 1.26,
+     "e": 1.68
+    },
+    {
+     "w": "językowego,",
+     "s": 1.68,
+     "e": 2.44
+    },
+    {
+     "w": "który",
+     "s": 2.8,
+     "e": 2.94
+    },
+    {
+     "w": "decyduje,",
+     "s": 2.94,
+     "e": 3.6
+    },
+    {
+     "w": "co",
+     "s": 3.8,
+     "e": 4.14
+    },
+    {
+     "w": "zrobić",
+     "s": 4.14,
+     "e": 4.48
+    },
+    {
+     "w": "dalej.",
+     "s": 4.48,
+     "e": 4.88
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Model wybiera akcję: uruchamia narzędzie, pisze kod albo szuka w sieci.",
+   "notes": [
+    "strzałka -> ramka „akcja”"
+   ],
+   "audio": "b4.ogg",
+   "duration": 5.341,
+   "words": [
+    {
+     "w": "Model",
+     "s": 0.0,
+     "e": 0.32
+    },
+    {
+     "w": "wybiera",
+     "s": 0.32,
+     "e": 0.78
+    },
+    {
+     "w": "akcję:",
+     "s": 0.78,
+     "e": 1.28
+    },
+    {
+     "w": "uruchamia",
+     "s": 1.74,
+     "e": 2.3
+    },
+    {
+     "w": "narzędzie,",
+     "s": 2.3,
+     "e": 2.84
+    },
+    {
+     "w": "pisze",
+     "s": 3.32,
+     "e": 3.64
+    },
+    {
+     "w": "kod",
+     "s": 3.64,
+     "e": 4.0
+    },
+    {
+     "w": "albo",
+     "s": 4.0,
+     "e": 4.2
+    },
+    {
+     "w": "szuka",
+     "s": 4.2,
+     "e": 4.62
+    },
+    {
+     "w": "w",
+     "s": 4.62,
+     "e": 4.74
+    },
+    {
+     "w": "sieci.",
+     "s": 4.74,
+     "e": 5.14
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b5",
+   "text": "Wynik akcji wraca jako nowa obserwacja. I tak w kółko.",
+   "notes": [
+    "pętla przerywana + podpis"
+   ],
+   "audio": "b5.ogg",
+   "duration": 3.971,
+   "words": [
+    {
+     "w": "Wynik",
+     "s": 0.0,
+     "e": 0.42
+    },
+    {
+     "w": "akcji",
+     "s": 0.42,
+     "e": 0.76
+    },
+    {
+     "w": "wraca",
+     "s": 0.76,
+     "e": 1.12
+    },
+    {
+     "w": "jako",
+     "s": 1.12,
+     "e": 1.38
+    },
+    {
+     "w": "nowa",
+     "s": 1.38,
+     "e": 1.82
+    },
+    {
+     "w": "obserwacja.",
+     "s": 1.82,
+     "e": 2.58
+    },
+    {
+     "w": "I",
+     "s": 2.88,
+     "e": 2.98
+    },
+    {
+     "w": "tak",
+     "s": 2.98,
+     "e": 3.2
+    },
+    {
+     "w": "w",
+     "s": 3.2,
+     "e": 3.34
+    },
+    {
+     "w": "kółko.",
+     "s": 3.34,
+     "e": 3.76
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b6",
+   "text": "A w środku model myśli krok po kroku.",
+   "notes": [
+    "zbliżenie na LLM"
+   ],
+   "audio": "b6.ogg",
+   "duration": 2.229,
+   "words": [
+    {
+     "w": "A",
+     "s": 0.0,
+     "e": 0.1
+    },
+    {
+     "w": "w",
+     "s": 0.1,
+     "e": 0.18
+    },
+    {
+     "w": "środku",
+     "s": 0.18,
+     "e": 0.6
+    },
+    {
+     "w": "model",
+     "s": 0.6,
+     "e": 0.84
+    },
+    {
+     "w": "myśli",
+     "s": 0.84,
+     "e": 1.3
+    },
+    {
+     "w": "krok",
+     "s": 1.3,
+     "e": 1.66
+    },
+    {
+     "w": "po",
+     "s": 1.66,
+     "e": 1.8
+    },
+    {
+     "w": "kroku.",
+     "s": 1.8,
+     "e": 2.2
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b7",
+   "text": "Kiedy taka pętla się kończy?",
+   "notes": [
+    "ścieranie tablicy, nowy tytuł"
+   ],
+   "audio": "b7.ogg",
+   "duration": 1.974,
+   "words": [
+    {
+     "w": "Kiedy",
+     "s": 0.0,
+     "e": 0.22
+    },
+    {
+     "w": "taka",
+     "s": 0.22,
+     "e": 0.5
+    },
+    {
+     "w": "pętla",
+     "s": 0.5,
+     "e": 0.96
+    },
+    {
+     "w": "się",
+     "s": 0.96,
+     "e": 1.1
+    },
+    {
+     "w": "kończy?",
+     "s": 1.1,
+     "e": 1.68
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b8",
+   "text": "Gdy zadanie jest wykonane, gdy agent nie robi postępów albo gdy skończy się limit kroków.",
+   "notes": [
+    "checklista, każdy punkt w chwili, gdy pada w zdaniu"
+   ],
+   "audio": "b8.ogg",
+   "duration": 5.584,
+   "words": [
+    {
+     "w": "Gdy",
+     "s": 0.0,
+     "e": 0.22
+    },
+    {
+     "w": "zadanie",
+     "s": 0.22,
+     "e": 0.66
+    },
+    {
+     "w": "jest",
+     "s": 0.66,
+     "e": 0.9
+    },
+    {
+     "w": "wykonane,",
+     "s": 0.9,
+     "e": 1.58
+    },
+    {
+     "w": "gdy",
+     "s": 1.76,
+     "e": 1.94
+    },
+    {
+     "w": "agent",
+     "s": 1.94,
+     "e": 2.3
+    },
+    {
+     "w": "nie",
+     "s": 2.3,
+     "e": 2.58
+    },
+    {
+     "w": "robi",
+     "s": 2.58,
+     "e": 2.82
+    },
+    {
+     "w": "postępów",
+     "s": 2.82,
+     "e": 3.46
+    },
+    {
+     "w": "albo",
+     "s": 3.46,
+     "e": 3.72
+    },
+    {
+     "w": "gdy",
+     "s": 3.72,
+     "e": 3.98
+    },
+    {
+     "w": "skończy",
+     "s": 3.98,
+     "e": 4.48
+    },
+    {
+     "w": "się",
+     "s": 4.48,
+     "e": 4.68
+    },
+    {
+     "w": "limit",
+     "s": 4.68,
+     "e": 5.0
+    },
+    {
+     "w": "kroków.",
+     "s": 5.0,
+     "e": 5.46
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b9",
+   "text": "I wtedy agent mówi: gotowe!",
+   "notes": [
+    "maskotka + dymek"
+   ],
+   "audio": "b9.ogg",
+   "duration": 2.345,
+   "words": [
+    {
+     "w": "I",
+     "s": 0.0,
+     "e": 0.16
+    },
+    {
+     "w": "wtedy",
+     "s": 0.16,
+     "e": 0.42
+    },
+    {
+     "w": "agent",
+     "s": 0.42,
+     "e": 0.8
+    },
+    {
+     "w": "mówi:",
+     "s": 0.8,
+     "e": 1.22
+    },
+    {
+     "w": "gotowe!",
+     "s": 1.22,
+     "e": 2.1
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

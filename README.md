@@ -24,6 +24,7 @@ Otwórz `http://localhost:8080` — galeria z trzema demami:
 | --- | --- |
 | `examples/hero.html` | nagłówek w stylu stentor.studio: jedna ręka prowadzi główny wątek, tło dorysowuje się równolegle, maskotka śledzi ołówek wzrokiem |
 | `examples/explainer.html` | film ze `Storyboard`: kamera, ścieranie, odtwarzacz z suwakiem, nagrywanie WebM |
+| `examples/narrated.html` | explainer z lektorem: głos, synchronizacja ze słowami, napisy na żywo |
 | `examples/scroll.html` | diagram budujący się podczas przewijania (sticky canvas + lista) |
 
 ## Najkrótszy film
@@ -73,9 +74,12 @@ src/
   player.js      Player (canvas, DPR, rAF, start w kadrze, idle, reduced motion),
                  scrollDrive (czas sceny = pozycja scrolla)
   record.js      recordWebM, snapshot, download
+  narration.js   Voice/Beat (voice.json: klipy zdań + czasy słów), napisy SRT/VTT
+  audio.js       AudioTrack — ścieżka lektora (Web Audio), zegar animacji
 tools/render.mjs render klatka po klatce (Playwright) -> PNG / MP4 (ffmpeg)
 tools/audit.mjs  pomiar: czas renderu klatki, teleporty, prędkość i znikanie ręki
 tools/lint.mjs   kontrola fizyki scen w przeglądarce (nic nie pojawia się bez ręki)
+tools/voice/     voice.py: skrypt -> głos (TTS) / nagranie -> czasy słów (voice.json)
 ```
 
 **Zasada:** scena jest czystą funkcją czasu. `draw(sk, t)` rysuje wszystko od
@@ -202,6 +206,27 @@ node tools/audit.mjs examples/explainer.html   # czas klatki, widoczność ołó
 ```
 
 Wyniki przed i po przebudowie ręki są w [docs/PLAN.md](docs/PLAN.md).
+
+## Lektor i napisy
+
+Każde zdanie lektora to `sb.say(beat, () => { ...rysunek... })`. Krok
+z `cue: 'słowo'` czeka na to słowo: ołówek dotyka kartki 0,3 s przed nim, a
+lektor czeka na rękę, jeśli ta nie zdąży. Głos pochodzi z syntezy mowy albo
+z Twojego nagrania; w obu przypadkach czasy słów daje `tools/voice/voice.py`.
+W przeglądarce dźwięk jest zegarem animacji. `tools/render.mjs` składa MP4
+z lektorem i ścieżką napisów oraz zapisuje pliki SRT i VTT.
+
+```js
+const voice = await Voice.load('voice/agent/voice.json');
+sb.say(voice.beat(3), () => {
+  sb.arrow(strzalka, { cue: 'trafia' });   // "Obserwacja TRAFIA do modelu…"
+  sb.pen(ramka);
+});
+new Player(canvas, sb.scene()).play();     // play() z kliknięcia — przeglądarka wymaga gestu
+```
+
+Jak dać głos, format skryptu i polecenia: [docs/LEKTOR.md](docs/LEKTOR.md).
+Demo: `examples/narrated.html`.
 
 ## Od skryptu do filmu
 

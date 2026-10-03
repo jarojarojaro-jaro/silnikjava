@@ -72,6 +72,8 @@ export async function openPlayer(page, { width = 1280 } = {}) {
   return {
     tab,
     dims,
+    url,
+    root,
     async close() {
       await browser.close();
       server.close();
