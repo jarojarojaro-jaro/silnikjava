@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Silnik — rolki 9:16</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&family=Kalam:wght@400;700&family=Patrick+Hand&family=Shadows+Into+Light+Two&family=Bangers&family=Shantell+Sans&family=Lilita+One&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&family=Kalam:wght@400;700&family=Patrick+Hand&family=Shadows+Into+Light+Two&family=Bangers&family=Shantell+Sans&family=Lilita+One&family=Montserrat:wght@700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
     .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 14px; }
@@ -43,9 +43,11 @@
   <script type="module">
     import { Player, Voice } from '../src/index.js';
     import { buildReelNotebook } from './scenes/reels/notebook.js';
+    import { buildReelNeon } from './scenes/reels/neon.js';
 
     const REELS = {
       notebook: { name: 'Zeszyt: 50/30/20', build: buildReelNotebook, voice: 'reel-notebook', about: 'Finanse osobiste w zeszycie w kratkę: hak w pierwszym zdaniu, segmenty rysowane po kolei, napisy słowo po słowie.' },
+      neon: { name: 'Neon: jak AI pisze?', build: buildReelNeon, voice: 'reel-neon', about: 'Technologia na podświetlonej szybie: zdanie, słupki prawdopodobieństwa, zwycięskie słowo dopisane do zdania.' },
     };
     const q = new URLSearchParams(location.search).get('r');
     const id = q in REELS ? q : Object.keys(REELS)[0];

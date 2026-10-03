@@ -1,0 +1,264 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-darkman-medium",
+ "meta": {
+  "głos": "pl_PL-darkman-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Jak sztuczna inteligencja pisze tekst? Zgaduje słowo po słowie.",
+   "notes": [
+    "tytuł"
+   ],
+   "audio": "b1.ogg",
+   "duration": 4.365,
+   "words": [
+    {
+     "w": "Jak",
+     "s": 0.0,
+     "e": 0.3
+    },
+    {
+     "w": "sztuczna",
+     "s": 0.3,
+     "e": 0.82
+    },
+    {
+     "w": "inteligencja",
+     "s": 0.82,
+     "e": 1.52
+    },
+    {
+     "w": "pisze",
+     "s": 1.52,
+     "e": 1.92
+    },
+    {
+     "w": "tekst?",
+     "s": 1.92,
+     "e": 2.42
+    },
+    {
+     "w": "Zgaduje",
+     "s": 2.52,
+     "e": 3.04
+    },
+    {
+     "w": "słowo",
+     "s": 3.04,
+     "e": 3.54
+    },
+    {
+     "w": "po",
+     "s": 3.54,
+     "e": 3.7
+    },
+    {
+     "w": "słowie.",
+     "s": 3.7,
+     "e": 4.12
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Widzi początek zdania: kot siedzi na...",
+   "notes": [
+    "zdanie"
+   ],
+   "audio": "b2.ogg",
+   "duration": 2.612,
+   "words": [
+    {
+     "w": "Widzi",
+     "s": 0.0,
+     "e": 0.3
+    },
+    {
+     "w": "początek",
+     "s": 0.3,
+     "e": 0.86
+    },
+    {
+     "w": "zdania:",
+     "s": 0.86,
+     "e": 1.26
+    },
+    {
+     "w": "kot",
+     "s": 1.64,
+     "e": 1.88
+    },
+    {
+     "w": "siedzi",
+     "s": 1.88,
+     "e": 2.3
+    },
+    {
+     "w": "na...",
+     "s": 2.3,
+     "e": 2.58
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "I liczy szanse każdego słowa. Macie: sześćdziesiąt dwa procent.",
+   "notes": [
+    "słupek: macie 62%"
+   ],
+   "audio": "b3.ogg",
+   "duration": 4.667,
+   "words": [
+    {
+     "w": "I",
+     "s": 0.0,
+     "e": 0.14
+    },
+    {
+     "w": "liczy",
+     "s": 0.14,
+     "e": 0.46
+    },
+    {
+     "w": "szanse",
+     "s": 0.46,
+     "e": 0.9
+    },
+    {
+     "w": "każdego",
+     "s": 0.9,
+     "e": 1.46
+    },
+    {
+     "w": "słowa.",
+     "s": 1.46,
+     "e": 1.92
+    },
+    {
+     "w": "Macie:",
+     "s": 2.1,
+     "e": 2.6
+    },
+    {
+     "w": "sześćdziesiąt",
+     "s": 2.6,
+     "e": 3.64
+    },
+    {
+     "w": "dwa",
+     "s": 3.64,
+     "e": 3.86
+    },
+    {
+     "w": "procent.",
+     "s": 3.86,
+     "e": 4.34
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Dachu: dwadzieścia jeden procent. Oknie: tylko dziewięć.",
+   "notes": [
+    "słupki: dachu 21%, oknie 9%"
+   ],
+   "audio": "b4.ogg",
+   "duration": 4.342,
+   "words": [
+    {
+     "w": "Dachu:",
+     "s": 0.0,
+     "e": 0.42
+    },
+    {
+     "w": "dwadzieścia",
+     "s": 0.68,
+     "e": 1.38
+    },
+    {
+     "w": "jeden",
+     "s": 1.38,
+     "e": 1.56
+    },
+    {
+     "w": "procent.",
+     "s": 1.56,
+     "e": 2.0
+    },
+    {
+     "w": "Oknie:",
+     "s": 2.32,
+     "e": 2.86
+    },
+    {
+     "w": "tylko",
+     "s": 3.16,
+     "e": 3.52
+    },
+    {
+     "w": "dziewięć.",
+     "s": 3.52,
+     "e": 4.18
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b5",
+   "text": "Wybiera najbardziej prawdopodobne, dopisuje je i zgaduje dalej.",
+   "notes": [
+    "strzałka, dopisane słowo, i dalej"
+   ],
+   "audio": "b5.ogg",
+   "duration": 4.4,
+   "words": [
+    {
+     "w": "Wybiera",
+     "s": 0.94,
+     "e": 1.367
+    },
+    {
+     "w": "najbardziej",
+     "s": 1.367,
+     "e": 1.793
+    },
+    {
+     "w": "prawdopodobne,",
+     "s": 1.793,
+     "e": 2.22
+    },
+    {
+     "w": "dopisuje",
+     "s": 2.22,
+     "e": 2.92
+    },
+    {
+     "w": "je",
+     "s": 2.92,
+     "e": 3.16
+    },
+    {
+     "w": "i",
+     "s": 3.16,
+     "e": 3.38
+    },
+    {
+     "w": "zgaduje",
+     "s": 3.38,
+     "e": 3.8
+    },
+    {
+     "w": "dalej.",
+     "s": 3.8,
+     "e": 4.12
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

@@ -29,6 +29,7 @@ const list = targets.length
       'examples/scenes/styles/kraft.js:buildKraft:examples/voice/kraft/voice.json',
       'examples/scenes/styles/sketch.js:buildSketch:examples/voice/sketch/voice.json',
       'examples/scenes/reels/notebook.js:buildReelNotebook:examples/voice/reel-notebook/voice.json',
+      'examples/scenes/reels/neon.js:buildReelNeon:examples/voice/reel-neon/voice.json',
     ];
 
 // strona-gospodarz: ładuje czcionki wszystkich motywów i Player (Sketch z prawdziwym canvasem)
