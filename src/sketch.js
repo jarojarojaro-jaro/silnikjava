@@ -240,7 +240,14 @@ export class Sketch {
           const press = taper > 0 ? Math.min(1, d / taper + 0.3, (L - d) / taper + 0.3) : 1;
           const bend = 1 + pressure * Math.min(1, curv[Math.min(i, n - 1)] * 8);
           const wob = 0.84 + 0.26 * noise1(seed * 3.7 + d * 0.02);
-          target.lineWidth = Math.max(0.4, w * press * wob * bend);
+          // pędzel / ścięta stalówka: kreska grubsza w poprzek "ostrza", cieniutka wzdłuż
+          let nib = 1;
+          if (style.nib != null) {
+            const a = Math.atan2(P[end][1] - P[i - 1][1], P[end][0] - P[i - 1][0]);
+            const k = style.nibMin ?? 0.25;
+            nib = k + (1 - k) * Math.abs(Math.sin(a - style.nib));
+          }
+          target.lineWidth = Math.max(0.4, w * press * wob * bend * nib);
           // pióro z kałamarza: atrament z każdą kreską się wyczerpuje (kreska blednie), nowa kreska = nowe zanurzenie
           if (style.inkFade) target.globalAlpha = alpha0 * (1 - style.inkFade * Math.min(1, d / (style.inkReach ?? 520)));
           target.stroke();

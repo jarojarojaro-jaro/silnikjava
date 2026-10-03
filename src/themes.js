@@ -751,6 +751,49 @@ export const THEMES = {
       ctx.restore();
     },
   },
+
+  // ------------------------------------------------------------ tusz i pędzel
+  sumi: {
+    name: 'Tusz i pędzel',
+    palette: {
+      // tusz w kilku rozcieńczeniach + czerwień pieczęci
+      paper: '#f3eee1', ink: '#161616', inkSoft: '#7b7b7b', pen: '#b3261e', penDark: '#8c1c16',
+      teal: '#5a7d74', sky: '#6f8ea6', ochre: '#b8925a', coral: '#b3261e', plum: '#6d5a7a', white: '#fbf8f0',
+    },
+    fonts: { hand: '"Spectral", "Kalam", serif', title: '"Kaushan Script", "Kalam", cursive' },
+    writeScale: 1.2,
+    // pędzel: grubość zależy od kierunku (ostrze pod kątem ~35°), mocny nacisk, długie zwężenia
+    pen: { style: 'ink', width: 2.1, jitter: 0.5, pressure: 0.6, taper: 1.6, nib: -0.6, nibMin: 0.22 },
+    // laweowanie: rozcieńczony tusz plamą
+    crayon: { wash: true, w: 34, spacing: 24, alpha: 0.6, grain: 0.3 },
+    highlight: { blend: 'multiply', alpha: 0.3 },
+    tools: { pencil: 'brush', crayon: 'brush' },
+    outline: '#161616',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // papier ryżowy: długie, cienkie włókna i miękkie przejaśnienia
+      ctx.fillStyle = ctx.createPattern(texture('rice', 360, (c, S, r) => {
+        c.lineCap = 'round';
+        for (let i = 0; i < 260; i++) {
+          const x = r() * S, y = r() * S, a = r() * Math.PI, l = 10 + r() * 40;
+          c.strokeStyle = `rgba(140,120,90,${0.05 + r() * 0.08})`;
+          c.lineWidth = 0.6;
+          c.beginPath();
+          c.moveTo(x, y);
+          c.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + r() * 6, y + Math.sin(a) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l);
+          c.stroke();
+        }
+        for (let i = 0; i < 1500; i++) {
+          c.fillStyle = `rgba(255,255,255,${r() * 0.5})`;
+          c.fillRect(r() * S, r() * S, 1 + r() * 2, 1 + r() * 2);
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      vignette(ctx, w, h, 0.1);
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */
