@@ -6,6 +6,7 @@
 //   node tools/lint.mjs examples/scenes/explainer.js:buildExplainer [inne...]
 //   node tools/lint.mjs examples/scenes/styles/neon.js:buildNeon:examples/voice/neon/voice.json   # scena z lektorem
 //   node tools/lint.mjs            # wszystkie dema
+//   --items                        # dodatkowo czasy kroków (start +czas, zdanie, kotwica)
 
 import { parseArgs, openPlayer } from './lib/page.mjs';
 
@@ -21,6 +22,7 @@ const list = targets.length
       'examples/scenes/styles/chalk.js:buildChalk:examples/voice/chalk/voice.json',
       'examples/scenes/styles/blueprint.js:buildBlueprint:examples/voice/blueprint/voice.json',
       'examples/scenes/styles/neon.js:buildNeon:examples/voice/neon/voice.json',
+      'examples/scenes/styles/notebook.js:buildNotebook:examples/voice/notebook/voice.json',
     ];
 
 // strona-gospodarz: ładuje czcionki wszystkich motywów i Player (Sketch z prawdziwym canvasem)
@@ -36,12 +38,15 @@ for (const target of list) {
     const sk = new Sketch(window.__player.ctx, { theme: sb.theme ?? 'paper' });
     await loadFonts(sk.fonts);
     const issues = sb.lint(sk);
-    return { duration: sb.duration, items: sb.items.length, issues };
+    const steps = [...sb.items].sort((a, b) => a.seg.start - b.seg.start).map((i) =>
+      `${i.seg.start.toFixed(2).padStart(6)} +${i.seg.dur.toFixed(2)}  ${i.name.padEnd(14)} ${i.beat ?? ''}${i.cue ? `  „${i.cue.word}” @${i.cue.target.toFixed(2)}` : ''}`);
+    return { duration: sb.duration, items: sb.items.length, issues, steps };
   }, { file, fn, voice });
   const errors = res.issues.filter((i) => i.level !== 'warn');
   const warns = res.issues.length - errors.length;
   total += errors.length;
   console.log(`${target}: ${res.items} kroków, ${res.duration.toFixed(1)} s — ${errors.length ? `${errors.length} błąd(ów) fizyki` : 'fizyka OK'}${warns ? `, ${warns} ostrzeżeń o tempie` : ''}`);
+  if (opt('items')) for (const l of res.steps) console.log(`    ${l}`);
   for (const i of res.issues) console.log(`  ${i.level === 'warn' ? 'uwaga' : 'BŁĄD '}  ${i.time.toFixed(2)} s  ${i.name}: ${i.problem}`);
 }
 await close();

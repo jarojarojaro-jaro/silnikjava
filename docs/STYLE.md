@@ -25,7 +25,19 @@ bez zmian i synchronizacja z lektorem też.
 | do czego | lekcje, matematyka, „szkolne” objaśnienia | architektura systemów, inżynieria, produkt | technologia, AI, prezentacje „na szybie” |
 | przykład | `examples/scenes/styles/chalk.js`: Pitagoras | `…/blueprint.js`: droga zapytania | `…/neon.js`: sieć neuronowa |
 
-Podgląd: `examples/styles.html?s=chalk` (zakładki: kreda, blueprint, neon).
+Kolejne style:
+
+| | Zeszyt w kratkę (`notebook`) |
+| --- | --- |
+| podłoże | biała kartka, kratka 5 mm, czerwony margines |
+| kreska | długopis: cienko, lekki nacisk, prawie bez zwężeń; czerwony długopis do poprawek |
+| kolorowanie | kredki; zakreślacze (`highlight`) żółty, zielony, różowy |
+| pismo | Shadows Into Light Two (pismo ucznia) |
+| w ręce | długopis z przezroczystym korpusem, wkład i zatyczka w kolorze tuszu |
+| do czego | „wytłumacz jak na lekcji”, finanse osobiste, notatki |
+| przykład | `examples/scenes/styles/notebook.js`: procent składany |
+
+Podgląd: `examples/styles.html?s=chalk` (zakładki z wszystkimi stylami).
 Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
 
 ## Jak to działa w silniku
@@ -49,7 +61,7 @@ Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
 * **Zasłanianie i gąbka** (`occlude`, `clear`): na podłożu z fakturą silnik
   odmalowuje fragment tła (siatkę, tablicę) zamiast kłaść płaski kolor.
 * **Narzędzie**: `theme.tools` mapuje `pencil` / `marker` na sprite motywu
-  (`chalk`, `techpen`, `neon`). Gąbka zostaje gąbką.
+  (`chalk`, `techpen`, `neon`, `ballpoint`). Gąbka zostaje gąbką.
 
 ## Własny styl
 
@@ -83,8 +95,7 @@ Na co uważać:
 
 ## Kolejne style (pomysły)
 
-* **Papier pakowy / notatnik w kratkę.** Wystarczy tło i paleta; kreska jak
-  `ink`.
+* **Papier pakowy.** Wystarczy tło i paleta; kreska jak `ink`.
 * **Akwarela.** Kolorowanie miękką plamą z rozlanym brzegiem, a kontur
   cienkim piórem. Potrzebny nowy pędzel `wash`.
 * **Marker na flipcharcie.** Gruba kreska o stałej grubości, smugi markera.

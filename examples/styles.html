@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Silnik — style</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&family=Kalam:wght@400;700&family=Architects+Daughter&family=Courier+Prime&family=Patrick+Hand&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&family=Kalam:wght@400;700&family=Architects+Daughter&family=Courier+Prime&family=Patrick+Hand&family=Shadows+Into+Light+Two&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
     .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 14px; }
@@ -42,11 +42,13 @@
     import { buildChalk } from './scenes/styles/chalk.js';
     import { buildBlueprint } from './scenes/styles/blueprint.js';
     import { buildNeon } from './scenes/styles/neon.js';
+    import { buildNotebook } from './scenes/styles/notebook.js';
 
     const STYLES = {
       chalk: { name: 'Tablica kredowa', build: buildChalk, about: 'Kreda na zielonej tablicy: ziarnista kreska, kolorowa kreda, w ręce kawałek kredy. Lekcja, matematyka, edukacja.' },
       blueprint: { name: 'Blueprint', build: buildBlueprint, about: 'Kalka techniczna: siatka, rapidograf o stałej grubości, kreślarskie przedłużenia linii, kreskowanie pod 45°, pismo techniczne. Architektura systemów, inżynieria, produkt.' },
       neon: { name: 'Neon (lightboard)', build: buildNeon, about: 'Pisanie na podświetlonej szybie: świecące kreski na prawie czarnym tle, pisak z poświatą. Technologia, AI, prezentacje.' },
+      notebook: { name: 'Zeszyt w kratkę', build: buildNotebook, about: 'Notatki ucznia: kratka 5 mm i margines, niebieski długopis, czerwony do poprawek, zakreślacz i kredki. Finanse osobiste, nauka, „wytłumacz jak na lekcji”.' },
     };
     const id = new URLSearchParams(location.search).get('s') in STYLES ? new URLSearchParams(location.search).get('s') : 'chalk';
     const $ = (x) => document.getElementById(x);

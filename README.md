@@ -26,7 +26,7 @@ Otwórz `http://localhost:8080` — galeria z demami:
 | `examples/explainer.html` | film ze `Storyboard`: kamera, ścieranie, odtwarzacz z suwakiem, nagrywanie WebM |
 | `examples/narrated.html` | explainer z lektorem: głos, synchronizacja ze słowami, napisy na żywo |
 | `examples/scroll.html` | diagram budujący się podczas przewijania (sticky canvas + lista) |
-| `examples/styles.html` | trzy style (kreda, blueprint, neon), każdy jako ~15 s film z lektorem |
+| `examples/styles.html` | style (kreda, blueprint, neon, zeszyt…), każdy jako ~15 s film z lektorem |
 
 ## Najkrótszy film
 
@@ -238,7 +238,8 @@ Ta sama scena w innym stylu wymaga zmiany jednej linijki:
 * `paper`: pióro na kremowym papierze (domyślny);
 * `chalk`: kreda na tablicy;
 * `blueprint`: rapidograf na kalce z siatką, kreskowanie 45°;
-* `neon`: świecące kreski na szybie.
+* `neon`: świecące kreski na szybie;
+* `notebook`: długopis i zakreślacze w zeszycie w kratkę.
 
 ![Trzy style](docs/img/style-sheet.png)
 

@@ -377,9 +377,10 @@ import { THEMES, resolveTheme, themeNames, polyline, crayonTrace } from '../src/
 import { buildChalk } from '../examples/scenes/styles/chalk.js';
 import { buildBlueprint } from '../examples/scenes/styles/blueprint.js';
 import { buildNeon } from '../examples/scenes/styles/neon.js';
+import { buildNotebook } from '../examples/scenes/styles/notebook.js';
 
 test('motywy: nazwy, uzupełnione domyślne pola, nieznany motyw to błąd', () => {
-  assert.deepEqual(themeNames().map((t) => t.id), ['paper', 'chalk', 'blueprint', 'neon']);
+  assert.deepEqual(themeNames().map((t) => t.id).slice(0, 5), ['paper', 'chalk', 'blueprint', 'neon', 'notebook']);
   for (const id of Object.keys(THEMES)) {
     const t = resolveTheme(id);
     for (const k of ['pen', 'crayon', 'highlight', 'tools', 'text']) assert.ok(t[k], `${id}.${k}`);
@@ -411,7 +412,7 @@ test('motyw w Storyboardzie: scena niesie motyw, ślad kredki idzie kreskowaniem
 });
 
 test('filmy w trzech stylach: fizyka OK, ~15–18 s, kotwice na czas', () => {
-  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon]]) {
+  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook]]) {
     const v = new Voice(JSON.parse(readFileSync(new URL(`../examples/voice/${id}/voice.json`, import.meta.url), 'utf8')), `voice/${id}/`);
     const sb = build(v);
     assert.equal(sb.scene().theme, id);

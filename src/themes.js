@@ -170,6 +170,51 @@ export const THEMES = {
       ctx.fillRect(0, 0, w, h);
     },
   },
+
+  // ------------------------------------------------------------ zeszyt w kratkę
+  notebook: {
+    name: 'Zeszyt w kratkę',
+    palette: {
+      paper: '#fdfdf8', ink: '#1f3a93', inkSoft: '#5d6fa8', pen: '#d13434', penDark: '#a82222',
+      // zakreślacze i kredki z piórnika
+      teal: '#33cc7a', sky: '#4aa8ff', ochre: '#ffe03a', coral: '#ff6fae', plum: '#9d74ff', white: '#ffffff',
+    },
+    fonts: { hand: '"Shadows Into Light Two", "Kalam", cursive', title: '"Shadows Into Light Two", "Kalam", cursive' },
+    // długopis: cienko, lekki nacisk, prawie bez zwężeń
+    pen: { style: 'ink', width: 0.6, jitter: 0.5, pressure: 0.2, taper: 0.4 },
+    crayon: { w: 6, spacing: 6, alpha: 0.6, grain: 0.7 },
+    highlight: { blend: 'multiply', alpha: 0.5 },
+    tools: { pencil: 'ballpoint' },
+    outline: '#3a3a3a',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // kratka 5 mm (co 24 px) i czerwony margines
+      ctx.save();
+      ctx.strokeStyle = 'rgba(80,140,215,0.3)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 0; x <= w; x += 24) { ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, h); }
+      for (let y = 0; y <= h; y += 24) { ctx.moveTo(0, y + 0.5); ctx.lineTo(w, y + 0.5); }
+      ctx.stroke();
+      ctx.strokeStyle = 'rgba(220,60,60,0.55)';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(98.5, 0);
+      ctx.lineTo(98.5, h);
+      ctx.stroke();
+      ctx.restore();
+      // włókna papieru
+      ctx.fillStyle = ctx.createPattern(texture('note-paper', 256, (c, S, r) => {
+        for (let i = 0; i < 1600; i++) {
+          c.fillStyle = `rgba(90,80,60,${r() * 0.05})`;
+          c.fillRect(r() * S, r() * S, 1 + r() * 2, 1);
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */

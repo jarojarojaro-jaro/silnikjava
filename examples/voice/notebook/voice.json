@@ -1,0 +1,217 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-darkman-medium",
+ "meta": {
+  "głos": "pl_PL-darkman-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Procent składany, czyli odsetki od odsetek.",
+   "notes": [
+    "tytuł + zakreślacz"
+   ],
+   "audio": "b1.ogg",
+   "duration": 3.123,
+   "words": [
+    {
+     "w": "Procent",
+     "s": 0.0,
+     "e": 0.46
+    },
+    {
+     "w": "składany,",
+     "s": 0.46,
+     "e": 0.92
+    },
+    {
+     "w": "czyli",
+     "s": 1.28,
+     "e": 1.58
+    },
+    {
+     "w": "odsetki",
+     "s": 1.58,
+     "e": 2.22
+    },
+    {
+     "w": "od",
+     "s": 2.22,
+     "e": 2.4
+    },
+    {
+     "w": "odsetek.",
+     "s": 2.4,
+     "e": 2.96
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Wpłacasz tysiąc złotych na dziesięć procent rocznie.",
+   "notes": [
+    "1000 zł, 10% / rok"
+   ],
+   "audio": "b2.ogg",
+   "duration": 3.1,
+   "words": [
+    {
+     "w": "Wpłacasz",
+     "s": 0.0,
+     "e": 0.44
+    },
+    {
+     "w": "tysiąc",
+     "s": 0.44,
+     "e": 0.88
+    },
+    {
+     "w": "złotych",
+     "s": 0.88,
+     "e": 1.38
+    },
+    {
+     "w": "na",
+     "s": 1.38,
+     "e": 1.5
+    },
+    {
+     "w": "dziesięć",
+     "s": 1.5,
+     "e": 2.0
+    },
+    {
+     "w": "procent",
+     "s": 2.0,
+     "e": 2.28
+    },
+    {
+     "w": "rocznie.",
+     "s": 2.28,
+     "e": 2.78
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Odsetki dopisują się do kwoty, więc słupki rosną coraz szybciej.",
+   "notes": [
+    "osie, słupki co dwa lata, krzywa"
+   ],
+   "audio": "b3.ogg",
+   "duration": 4.47,
+   "words": [
+    {
+     "w": "Odsetki",
+     "s": 0.0,
+     "e": 0.48
+    },
+    {
+     "w": "dopisują",
+     "s": 0.48,
+     "e": 0.96
+    },
+    {
+     "w": "się",
+     "s": 0.96,
+     "e": 1.14
+    },
+    {
+     "w": "do",
+     "s": 1.14,
+     "e": 1.32
+    },
+    {
+     "w": "kwoty,",
+     "s": 1.32,
+     "e": 1.8
+    },
+    {
+     "w": "więc",
+     "s": 2.16,
+     "e": 2.44
+    },
+    {
+     "w": "słupki",
+     "s": 2.44,
+     "e": 2.94
+    },
+    {
+     "w": "rosną",
+     "s": 2.94,
+     "e": 3.28
+    },
+    {
+     "w": "coraz",
+     "s": 3.28,
+     "e": 3.54
+    },
+    {
+     "w": "szybciej.",
+     "s": 3.54,
+     "e": 4.28
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Po ośmiu latach masz już ponad dwa razy więcej.",
+   "notes": [
+    "×2 w kółku"
+   ],
+   "audio": "b4.ogg",
+   "duration": 3.042,
+   "words": [
+    {
+     "w": "Po",
+     "s": 0.0,
+     "e": 0.12
+    },
+    {
+     "w": "ośmiu",
+     "s": 0.12,
+     "e": 0.56
+    },
+    {
+     "w": "latach",
+     "s": 0.56,
+     "e": 0.92
+    },
+    {
+     "w": "masz",
+     "s": 0.92,
+     "e": 1.2
+    },
+    {
+     "w": "już",
+     "s": 1.2,
+     "e": 1.3
+    },
+    {
+     "w": "ponad",
+     "s": 1.3,
+     "e": 1.68
+    },
+    {
+     "w": "dwa",
+     "s": 1.68,
+     "e": 1.9
+    },
+    {
+     "w": "razy",
+     "s": 1.9,
+     "e": 2.34
+    },
+    {
+     "w": "więcej.",
+     "s": 2.34,
+     "e": 2.52
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

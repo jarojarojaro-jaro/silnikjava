@@ -690,8 +690,8 @@ export class Sketch {
     ctx.lineJoin = 'round';
     if (type === 'eraser') this.#eraserSprite(size, lift, o);
     else {
-      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118 }[type] ?? 120) * size;
-      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18 }[type] ?? 13) * size;
+      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128 }[type] ?? 120) * size;
+      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11 }[type] ?? 13) * size;
       // cień na kartce — im wyżej narzędzie, tym dalej i bardziej rozmyty
       ctx.save();
       ctx.rotate(ang);
@@ -707,6 +707,7 @@ export class Sketch {
       else if (type === 'chalk') this.#chalkSprite(len, wd, size, o);
       else if (type === 'techpen') this.#techpenSprite(len, wd, size, o);
       else if (type === 'neon') this.#neonSprite(len, wd, size, o);
+      else if (type === 'ballpoint') this.#ballpointSprite(len, wd, size, o);
       else this.#pencilSprite(len, wd, size, o);
     }
     ctx.restore();
@@ -916,6 +917,48 @@ export class Sketch {
     ctx.fillRect(len - 26 * size, -wd / 2, 10 * size, wd);
     ctx.fillStyle = 'rgba(255,255,255,0.12)';
     ctx.fillRect(tip, -wd / 2 + 2 * size, len - tip, wd * 0.2);
+  }
+
+  /** Długopis: metalowa końcówka, przezroczysty sześciokątny korpus z wkładem, zatyczka w kolorze tuszu. */
+  #ballpointSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const ink = this.col(o.color, 'ink');
+    const tip = 7 * size, cone = 15 * size;
+    ctx.strokeStyle = this.theme.outline ?? '#333';
+    ctx.lineWidth = 1.2 * size;
+    // metalowa kulka i stożek
+    ctx.fillStyle = '#c9ccd1';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(tip, -1.6 * size);
+    ctx.lineTo(tip, 1.6 * size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(235,240,245,0.92)';
+    ctx.beginPath();
+    ctx.moveTo(tip, -1.8 * size);
+    ctx.lineTo(tip + cone, -wd / 2);
+    ctx.lineTo(len - 8 * size, -wd / 2);
+    ctx.lineTo(len - 8 * size, wd / 2);
+    ctx.lineTo(tip + cone, wd / 2);
+    ctx.lineTo(tip, 1.8 * size);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // wkład z tuszem widoczny przez korpus
+    ctx.fillStyle = ink;
+    ctx.globalAlpha *= 0.8;
+    ctx.fillRect(tip + cone * 0.6, -1.4 * size, len - tip - cone * 0.6 - 12 * size, 2.8 * size);
+    ctx.globalAlpha /= 0.8;
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fillRect(tip + cone, -wd / 2 + 1.2 * size, len - tip - cone - 10 * size, wd * 0.18);
+    // zatyczka
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(len - 10 * size, -wd * 0.38, 10 * size, wd * 0.76, [1, 3 * size, 3 * size, 1]);
+    else ctx.rect(len - 10 * size, -wd * 0.38, 10 * size, wd * 0.76);
+    ctx.fill();
+    ctx.stroke();
   }
 
   /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */
