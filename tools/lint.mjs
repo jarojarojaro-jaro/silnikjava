@@ -25,6 +25,7 @@ const list = targets.length
       'examples/scenes/styles/notebook.js:buildNotebook:examples/voice/notebook/voice.json',
       'examples/scenes/styles/watercolor.js:buildWatercolor:examples/voice/watercolor/voice.json',
       'examples/scenes/styles/comic.js:buildComic:examples/voice/comic/voice.json',
+      'examples/scenes/styles/flipchart.js:buildFlipchart:examples/voice/flipchart/voice.json',
     ];
 
 // strona-gospodarz: ładuje czcionki wszystkich motywów i Player (Sketch z prawdziwym canvasem)

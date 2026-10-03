@@ -37,6 +37,16 @@ Kolejne style:
 | do czego | „wytłumacz jak na lekcji”, finanse osobiste, notatki | przyroda, podróże, opowieści, łagodne tematy | ciekawostki, popularyzacja nauki, social media |
 | przykład | `examples/scenes/styles/notebook.js`: procent składany | `…/watercolor.js`: obieg wody | `…/comic.js`: dlaczego niebo jest niebieskie |
 
+| | Flipchart (`flipchart`) |
+| --- | --- |
+| podłoże | arkusz z bloku na szarym tle, listwa i perforacja u góry, siatka kropek |
+| kreska | marker (`style: 'marker'`): stała, gruba kreska, jaśniejsza smuga filcu, ciemniejsze końce (tusz wsiąka, gdy końcówka stoi) |
+| kolorowanie | marker szerokimi pasami, mnożony (liczby pod kolorem zostają czarne) |
+| pismo | Lilita One (nagłówki, liczby), Sriracha |
+| w ręce | marker z okrągłym filcem, etykieta i skuwka w kolorze tuszu |
+| do czego | warsztaty, sprzedaż, strategia, szkolenia |
+| przykład | `examples/scenes/styles/flipchart.js`: lejek sprzedażowy |
+
 Podgląd: `examples/styles.html?s=chalk` (zakładki z wszystkimi stylami).
 Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
 
@@ -50,7 +60,8 @@ Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
   * `ink` to pióro z naciskiem (domyślne);
   * `chalk` rysuje kreskę na warstwie pomocniczej i wydrapuje w niej ziarno;
   * `tech` daje stałą grubość i przedłużenia (`overshoot`);
-  * `neon` daje stałą grubość i poświatę.
+  * `neon` daje stałą grubość i poświatę;
+  * `marker` daje grubą kreskę ze smugą filcu i ciemniejszymi końcami.
 
   `width` i `jitter` skalują grubość i drżenie z opcji sceny.
 * **Kolorowanie** (`crayon`): `theme.crayon` to domyślne opcje (kąt, gęstość,
@@ -64,7 +75,7 @@ Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
   odmalowuje fragment tła (siatkę, tablicę) zamiast kłaść płaski kolor.
 * **Narzędzie**: `theme.tools` mapuje `pencil` / `marker` / `crayon`
   (kolorowanie) na sprite motywu (`chalk`, `techpen`, `neon`, `ballpoint`,
-  `brush`, `brushpen`, `marker`). Gąbka zostaje gąbką.
+  `brush`, `brushpen`, `marker`, `flipmarker`). Gąbka zostaje gąbką.
 
 ## Własny styl
 
@@ -99,8 +110,6 @@ Na co uważać:
 ## Kolejne style (pomysły)
 
 * **Papier pakowy.** Wystarczy tło i paleta; kreska jak `ink`.
-* **Marker na flipcharcie.** Gruba kreska o stałej grubości, smugi markera.
-  Wariant `tech` z dużą grubością i teksturą.
 * **Szkic ołówkiem.** Szary grafit, `sketchy: true` (podwójna linia),
   lekkie cieniowanie.
 

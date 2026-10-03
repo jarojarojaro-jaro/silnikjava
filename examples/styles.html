@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Silnik — style</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&family=Kalam:wght@400;700&family=Architects+Daughter&family=Courier+Prime&family=Patrick+Hand&family=Shadows+Into+Light+Two&family=Mynerve&family=Amatic+SC:wght@400;700&family=Bangers&family=Shantell+Sans&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Caveat+Brush&family=Kalam:wght@400;700&family=Architects+Daughter&family=Courier+Prime&family=Patrick+Hand&family=Shadows+Into+Light+Two&family=Mynerve&family=Amatic+SC:wght@400;700&family=Bangers&family=Shantell+Sans&family=Sriracha&family=Lilita+One&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
   <style>
     .tabs { display: flex; gap: 10px; flex-wrap: wrap; margin: 6px 0 14px; }
@@ -45,6 +45,7 @@
     import { buildNotebook } from './scenes/styles/notebook.js';
     import { buildWatercolor } from './scenes/styles/watercolor.js';
     import { buildComic } from './scenes/styles/comic.js';
+    import { buildFlipchart } from './scenes/styles/flipchart.js';
 
     const STYLES = {
       chalk: { name: 'Tablica kredowa', build: buildChalk, about: 'Kreda na zielonej tablicy: ziarnista kreska, kolorowa kreda, w ręce kawałek kredy. Lekcja, matematyka, edukacja.' },
@@ -53,6 +54,7 @@
       notebook: { name: 'Zeszyt w kratkę', build: buildNotebook, about: 'Notatki ucznia: kratka 5 mm i margines, niebieski długopis, czerwony do poprawek, zakreślacz i kredki. Finanse osobiste, nauka, „wytłumacz jak na lekcji”.' },
       watercolor: { name: 'Akwarela', build: buildWatercolor, about: 'Cienkopis i plamy farby: rozlany brzeg, pigment zebrany na krawędzi, przejaśnienia, ziarno papieru; w ręce pędzel. Przyroda, podróże, opowieści.' },
       comic: { name: 'Komiks', build: buildComic, about: 'Kadry, gruba kreska pędzelkiem z mocnym naciskiem, płaski kolor markera z rastrem kropek, dymki i napisy Bangers. Ciekawostki, popularyzacja nauki, social media.' },
+      flipchart: { name: 'Flipchart', build: buildFlipchart, about: 'Arkusz z bloku na sztaludze: gruby marker o stałej grubości ze smugami filcu, mocne kolory, wyraźne liczby. Warsztaty, sprzedaż, strategia, szkolenia.' },
     };
     const id = new URLSearchParams(location.search).get('s') in STYLES ? new URLSearchParams(location.search).get('s') : 'chalk';
     const $ = (x) => document.getElementById(x);

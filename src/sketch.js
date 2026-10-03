@@ -115,7 +115,7 @@ export class Sketch {
     const boil = o.still ? 0 : this.boil;
     const L = info.len;
     // kreślarski cienkopis i neon mają stałą grubość (bez nacisku i zwężeń)
-    const uniform = kind === 'tech' || kind === 'neon';
+    const uniform = kind === 'tech' || kind === 'neon' || kind === 'marker';
     const taper = uniform ? 0 : (o.taper ?? Math.min(26, L * 0.3)) * (style.taper ?? 1);
     const pressure = uniform ? 0 : o.pressure ?? style.pressure ?? 0.35;
     // ułamkowy indeks końca: ostatni odcinek dorysowujemy częściowo — płynny ruch końcówki
@@ -164,6 +164,27 @@ export class Sketch {
         ctx.strokeStyle = 'rgba(255,255,255,0.65)';
         ctx.lineWidth = Math.max(0.6, w * 0.38);
         ctx.stroke(path);
+      } else if (kind === 'marker') {
+        // marker: tusz kryje prawie całkiem, przez środek idą jaśniejsze smugi filcu
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = (o.alpha ?? 1) * 0.94;
+        ctx.lineWidth = w;
+        ctx.stroke(path);
+        ctx.globalAlpha = (o.alpha ?? 1) * 0.16;
+        ctx.strokeStyle = this.col('paper');
+        ctx.lineWidth = Math.max(0.6, w * 0.13);
+        ctx.setLineDash([w * 3.5, w * 1.8]);
+        ctx.stroke(path);
+        ctx.setLineDash([]);
+        // na początku i końcu kreski końcówka postała chwilę — tusz wsiąka głębiej
+        ctx.fillStyle = color;
+        ctx.globalAlpha = (o.alpha ?? 1) * 0.35;
+        const ends = p >= 1 ? [P[0], P[P.length - 1]] : [P[0]];
+        for (const [x, y] of ends) {
+          ctx.beginPath();
+          ctx.arc(x, y, w * 0.62, 0, Math.PI * 2);
+          ctx.fill();
+        }
       } else {
         ctx.strokeStyle = color;
         ctx.lineWidth = w;
@@ -815,8 +836,8 @@ export class Sketch {
     ctx.lineJoin = 'round';
     if (type === 'eraser') this.#eraserSprite(size, lift, o);
     else {
-      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124 }[type] ?? 120) * size;
-      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13 }[type] ?? 13) * size;
+      const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124, flipmarker: 118 }[type] ?? 120) * size;
+      const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13, flipmarker: 22 }[type] ?? 13) * size;
       // cień na kartce — im wyżej narzędzie, tym dalej i bardziej rozmyty
       ctx.save();
       ctx.rotate(ang);
@@ -835,6 +856,7 @@ export class Sketch {
       else if (type === 'ballpoint') this.#ballpointSprite(len, wd, size, o);
       else if (type === 'brush') this.#brushSprite(len, wd, size, o);
       else if (type === 'brushpen') this.#brushpenSprite(len, wd, size, o);
+      else if (type === 'flipmarker') this.#flipmarkerSprite(len, wd, size, o);
       else this.#pencilSprite(len, wd, size, o);
     }
     ctx.restore();
@@ -1159,6 +1181,47 @@ export class Sketch {
     ctx.fillRect(len - 30 * size, -wd / 2, 9 * size, wd);
     ctx.fillStyle = 'rgba(255,255,255,0.16)';
     ctx.fillRect(tip + grip, -wd / 2 + 2 * size, len - tip - grip, wd * 0.2);
+  }
+
+  /** Marker do flipchartu: okrągła filcowa końcówka, gruby korpus, skuwka w kolorze tuszu. */
+  #flipmarkerSprite(len, wd, size, o) {
+    const { ctx } = this;
+    const ink = this.col(o.color, 'ink');
+    const tip = 10 * size, neck = 16 * size;
+    ctx.strokeStyle = this.theme.outline ?? '#2a2a2a';
+    ctx.lineWidth = 1.4 * size;
+    // filc
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.moveTo(tip, -wd * 0.22);
+    ctx.quadraticCurveTo(-2 * size, -wd * 0.2, 0, 0);
+    ctx.quadraticCurveTo(-2 * size, wd * 0.2, tip, wd * 0.22);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // szyjka
+    ctx.fillStyle = '#e8e8ea';
+    ctx.beginPath();
+    ctx.moveTo(tip, -wd * 0.28);
+    ctx.lineTo(tip + neck, -wd / 2);
+    ctx.lineTo(tip + neck, wd / 2);
+    ctx.lineTo(tip, wd * 0.28);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // korpus z etykietą w kolorze
+    const x0 = tip + neck;
+    ctx.fillStyle = '#f4f4f6';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x0, -wd / 2, len - x0, wd, [2 * size, 8 * size, 8 * size, 2 * size]);
+    else ctx.rect(x0, -wd / 2, len - x0, wd);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = ink;
+    ctx.fillRect(x0 + 14 * size, -wd / 2 + 1, (len - x0) * 0.45, wd - 2);
+    ctx.fillRect(len - 12 * size, -wd / 2 + 1, 10 * size, wd - 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.fillRect(x0, wd * 0.15, len - x0, wd * 0.3);
   }
 
   /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */

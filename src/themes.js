@@ -295,6 +295,50 @@ export const THEMES = {
       ctx.fillRect(0, 0, w, h);
     },
   },
+
+  // ------------------------------------------------------------ flipchart
+  flipchart: {
+    name: 'Flipchart',
+    palette: {
+      paper: '#fdfdfb', ink: '#1b1b1f', inkSoft: '#6b6b72', pen: '#1f5fd1', penDark: '#17479e',
+      teal: '#1f9e5a', sky: '#2f8de4', ochre: '#f5a300', coral: '#e2352f', plum: '#7b3fc4', white: '#ffffff',
+    },
+    fonts: { hand: '"Sriracha", "Kalam", cursive', title: '"Lilita One", "Kalam", cursive' },
+    // gruby marker: stała grubość, smugi, ciemniejszy tusz tam, gdzie końcówka stanęła
+    pen: { style: 'marker', width: 1.55, jitter: 0.45 },
+    crayon: { w: 18, spacing: 15, alpha: 0.75, grain: 0.15, wave: 0, blend: 'multiply' },
+    highlight: { blend: 'multiply', alpha: 0.4 },
+    tools: { pencil: 'flipmarker', crayon: 'flipmarker' },
+    outline: '#2a2a2a',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = '#d9dade';
+      ctx.fillRect(0, 0, w, h);
+      // arkusz z bloku: biały, delikatna siatka kropek, cień pod spodem
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,0.18)';
+      ctx.shadowBlur = 14;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(14, 22, w - 28, h - 22);
+      ctx.restore();
+      ctx.fillStyle = 'rgba(120,140,170,0.22)';
+      for (let y = 70; y < h; y += 40) for (let x = 54; x < w - 20; x += 40) ctx.fillRect(x, y, 2, 2);
+      // listwa bloku u góry, perforacja
+      ctx.fillStyle = '#3a3d44';
+      ctx.fillRect(0, 0, w, 24);
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      ctx.fillRect(0, 3, w, 4);
+      ctx.fillStyle = '#c9cbd0';
+      for (let x = 30; x < w; x += 18) ctx.fillRect(x, 30, 8, 2);
+      ctx.fillStyle = ctx.createPattern(texture('flip-paper', 256, (c, S, r) => {
+        for (let i = 0; i < 900; i++) {
+          c.fillStyle = `rgba(80,80,90,${r() * 0.035})`;
+          c.fillRect(r() * S, r() * S, 1 + r() * 2, 1);
+        }
+      }), 'repeat');
+      ctx.fillRect(14, 34, w - 28, h - 34);
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */
