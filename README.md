@@ -243,7 +243,7 @@ Ta sama scena w innym stylu wymaga zmiany jednej linijki:
 * `watercolor`: cienkopis i plamy akwareli;
 * `comic`: pędzelek, raster kropek, dymki.
 
-![Trzy style](docs/img/style-sheet.png)
+![Sześć stylów](docs/img/style-sheet.png)
 
 Co zmienia motyw, jak zrobić własny i pomysły na kolejne style:
 [docs/STYLE.md](docs/STYLE.md). Demo: `examples/styles.html`.
