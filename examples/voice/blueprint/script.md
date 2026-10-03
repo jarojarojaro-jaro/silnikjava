@@ -8,7 +8,7 @@ GŁOS: pl_PL-darkman-medium
 2. Przeglądarka pakuje kliknięcie w zapytanie i wysyła je do serwera.
 [przeglądarka -> serwer]
 
-3. Serwer najpierw zagląda do pamięci podręcznej, a dopiero potem do bazy danych, która trzyma wszystko.
+3. Serwer najpierw zagląda do pamięci podręcznej, a jeśli tam nic nie ma, dopiero potem do bazy danych, która trzyma wszystko.
 [cache, baza]
 
 4. Odpowiedź wraca w kilkadziesiąt milisekund.

@@ -29,10 +29,13 @@ export function buildBlueprint(voice) {
     box(sb, 510, 230, 200, 190, 'serwer', { seed: 5, cue: 'serwera' })();
   });
 
-  // 3. "Serwer najpierw zagląda do pamięci podręcznej, a dopiero potem do bazy danych, która trzyma wszystko."
+  // 3. "Serwer najpierw zagląda do pamięci podręcznej, a jeśli tam nic nie ma, dopiero potem do bazy danych, która trzyma wszystko."
   sb.say(B(3), () => {
     sb.arrow(line(725, 270, 885, 210, { bow: 0, seed: 6 }), { color: 'white', w: 2.4, head: 14, seed: 6, cue: 'zagląda' });
-    box(sb, 900, 150, 200, 110, 'cache', { seed: 7, cue: 'pamięci' })();
+    const cacheLabel = box(sb, 900, 150, 200, 110, 'cache', { seed: 7, cue: 'pamięci' });
+    // kreskowanie pod 45° od razu po konturze — pamięć podręczna wyróżniona jak przekrój
+    sb.crayon([[902, 152], [1098, 152], [1098, 258], [902, 258]], { color: 'teal', seed: 7, spacing: 13 });
+    cacheLabel();
     sb.arrow(line(725, 380, 885, 470, { bow: 0, seed: 8 }), { color: 'white', w: 2.4, head: 14, seed: 8, cue: 'potem' });
     // baza: walec
     sb.strokes([
@@ -42,8 +45,6 @@ export function buildBlueprint(voice) {
       line(1090, 540, 1090, 430, { bow: 0, seed: 10 }),
     ], { color: 'ink', w: 2.6, seed: 9, cue: 'bazy' });
     sb.write('baza', 1000, 596, { size: 26, align: 'center', color: 'teal' });
-    // kreskowanie pod 45° — pamięć podręczna wyróżniona jak przekrój na rysunku
-    sb.crayon([[902, 152], [1098, 152], [1098, 258], [902, 258]], { color: 'teal', seed: 7, spacing: 13 });
   });
 
   // 4. "Odpowiedź wraca w kilkadziesiąt milisekund."

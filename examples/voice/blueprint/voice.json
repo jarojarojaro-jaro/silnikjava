@@ -12,7 +12,7 @@
     "tytuł"
    ],
    "audio": "b1.ogg",
-   "duration": 2.252,
+   "duration": 2.206,
    "words": [
     {
      "w": "Co",
@@ -27,22 +27,22 @@
     {
      "w": "dzieje,",
      "s": 0.26,
-     "e": 0.68
+     "e": 0.72
     },
     {
      "w": "gdy",
-     "s": 0.76,
-     "e": 0.94
+     "s": 0.74,
+     "e": 0.98
     },
     {
      "w": "klikasz",
-     "s": 0.94,
+     "s": 0.98,
      "e": 1.46
     },
     {
      "w": "przycisk?",
      "s": 1.46,
-     "e": 2.1
+     "e": 2.04
     }
    ],
    "match": 1.0
@@ -54,144 +54,169 @@
     "przeglądarka -> serwer"
    ],
    "audio": "b2.ogg",
-   "duration": 3.889,
+   "duration": 3.924,
    "words": [
     {
      "w": "Przeglądarka",
      "s": 0.0,
-     "e": 0.72
+     "e": 0.74
     },
     {
      "w": "pakuje",
-     "s": 0.72,
-     "e": 1.1
+     "s": 0.74,
+     "e": 1.12
     },
     {
      "w": "kliknięcie",
-     "s": 1.1,
-     "e": 1.74
+     "s": 1.12,
+     "e": 1.72
     },
     {
      "w": "w",
-     "s": 1.74,
+     "s": 1.72,
      "e": 1.8
     },
     {
      "w": "zapytanie",
      "s": 1.8,
-     "e": 2.36
+     "e": 2.38
     },
     {
      "w": "i",
-     "s": 2.36,
-     "e": 2.5
+     "s": 2.38,
+     "e": 2.54
     },
     {
      "w": "wysyła",
-     "s": 2.5,
-     "e": 2.92
+     "s": 2.54,
+     "e": 2.98
     },
     {
      "w": "je",
-     "s": 2.92,
-     "e": 3.1
+     "s": 2.98,
+     "e": 3.14
     },
     {
      "w": "do",
-     "s": 3.1,
-     "e": 3.22
+     "s": 3.14,
+     "e": 3.28
     },
     {
      "w": "serwera.",
-     "s": 3.22,
-     "e": 3.72
+     "s": 3.28,
+     "e": 3.78
     }
    ],
    "match": 1.0
   },
   {
    "id": "b3",
-   "text": "Serwer najpierw zagląda do pamięci podręcznej, a dopiero potem do bazy danych, która trzyma wszystko.",
+   "text": "Serwer najpierw zagląda do pamięci podręcznej, a jeśli tam nic nie ma, dopiero potem do bazy danych, która trzyma wszystko.",
    "notes": [
     "cache, baza"
    ],
    "audio": "b3.ogg",
-   "duration": 6.327,
+   "duration": 7.825,
    "words": [
     {
      "w": "Serwer",
      "s": 0.0,
-     "e": 0.4
+     "e": 0.34
     },
     {
      "w": "najpierw",
-     "s": 0.4,
-     "e": 1.0
+     "s": 0.34,
+     "e": 0.84
     },
     {
      "w": "zagląda",
-     "s": 1.0,
+     "s": 0.84,
+     "e": 1.28
+    },
+    {
+     "w": "do",
+     "s": 1.28,
      "e": 1.44
     },
     {
-     "w": "do",
-     "s": 1.44,
-     "e": 1.56
-    },
-    {
      "w": "pamięci",
-     "s": 1.56,
-     "e": 2.04
+     "s": 1.44,
+     "e": 1.86
     },
     {
      "w": "podręcznej,",
-     "s": 2.04,
-     "e": 2.72
+     "s": 1.86,
+     "e": 2.5
     },
     {
      "w": "a",
-     "s": 3.06,
-     "e": 3.14
+     "s": 2.88,
+     "e": 2.98
     },
     {
-     "w": "dopiero",
-     "s": 3.14,
-     "e": 3.56
+     "w": "jeśli",
+     "s": 2.98,
+     "e": 3.26
     },
     {
-     "w": "potem",
-     "s": 3.56,
-     "e": 3.9
+     "w": "tam",
+     "s": 3.26,
+     "e": 3.62
     },
     {
-     "w": "do",
-     "s": 3.9,
+     "w": "nic",
+     "s": 3.62,
+     "e": 3.8
+    },
+    {
+     "w": "nie",
+     "s": 3.8,
      "e": 4.1
     },
     {
-     "w": "bazy",
+     "w": "ma,",
      "s": 4.1,
-     "e": 4.42
+     "e": 4.3
+    },
+    {
+     "w": "dopiero",
+     "s": 4.64,
+     "e": 5.12
+    },
+    {
+     "w": "potem",
+     "s": 5.12,
+     "e": 5.44
+    },
+    {
+     "w": "do",
+     "s": 5.44,
+     "e": 5.62
+    },
+    {
+     "w": "bazy",
+     "s": 5.62,
+     "e": 5.92
     },
     {
      "w": "danych,",
-     "s": 4.42,
-     "e": 4.78
+     "s": 5.92,
+     "e": 6.24
     },
     {
      "w": "która",
-     "s": 4.98,
-     "e": 5.24
+     "s": 6.42,
+     "e": 6.74
     },
     {
      "w": "trzyma",
-     "s": 5.24,
-     "e": 5.56
+     "s": 6.74,
+     "e": 7.08
     },
     {
      "w": "wszystko.",
-     "s": 5.56,
-     "e": 5.8
+     "s": 7.08,
+     "e": 7.34
     }
    ],
    "match": 1.0
@@ -203,7 +228,7 @@
     "strzałka powrotna, 40 ms"
    ],
    "audio": "b4.ogg",
-   "duration": 2.357,
+   "duration": 2.38,
    "words": [
     {
      "w": "Odpowiedź",
@@ -223,12 +248,12 @@
     {
      "w": "kilkadziesiąt",
      "s": 0.88,
-     "e": 1.54
+     "e": 1.56
     },
     {
      "w": "milisekund.",
-     "s": 1.54,
-     "e": 2.2
+     "s": 1.56,
+     "e": 2.22
     }
    ],
    "match": 1.0
