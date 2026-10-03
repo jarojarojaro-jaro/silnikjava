@@ -257,6 +257,9 @@ odpowiednik w linterze. Model nie musi „pamiętać”, bo linter go poprawi.
     samym albo następnym kroku. Nigdy „strzałka w pustkę” na koniec kroku.
 12. Zaznaczenia (`mark`) i notatki dopiero po tym, jak cel jest narysowany.
     Najwyżej jedno zaznaczenie na rozdział.
+12a. **Obiekt w całości, zanim zacznie się następny: kontur → kolor → detale
+    → podpis** (sprawdza lint). Pełna lista zasad rysownika, gotowa do
+    wklejenia w prompt: [ZASADY.md](ZASADY.md).
 
 **Kamera**
 

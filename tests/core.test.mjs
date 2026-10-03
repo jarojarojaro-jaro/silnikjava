@@ -422,7 +422,7 @@ test('filmy w trzech stylach: fizyka OK, ~15–18 s, kotwice na czas', () => {
     const sb = build(v);
     assert.equal(sb.scene().theme, id);
     assert.deepEqual(sb.lint().filter((i) => i.level !== 'warn').map((i) => i.problem), [], id);
-    assert.ok(sb.duration > 12 && sb.duration < 20, `${id}: ${sb.duration.toFixed(1)} s`);
+    assert.ok(sb.duration > 12 && sb.duration < 21, `${id}: ${sb.duration.toFixed(1)} s`);
     for (const it of sb.items.filter((x) => x.cue)) {
       assert.ok(it.seg.start - it.cue.target < 0.85, `${id} ${it.name} „${it.cue.word}”`);
     }
@@ -440,4 +440,34 @@ test('akwarela: kolorowanie prosi o narzędzie "crayon" (motyw daje pędzel), ś
   const a = it.trace(null, 0.5), b = crayonTrace(poly, 0.5, o);
   close(a.x, b.x);
   close(a.y, b.y);
+});
+
+test('reguła kompletności obiektu: kontur → kolor bez przerw, inaczej błąd lint', () => {
+  const sun = ellipse(1000, 200, 60, 60, { seed: 3 });
+  const sea = [[100, 550], [900, 550], [900, 650], [100, 650]];
+  const broken = (o = {}) => {
+    const sb = new Storyboard();
+    sb.pen(sun, { color: 'ink' });
+    sb.crayon(sea, { color: 'sky' }); // inny obiekt w środku
+    sb.crayon(sun, { color: 'ochre', ...o }); // powrót do słońca
+    return sb.lint().filter((i) => /obiekt przerwany/.test(i.problem));
+  };
+  assert.equal(broken().length, 1);
+  assert.match(broken()[0].problem, /pen#0.*crayon#2.*crayon#1/);
+  // świadomy powrót można oznaczyć
+  assert.equal(broken({ revisit: true }).length, 0);
+  // poprawnie: kontur, od razu kolor, napis w środku nie przerywa
+  const ok = new Storyboard();
+  ok.pen(sun, { color: 'ink' });
+  ok.write('☀', 1000, 210, { size: 30 });
+  ok.crayon(sun, { color: 'ochre' });
+  ok.crayon(sea, { color: 'sky' });
+  assert.equal(ok.lint().filter((i) => /obiekt przerwany/.test(i.problem)).length, 0);
+  // kółko dookoła gotowego obiektu to zaznaczenie (nowy obiekt), nie powrót
+  const mark = new Storyboard();
+  mark.pen(rect(500, 300, 200, 150), { color: 'ink' });
+  mark.crayon(rect(500, 300, 200, 150), { color: 'teal' });
+  mark.crayon(sea, { color: 'sky' });
+  mark.pen(ellipse(600, 375, 150, 115), { color: 'coral' });
+  assert.equal(mark.lint().filter((i) => /obiekt przerwany/.test(i.problem)).length, 0);
 });

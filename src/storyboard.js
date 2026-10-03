@@ -135,6 +135,9 @@ export class Storyboard {
       tool: hand?.tool ?? { type: 'pencil', color: o.color },
       from: hand?.from,
       to: hand?.to,
+      // ramka obiektu na kartce (do reguły kompletności obiektu w lint)
+      box: o.box ?? hand?.box ?? null,
+      revisit: !!o.revisit,
     };
     this.items.push(item);
     this.items.sort((p, q) => p.z - q.z); // sort stabilny — w obrębie warstwy kolejność dodania
@@ -153,6 +156,7 @@ export class Storyboard {
     const plan = StrokePlan.of(list);
     return this.#add(kind, this.#planDur(o, plan), o, draw, {
       natural: true,
+      box: bounds(list.flat()),
       from: plan.from,
       to: plan.to,
       tool: { type: 'pencil', color: o.color ?? 'pen' },
@@ -186,6 +190,7 @@ export class Storyboard {
     }, {
       from: [from.x, from.y],
       to: [to.x, to.y],
+      box: b,
       // 'crayon': motyw może dać do koloru inne narzędzie (pędzel, marker); domyślnie kredka
       tool: { type: 'crayon', color: o.color ?? 'teal' },
       trace: (sk, p) => crayonTrace(poly, p, o),
@@ -206,6 +211,7 @@ export class Storyboard {
     }, {
       from: [from.x, from.y],
       to: [to.x, to.y],
+      box: b,
       tool: { type: 'marker', color: so.color },
       trace: (sk, p) => crayonTrace(poly, p, so),
     });
@@ -227,6 +233,7 @@ export class Storyboard {
     return this.#add('liquid', o.dur ?? clamp(0.4 + rows * 0.08, 0.5, 2), { ease: 'inOut', ...o }, (sk, p) => sk.liquid(poly, p * level, o), {
       from: [at(0).x, at(0).y],
       to: [at(1).x, at(1).y],
+      box: b,
       tool: { type: 'pencil', color: o.color ?? 'sky' },
       trace: (sk, p) => at(p),
     });
@@ -236,6 +243,7 @@ export class Storyboard {
     return this.#add('highlight', o.dur ?? 0.6, o, (sk, p) => sk.highlight(pts, width, p, o), {
       from: pts[0],
       to: pts[pts.length - 1],
+      box: (() => { const b = bounds(pts); return { x: b.x - width / 2, y: b.y - width / 2, w: b.w + width, h: b.h + width }; })(),
       tool: { type: 'marker', color: o.color ?? 'ochre' },
       trace: (sk, p) => {
         const f = p * (pts.length - 1);
@@ -266,6 +274,7 @@ export class Storyboard {
     return this.#add('write', dur, { ease: 'linear', ...o }, (sk, p) => sk.write(text, x, y, p, wo), {
       from: [x0 + size * 0.1, y - size * 0.45],
       to: [x0 + w * 0.95, y - size * 0.3 + (lines.length - 1) * size * (o.lineHeight ?? 1.15)],
+      box: { x: x0, y: y - size * 0.8, w, h: size * (1.05 + (lines.length - 1) * (o.lineHeight ?? 1.15)) },
       tool: { type: 'pencil', color: o.color ?? 'ink' },
       trace: (sk, p) => sk.writeTrace(text, x, y, p, wo),
     });
@@ -280,6 +289,7 @@ export class Storyboard {
     return this.#add('dot', o.dur ?? clamp(0.15 + r * 0.02, 0.18, 0.5), { ease: 'out', ...o }, (sk, p) => sk.dot(x, y, r * Math.sqrt(p), o.color ?? 'pen', o.alpha ?? 1), {
       from: [at(0).x, at(0).y],
       to: [at(1).x, at(1).y],
+      box: { x: x - r, y: y - r, w: 2 * r, h: 2 * r },
       tool: { type: 'pencil', color: o.color ?? 'pen' },
       trace: (sk, p) => at(p),
     });
@@ -524,6 +534,12 @@ export class Storyboard {
       else if (r.status === 'unreachable') add(it, 'ręka nie zdąży dojechać przed końcem kroku — element narysowałby się sam (dodaj gap)');
       else if (r.status === 'late' && r.late > tolerance) add(it, `ręka spóźniona o ${r.late.toFixed(2)} s — początek narysowałby się sam (dodaj gap lub usuń at/with)`);
     }
+    // kompletność obiektu: kontur i jego wypełnienie to jedna czynność — rysownik,
+    // który wie, że słońce będzie żółte, maluje je zaraz po obrysie, a nie wraca
+    // do niego po narysowaniu czegoś innego
+    for (const p of this.objectBreaks()) {
+      add(p.item, `obiekt przerwany: między „${p.first.name}” a „${p.item.name}” (ten sam obiekt) narysowano „${p.between.name}” poza nim — dokończ obiekt od razu (kontur → kolor → detale) albo oznacz świadomy powrót revisit: true`);
+    }
     // synchronizacja z lektorem (ostrzeżenia o tempie, nie błędy fizyki)
     const warn = (name, kind, time, problem) => issues.push({ name, kind, time, problem, level: 'warn' });
     for (const it of this.items) {
@@ -537,6 +553,48 @@ export class Storyboard {
     }
     for (const i of issues) i.level ??= 'error';
     return issues.sort((a, b) => a.time - b.time);
+  }
+
+  /**
+   * Pary kontur–wypełnienie tego samego obiektu, między którymi ręka narysowała
+   * coś innego poza obiektem. Obiekt = kontur (pen/strokes) + kolor (crayon/fill/liquid),
+   * którego ramka leży w większości w ramce konturu (a kontur nie jest wielką ramą
+   * na pół kadru). Elementy ze środkiem wewnątrz obiektu (napis w środku, bruzda,
+   * kreska podziału) go nie przerywają.
+   */
+  objectBreaks() {
+    const FILL = new Set(['crayon', 'fill', 'liquid']), LINE = new Set(['pen', 'strokes']);
+    const list = this.items.filter((i) => i.visible && i.box && i.hand).sort((a, b) => a.seg.start - b.seg.start);
+    const area = (b) => Math.max(1, b.w * b.h);
+    const inter = (a, b) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+    // a — wcześniejszy, b — późniejszy krok
+    const partners = (a, b) => {
+      // kontur, potem kolor: kolor leży w większości w ramce konturu
+      if (LINE.has(a.kind) && FILL.has(b.kind)) return inter(a.box, b.box) >= 0.6 * area(b.box) && area(a.box) < 4 * area(b.box);
+      // kolor, potem kontur: kontur musi pasować do koloru (kółko dookoła to już zaznaczenie, nowy obiekt)
+      if (FILL.has(a.kind) && LINE.has(b.kind)) {
+        const i = inter(a.box, b.box);
+        return i / (area(a.box) + area(b.box) - i) >= 0.75;
+      }
+      return false;
+    };
+    const out = [];
+    for (let k = 0; k < list.length; k++) {
+      const b = list[k];
+      if (b.revisit || !(FILL.has(b.kind) || LINE.has(b.kind))) continue;
+      let j = k - 1;
+      while (j >= 0 && !(list[j].chapter === b.chapter && partners(list[j], b))) j--;
+      if (j < 0) continue;
+      const a = list[j];
+      const x0 = Math.min(a.box.x, b.box.x) - 10, y0 = Math.min(a.box.y, b.box.y) - 10;
+      const x1 = Math.max(a.box.x + a.box.w, b.box.x + b.box.w) + 10, y1 = Math.max(a.box.y + a.box.h, b.box.y + b.box.h) + 10;
+      const between = list.slice(j + 1, k).find((it) => {
+        const cx = it.box.x + it.box.w / 2, cy = it.box.y + it.box.h / 2;
+        return !(cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1);
+      });
+      if (between) out.push({ first: a, item: b, between });
+    }
+    return out;
   }
 
   draw(sk, t) {

@@ -154,7 +154,8 @@ oczu → źrenice → detale).
 * `fast: true`: wyłącza limit prędkości.
 
 `sb.lint()` zwraca listę problemów: element bez ręki, ręka spóźniona albo
-niezdążająca, rysowanie równoległe, a w przeglądarce także za szybkie pismo.
+niezdążająca, rysowanie równoległe, przerwany obiekt (patrz niżej), a w
+przeglądarce także za szybkie pismo.
 Przy pierwszym rysowaniu problemy trafiają do konsoli. Pełna kontrola
 z prawdziwymi czcionkami:
 
@@ -163,11 +164,16 @@ node tools/lint.mjs                                   # wszystkie dema
 node tools/lint.mjs examples/scenes/moja.js:buildMoja # własna scena (kod wyjścia 1 przy problemach)
 ```
 
-Zasady rysownika, których silnik nie wymusi, ale warto ich pilnować:
-* **pierwszy plan rysuj najpierw:** linie tła chowają się wtedy za nim i nie
-  trzeba niczego wymazywać;
-* **nie rysuj zakrytych linii:** np. stos kartek to kartka z przodu i widoczne
-  brzegi kartek pod spodem.
+**Zasada kompletności obiektu (też w `lint`): obiekt rysujesz w całości,
+zanim zaczniesz następny: kontur → kolor → detale → podpis.** Jeśli słońce
+ma być żółte, ręka maluje je zaraz po obrysie, a nie wraca do niego po
+narysowaniu morza. Zaznaczenia (kółko, zakreślenie) to nowe obiekty.
+Świadomy, fabularny powrót oznacz `revisit: true`.
+
+Pełne zasady rysownika (także te, których lint nie sprawdzi, np. pierwszy plan
+przed tłem, brak zakrytych linii) są w [docs/ZASADY.md](docs/ZASADY.md). Ten
+plik jest promptem źródłowym dla każdego, kto pisze sceny: człowieka albo
+modelu.
 
 Opcje storyboardu: `handGaps` (przerwa na przelot ołówka przed kolejnym
 elementem, domyślnie włączona), `speed` (tempo ręki w px/s), `cache` (bufor
