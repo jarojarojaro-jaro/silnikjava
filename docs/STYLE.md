@@ -37,15 +37,15 @@ Kolejne style:
 | do czego | „wytłumacz jak na lekcji”, finanse osobiste, notatki | przyroda, podróże, opowieści, łagodne tematy | ciekawostki, popularyzacja nauki, social media |
 | przykład | `examples/scenes/styles/notebook.js`: procent składany | `…/watercolor.js`: obieg wody | `…/comic.js`: dlaczego niebo jest niebieskie |
 
-| | Flipchart (`flipchart`) |
-| --- | --- |
-| podłoże | arkusz z bloku na szarym tle, listwa i perforacja u góry, siatka kropek |
-| kreska | marker (`style: 'marker'`): stała, gruba kreska, jaśniejsza smuga filcu, ciemniejsze końce (tusz wsiąka, gdy końcówka stoi) |
-| kolorowanie | marker szerokimi pasami, mnożony (liczby pod kolorem zostają czarne) |
-| pismo | Lilita One (nagłówki, liczby), Sriracha |
-| w ręce | marker z okrągłym filcem, etykieta i skuwka w kolorze tuszu |
-| do czego | warsztaty, sprzedaż, strategia, szkolenia |
-| przykład | `examples/scenes/styles/flipchart.js`: lejek sprzedażowy |
+| | Flipchart (`flipchart`) | Papier pakowy (`kraft`) |
+| --- | --- | --- |
+| podłoże | arkusz z bloku na szarym tle, listwa i perforacja u góry, siatka kropek | brązowy kraft: włókna, nierówne zabarwienie, taśma w rogach |
+| kreska | marker (`style: 'marker'`): stała, gruba kreska, jaśniejsza smuga filcu, ciemniejsze końce (tusz wsiąka, gdy końcówka stoi) | czarny cienkopis z lekkim naciskiem; biały żelopis (`pen`) do podpisów |
+| kolorowanie | marker szerokimi pasami, mnożony (liczby pod kolorem zostają czarne) | kredki: włókna papieru przebijają przez kolor |
+| pismo | Lilita One (nagłówki, liczby), Sriracha | Caveat Brush, Kalam |
+| w ręce | marker z okrągłym filcem, etykieta i skuwka w kolorze tuszu | pisak do kresek, kredka do koloru |
+| do czego | warsztaty, sprzedaż, strategia, szkolenia | przepisy, kawiarnie, rękodzieło, marki „eko” |
+| przykład | `examples/scenes/styles/flipchart.js`: lejek sprzedażowy | `…/kraft.js`: kawa z dripa |
 
 Podgląd: `examples/styles.html?s=chalk` (zakładki z wszystkimi stylami).
 Każdy film ma lektora (`examples/voice/<styl>/`), napisy i ~15–18 s.
@@ -109,7 +109,6 @@ Na co uważać:
 
 ## Kolejne style (pomysły)
 
-* **Papier pakowy.** Wystarczy tło i paleta; kreska jak `ink`.
 * **Szkic ołówkiem.** Szary grafit, `sketchy: true` (podwójna linia),
   lekkie cieniowanie.
 

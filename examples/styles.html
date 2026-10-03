@@ -46,6 +46,7 @@
     import { buildWatercolor } from './scenes/styles/watercolor.js';
     import { buildComic } from './scenes/styles/comic.js';
     import { buildFlipchart } from './scenes/styles/flipchart.js';
+    import { buildKraft } from './scenes/styles/kraft.js';
 
     const STYLES = {
       chalk: { name: 'Tablica kredowa', build: buildChalk, about: 'Kreda na zielonej tablicy: ziarnista kreska, kolorowa kreda, w ręce kawałek kredy. Lekcja, matematyka, edukacja.' },
@@ -55,6 +56,7 @@
       watercolor: { name: 'Akwarela', build: buildWatercolor, about: 'Cienkopis i plamy farby: rozlany brzeg, pigment zebrany na krawędzi, przejaśnienia, ziarno papieru; w ręce pędzel. Przyroda, podróże, opowieści.' },
       comic: { name: 'Komiks', build: buildComic, about: 'Kadry, gruba kreska pędzelkiem z mocnym naciskiem, płaski kolor markera z rastrem kropek, dymki i napisy Bangers. Ciekawostki, popularyzacja nauki, social media.' },
       flipchart: { name: 'Flipchart', build: buildFlipchart, about: 'Arkusz z bloku na sztaludze: gruby marker o stałej grubości ze smugami filcu, mocne kolory, wyraźne liczby. Warsztaty, sprzedaż, strategia, szkolenia.' },
+      kraft: { name: 'Papier pakowy', build: buildKraft, about: 'Brązowy papier kraft z włóknami i taśmą w rogach: czarny cienkopis, biały żelopis, kredki, przez które przebija papier. Przepisy, kawiarnie, rękodzieło, marki „eko”.' },
     };
     const id = new URLSearchParams(location.search).get('s') in STYLES ? new URLSearchParams(location.search).get('s') : 'chalk';
     const $ = (x) => document.getElementById(x);

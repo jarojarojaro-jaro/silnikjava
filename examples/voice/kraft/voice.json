@@ -1,0 +1,197 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-gosia-medium",
+ "meta": {
+  "głos": "pl_PL-gosia-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Kawa z dripa w trzech prostych krokach.",
+   "notes": [
+    "tytuł"
+   ],
+   "audio": "b1.ogg",
+   "duration": 2.38,
+   "words": [
+    {
+     "w": "Kawa",
+     "s": 0.0,
+     "e": 0.26
+    },
+    {
+     "w": "z",
+     "s": 0.26,
+     "e": 0.4
+    },
+    {
+     "w": "dripa",
+     "s": 0.4,
+     "e": 0.78
+    },
+    {
+     "w": "w",
+     "s": 0.78,
+     "e": 0.9
+    },
+    {
+     "w": "trzech",
+     "s": 0.9,
+     "e": 1.18
+    },
+    {
+     "w": "prostych",
+     "s": 1.18,
+     "e": 1.72
+    },
+    {
+     "w": "krokach.",
+     "s": 1.72,
+     "e": 2.16
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Zmiel piętnaście gramów kawy, średnio grubo.",
+   "notes": [
+    "ziarno, 15 g"
+   ],
+   "audio": "b2.ogg",
+   "duration": 3.46,
+   "words": [
+    {
+     "w": "Zmiel",
+     "s": 0.0,
+     "e": 0.44
+    },
+    {
+     "w": "piętnaście",
+     "s": 0.44,
+     "e": 1.1
+    },
+    {
+     "w": "gramów",
+     "s": 1.1,
+     "e": 1.52
+    },
+    {
+     "w": "kawy,",
+     "s": 1.52,
+     "e": 1.96
+    },
+    {
+     "w": "średnio",
+     "s": 2.32,
+     "e": 2.78
+    },
+    {
+     "w": "grubo.",
+     "s": 2.78,
+     "e": 3.22
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Zalej ją wodą o temperaturze dziewięćdziesięciu czterech stopni.",
+   "notes": [
+    "drip, krople, 94°C"
+   ],
+   "audio": "b3.ogg",
+   "duration": 3.82,
+   "words": [
+    {
+     "w": "Zalej",
+     "s": 0.0,
+     "e": 0.44
+    },
+    {
+     "w": "ją",
+     "s": 0.44,
+     "e": 0.58
+    },
+    {
+     "w": "wodą",
+     "s": 0.58,
+     "e": 1.0
+    },
+    {
+     "w": "o",
+     "s": 1.0,
+     "e": 1.2
+    },
+    {
+     "w": "temperaturze",
+     "s": 1.2,
+     "e": 1.88
+    },
+    {
+     "w": "dziewięćdziesięciu",
+     "s": 1.88,
+     "e": 2.62
+    },
+    {
+     "w": "czterech",
+     "s": 2.62,
+     "e": 3.1
+    },
+    {
+     "w": "stopni.",
+     "s": 3.1,
+     "e": 3.6
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Po trzech minutach kawa jest gotowa. Smacznego!",
+   "notes": [
+    "filiżanka napełnia się, para, 3 min"
+   ],
+   "audio": "b4.ogg",
+   "duration": 3.262,
+   "words": [
+    {
+     "w": "Po",
+     "s": 0.0,
+     "e": 0.08
+    },
+    {
+     "w": "trzech",
+     "s": 0.08,
+     "e": 0.38
+    },
+    {
+     "w": "minutach",
+     "s": 0.38,
+     "e": 1.02
+    },
+    {
+     "w": "kawa",
+     "s": 1.02,
+     "e": 1.3
+    },
+    {
+     "w": "jest",
+     "s": 1.3,
+     "e": 1.56
+    },
+    {
+     "w": "gotowa.",
+     "s": 1.56,
+     "e": 2.22
+    },
+    {
+     "w": "Smacznego!",
+     "s": 2.44,
+     "e": 3.0
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

@@ -381,6 +381,7 @@ import { buildNotebook } from '../examples/scenes/styles/notebook.js';
 import { buildWatercolor } from '../examples/scenes/styles/watercolor.js';
 import { buildComic } from '../examples/scenes/styles/comic.js';
 import { buildFlipchart } from '../examples/scenes/styles/flipchart.js';
+import { buildKraft } from '../examples/scenes/styles/kraft.js';
 
 test('motywy: nazwy, uzupełnione domyślne pola, nieznany motyw to błąd', () => {
   assert.deepEqual(themeNames().map((t) => t.id).slice(0, 5), ['paper', 'chalk', 'blueprint', 'neon', 'notebook']);
@@ -415,7 +416,7 @@ test('motyw w Storyboardzie: scena niesie motyw, ślad kredki idzie kreskowaniem
 });
 
 test('filmy w trzech stylach: fizyka OK, ~15–18 s, kotwice na czas', () => {
-  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook], ['watercolor', buildWatercolor], ['comic', buildComic], ['flipchart', buildFlipchart]]) {
+  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook], ['watercolor', buildWatercolor], ['comic', buildComic], ['flipchart', buildFlipchart], ['kraft', buildKraft]]) {
     const v = new Voice(JSON.parse(readFileSync(new URL(`../examples/voice/${id}/voice.json`, import.meta.url), 'utf8')), `voice/${id}/`);
     const sb = build(v);
     assert.equal(sb.scene().theme, id);

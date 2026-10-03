@@ -339,6 +339,67 @@ export const THEMES = {
       ctx.fillRect(14, 34, w - 28, h - 34);
     },
   },
+
+  // ------------------------------------------------------------ papier pakowy
+  kraft: {
+    name: 'Papier pakowy',
+    palette: {
+      // pen = biały żelopis; reszta to kredki, które dobrze wyglądają na brązie
+      paper: '#c69c6d', ink: '#1d1712', inkSoft: '#5a4330', pen: '#fbf6ec', penDark: '#efe6d4',
+      teal: '#2f6f66', sky: '#3f6f96', ochre: '#f1c25b', coral: '#c4472f', plum: '#5e3d6c', white: '#ffffff',
+    },
+    fonts: { hand: '"Kalam", "Caveat", cursive', title: '"Caveat Brush", "Kalam", cursive' },
+    // cienkopis / żelopis: średnia grubość, lekki nacisk
+    pen: { style: 'ink', width: 1.2, jitter: 0.9, pressure: 0.35 },
+    // kredka na szorstkim papierze: włókna przebijają przez kolor
+    crayon: { w: 9, spacing: 8, alpha: 0.85, grain: 0.7, chalk: true },
+    highlight: { blend: 'multiply', alpha: 0.45 },
+    tools: { pencil: 'brushpen', crayon: 'pencil' },
+    outline: '#1d1712',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // włókna kraftu: krótkie jasne i ciemne kreski w różnych kierunkach + nierówne zabarwienie
+      ctx.fillStyle = ctx.createPattern(texture('kraft', 320, (c, S, r) => {
+        for (let i = 0; i < 40; i++) {
+          const x = r() * S, y = r() * S, rad = 30 + r() * 70;
+          for (const dx of [-S, 0, S]) for (const dy of [-S, 0, S]) {
+            const g = c.createRadialGradient(x + dx, y + dy, 0, x + dx, y + dy, rad);
+            g.addColorStop(0, 'rgba(90,55,25,0.07)');
+            g.addColorStop(1, 'rgba(90,55,25,0)');
+            c.fillStyle = g;
+            c.fillRect(x + dx - rad, y + dy - rad, rad * 2, rad * 2);
+          }
+        }
+        c.lineCap = 'round';
+        for (let i = 0; i < 1600; i++) {
+          const x = r() * S, y = r() * S, a = r() * Math.PI, l = 3 + r() * 9;
+          c.strokeStyle = r() > 0.45 ? `rgba(70,40,15,${0.08 + r() * 0.12})` : `rgba(255,235,200,${0.1 + r() * 0.15})`;
+          c.lineWidth = 0.6 + r() * 0.8;
+          c.beginPath();
+          c.moveTo(x, y);
+          c.lineTo(x + Math.cos(a) * l, y + Math.sin(a) * l);
+          c.stroke();
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      vignette(ctx, w, h, 0.22);
+      // kawałki taśmy w górnych rogach
+      ctx.save();
+      for (const [x, y, a] of [[70, 28, -0.6], [w - 70, 28, 0.6]]) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(a);
+        ctx.fillStyle = 'rgba(245,240,225,0.55)';
+        ctx.fillRect(-60, -16, 120, 32);
+        ctx.fillStyle = 'rgba(0,0,0,0.05)';
+        ctx.fillRect(-60, 12, 120, 4);
+        ctx.restore();
+      }
+      ctx.restore();
+    },
+  },
 };
 
 /** Motyw po nazwie albo obiekt (uzupełniony o domyślne pola). */
