@@ -6,6 +6,7 @@
 //   node tools/render.mjs examples/hero.html --out out/hero --fps 30 --mp4
 //   node tools/render.mjs examples/explainer.html --width 1920 --mp4 --duration 30
 //   node tools/render.mjs examples/narrated.html --mp4     # z lektorem: dźwięk + napisy (SRT/VTT i ścieżka w MP4)
+//   node tools/render.mjs "examples/reels.html?r=neon" --width 1080 --mp4   # rolka: napisy wypalone, bez ścieżki napisów
 //
 // Wymaga: playwright (npm i -D playwright) i ffmpeg dla --mp4.
 // Dodatkowe flagi Chromium: zmienna CHROMIUM_ARGS (np. za proxy z własnym CA).
@@ -47,7 +48,7 @@ process.stdout.write('\n');
 // lektor i napisy (scena ze Storyboard.say): klipy audio + SRT/VTT
 const extras = await tab.evaluate(() => {
   const s = window.__player.scene;
-  return { audio: s.audio ?? [], srt: s.subtitles?.('srt') ?? '', vtt: s.subtitles?.('vtt') ?? '' };
+  return { audio: s.audio ?? [], srt: s.subtitles?.('srt') ?? '', vtt: s.subtitles?.('vtt') ?? '', burned: !!s.burnedCaptions };
 });
 await close();
 const clips = extras.audio
@@ -63,7 +64,9 @@ if (opt('mp4', false)) {
   const mp4 = `${out}.mp4`;
   const args = ['-y', '-loglevel', 'error', '-framerate', String(fps / every), '-i', join(out, 'f_%05d.png')];
   clips.forEach((c) => args.push('-i', c.file));
-  const subs = extras.srt && opt('subs', true) !== 'none';
+  // rolka z napisami wypalonymi w obraz: bez drugiej (miękkiej) ścieżki napisów — odtwarzacz
+  // pokazałby obie naraz, a SRT ma przerwy w pauzach lektora
+  const subs = extras.srt && opt('subs', true) !== 'none' && !extras.burned;
   if (subs) args.push('-i', `${out}.srt`);
   if (clips.length) {
     // każdy klip lektora na swoim miejscu osi czasu, zmiksowane w jedną ścieżkę

@@ -482,6 +482,7 @@ export class Storyboard {
       fps: this.fps,
       theme: this.theme,
       fonts: this.captions ? { captions: this.captions.font ?? CAPTION_FONT } : undefined,
+      burnedCaptions: !!this.captions, // napisy wypalone w obraz — eksport nie dokłada drugiej ścieżki
       audio: this.audio.map(({ src, start, dur }) => ({ src, start, dur })),
       subtitles: (format, opts) => this.subtitles(format, opts),
       draw: (sk, t) => this.draw(sk, t),
