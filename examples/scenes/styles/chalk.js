@@ -31,9 +31,12 @@ export function buildChalk(voice) {
     sb.pen(polyline([[400, 450], [420, 450], [420, 470]], { closed: false, seed: 5 }), { color: 'ink', w: 2.2, seed: 5 });
   });
 
-  // 2. "Na każdym boku budujemy kwadrat." — kolorowa kreda, jeden kwadrat na bok
+  // 2. "Na każdym boku budujemy kwadrat. Największy leży na przeciwprostokątnej."
   sb.say(B_(2), () => {
-    squares.forEach((s, i) => sb.pen(polyline(s.pts, { seed: s.seed, overshoot: 0.06 }), { color: s.color, w: 3, seed: s.seed, ...(i === 0 ? { cue: 'boku' } : {}) }));
+    const cues = ['boku', null, 'Największy'];
+    squares.forEach((s, i) => sb.pen(polyline(s.pts, { seed: s.seed, overshoot: 0.06 }), { color: s.color, w: 3, seed: s.seed, ...(cues[i] ? { cue: cues[i] } : {}) }));
+    // największy kwadrat (c²) zamalowany od razu po obrysie — to on jest sumą pozostałych
+    sb.crayon(squares[2].pts, { color: 'ochre', seed: 31 });
   });
 
   // 3. "A kwadrat plus b kwadrat równa się c kwadrat. Zawsze."
@@ -46,8 +49,7 @@ export function buildChalk(voice) {
     sb.write('c²', 1030, y, { size, color: 'ochre', cue: 'c' });
     sb.pen(polyline([[735, 325], [1130, 318], [1135, 432], [740, 440]], { seed: 21, overshoot: 0.05 }), { color: 'ink', w: 2.6, seed: 21, cue: 'Zawsze' });
   });
-  // po zdaniu: lekkie podkolorowanie największego kwadratu — "c²" to suma
-  sb.crayon(squares[2].pts, { color: 'ochre', seed: 31 });
+  // na koniec podpis w największym kwadracie
   sb.write('c²', ...centre(squares[2].pts).map((v, i) => v + (i ? 14 : 0)), { size: 46, align: 'center', color: 'ink' });
   sb.wait(0.8);
   return sb;
