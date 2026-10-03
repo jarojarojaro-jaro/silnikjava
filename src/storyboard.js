@@ -273,7 +273,9 @@ export class Storyboard {
     // droga ręki rośnie proporcjonalnie do wielkości liter — kalibracja z pomiarów
     // minimalnego czasu (lint w przeglądarce): ~0,0019 s na znak i piksel wysokości
     // tempo sceny (`speed`) dotyczy kresek; pismo ma własne tempo — zmienia je tylko o.speed
-    const est = (0.1 + chars * (0.012 + size * 0.0019) + (String(text).split(/\s+/).length - 1) * 0.08) * ((PEN_SPEED / (o.speed ?? PEN_SPEED)) || 1);
+    // writeScale motywu: czcionki o bardziej złożonych literach pisze się wolniej
+    const scale = this.theme ? resolveTheme(this.theme).writeScale ?? 1 : 1;
+    const est = scale * (0.1 + chars * (0.012 + size * 0.0019) + (String(text).split(/\s+/).length - 1) * 0.08) * ((PEN_SPEED / (o.speed ?? PEN_SPEED)) || 1);
     const dur = o.dur ?? clamp(est, 0.3, 8);
     // szacunek szerokości linii (pismo odręczne ~0,4 em na znak); dokładny ślad liczy się przy rysowaniu
     const lines = String(text).split('\n');

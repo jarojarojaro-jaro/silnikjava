@@ -103,7 +103,8 @@ Na co uważać:
    na ciemnym.
 3. **Czcionki** trzeba dołączyć na stronie (Google Fonts). `loadFonts`
    czeka na nie, zanim liczy ślad pisma. Sprawdź też tempo pisma: lint
-   powie, jeśli dla danej czcionki pismo jest za szybkie.
+   powie, jeśli dla danej czcionki pismo jest za szybkie. Wtedy ustaw
+   w motywie `writeScale` (np. 1.2 = pismo o 20% wolniej).
 4. **Sprawdzenie:** `node tools/lint.mjs` (fizyka, w przeglądarce
    z czcionkami motywu) i `node tools/render.mjs strona.html --fps 2 --sheet`
    (arkusz klatek).

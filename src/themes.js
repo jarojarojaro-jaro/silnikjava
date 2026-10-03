@@ -180,6 +180,7 @@ export const THEMES = {
       teal: '#33cc7a', sky: '#4aa8ff', ochre: '#ffe03a', coral: '#ff6fae', plum: '#9d74ff', white: '#ffffff',
     },
     fonts: { hand: '"Shadows Into Light Two", "Kalam", cursive', title: '"Shadows Into Light Two", "Kalam", cursive' },
+    writeScale: 1.2,
     // długopis: cienko, lekki nacisk, prawie bez zwężeń
     pen: { style: 'ink', width: 0.6, jitter: 0.5, pressure: 0.2, taper: 0.4 },
     crayon: { w: 6, spacing: 6, alpha: 0.6, grain: 0.7 },
