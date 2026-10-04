@@ -29,11 +29,12 @@ export function buildChalk(voice) {
     sb.write('Twierdzenie Pitagorasa', 640, 92, { size: 58, font: 'title', align: 'center', color: 'ink' });
     sb.pen(polyline([A, B, C], { seed: 4, overshoot: 0.05 }), { color: 'ink', w: 3.4, seed: 4, cue: 'trójkąt' });
     sb.pen(polyline([[400, 450], [420, 450], [420, 470]], { closed: false, seed: 5 }), { color: 'ink', w: 2.2, seed: 5 });
+    sb.write('90°', 448, 458, { size: 26, color: 'ink' });
   });
 
   // 2. "Na każdym boku budujemy kwadrat. Największy leży na przeciwprostokątnej."
   sb.say(B_(2), () => {
-    const cues = ['boku', null, 'Największy'];
+    const cues = ['Na', null, 'Największy'];
     squares.forEach((s, i) => sb.pen(polyline(s.pts, { seed: s.seed, overshoot: 0.06 }), { color: s.color, w: 3, seed: s.seed, ...(cues[i] ? { cue: cues[i] } : {}) }));
     // największy kwadrat (c²) zamalowany od razu po obrysie — to on jest sumą pozostałych
     sb.crayon(squares[2].pts, { color: 'ochre', seed: 31 });
