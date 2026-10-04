@@ -26,11 +26,12 @@ export function buildNeon(voice) {
   // 2. "Dane trafiają do warstwy wejściowej."
   sb.say(B(2), () => {
     inp.forEach((p, i) => node(sb, p, 'teal', 10 + i, i === 0 ? { cue: 'trafiają' } : {}));
+    sb.write('wejście', 292, 392, { size: 34, align: 'right', color: 'teal' });
   });
 
   // 3. "Każdy neuron waży sygnały i przekazuje je dalej."
   sb.say(B(3), () => {
-    hid.forEach((p, i) => node(sb, p, 'sky', 20 + i, i === 0 ? { cue: 'neuron' } : {}));
+    hid.forEach((p, i) => node(sb, p, 'sky', 20 + i, i === 0 ? { cue: 'Każdy' } : {}));
     sb.strokes(links(inp, hid, 40), { color: 'plum', w: 1.6, seed: 40, speed: 2600, cue: 'przekazuje' });
   });
 
