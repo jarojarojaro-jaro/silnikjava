@@ -26,7 +26,7 @@ export function buildSumi(voice) {
 
   // 2. "Skorupa Ziemi to wielkie płyty skalne. Pływają po gorącym, gęstym płaszczu, który powoli krąży jak woda w garnku."
   sb.say(B(2), () => {
-    sb.pen(polyline(LEFT, { seed: 3, bow: 0.01 }), { color: 'ink', w: 3, seed: 3, cue: 'płyty,' });
+    sb.pen(polyline(LEFT, { seed: 3, bow: 0.01 }), { color: 'ink', w: 3, seed: 3, cue: 'Skorupa' });
     sb.crayon(LEFT, { color: 'ochre', seed: 4, alpha: 0.55, w: 44, spacing: 34 });
     sb.pen(polyline(RIGHT, { seed: 5, bow: 0.01 }), { color: 'ink', w: 3, seed: 5 });
     sb.crayon(RIGHT, { color: 'ochre', seed: 6, alpha: 0.55, w: 44, spacing: 34 });
