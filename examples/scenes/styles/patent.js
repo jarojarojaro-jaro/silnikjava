@@ -33,7 +33,7 @@ export function buildPatent(voice) {
   // 1. "Jak działa maszyna parowa? Wszystko zaczyna się w kotle pełnym wody. Pod spodem płonie ogień i podgrzewa wodę, aż zamieni się w gorącą parę."
   sb.say(B(1), () => {
     sb.write('Maszyna parowa', 640, 100, { size: 46, font: 'title', align: 'center', color: 'ink', cue: 'Jak' });
-    sb.pen(polyline(BOILER, { closed: true, seed: 3, bow: 0.004 }), { color: 'ink', w: 2.4, seed: 3, cue: 'kotle.' });
+    sb.pen(polyline(BOILER, { closed: true, seed: 3, bow: 0.004 }), { color: 'ink', w: 2.4, seed: 3, cue: 'zaczyna' });
     sb.crayon(WATER, { color: 'ink', seed: 4, dur: 0.9 });
     sb.strokes([line(100, 604, 330, 604, { seed: 5, bow: 0 }), flame(160, 0), flame(215, 2), flame(270, 4)], { color: 'ink', w: 2, seed: 6, cue: 'ogień' });
     callout(10, 75, 300, [118, 380], 7);
@@ -41,7 +41,7 @@ export function buildPatent(voice) {
 
   // 2. "Para pod wysokim ciśnieniem płynie rurą do metalowego cylindra. W środku napiera na ruchomy tłok i przesuwa go do przodu."
   sb.say(B(2), () => {
-    sb.strokes([PIPE_A, PIPE_B], { color: 'ink', w: 2, seed: 10, cue: 'płynie' });
+    sb.strokes([PIPE_A, PIPE_B], { color: 'ink', w: 2, seed: 10, cue: 'Para' });
     sb.pen(polyline(CYL, { seed: 11, bow: 0.003 }), { color: 'ink', w: 2.6, seed: 11, cue: 'cylindra.' });
     callout(12, 650, 285, [665, 332], 12);
     sb.pen(polyline(PISTON, { seed: 13, bow: 0.003 }), { color: 'ink', w: 2, seed: 13, cue: 'tłok' });
