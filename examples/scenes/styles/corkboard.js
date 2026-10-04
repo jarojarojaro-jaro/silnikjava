@@ -30,6 +30,8 @@ export function buildCorkboard(voice) {
     sb.dot(640, 262, 10, { color: 'pen' });
     sb.write('TITANIC', 640, 335, { size: 52, font: 'title', align: 'center', color: 'ink', cue: 'statek,' });
     sb.write('1912', 640, 395, { size: 40, font: 'title', align: 'center', color: 'pen', cue: 'rejsie.' });
+    // „Jak do tego doszło?” — duży znak zapytania obok karty
+    sb.write('?', 440, 410, { size: 110, font: 'title', align: 'center', color: 'pen', cue: 'doszło?' });
   });
 
   // 2. "Płynął za szybko, mimo ostrzeżeń o lodzie."
