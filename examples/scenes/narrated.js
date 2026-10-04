@@ -34,7 +34,7 @@ export function buildNarrated(voice) {
   });
 
   // 2. "Wszystko zaczyna się od obserwacji: agent widzi zadanie i to, co dzieje się wokół."
-  sb.say(B(2), () => box(0, 'obserwacji'));
+  sb.say(B(2), () => box(0, 'Wszystko'));
 
   // 3. "Obserwacja trafia do modelu językowego, który decyduje, co zrobić dalej."
   sb.say(B(3), () => {
