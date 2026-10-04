@@ -24,7 +24,7 @@ export function buildNotebook(voice) {
 
   // 2. "Wpłacasz tysiąc złotych na dziesięć procent rocznie."
   sb.say(B(2), () => {
-    sb.write('1000 zł  ·  10% rocznie', 130, 172, { size: 42, color: 'ink', cue: 'tysiąc' });
+    sb.write('1000 zł  ·  10% rocznie', 130, 172, { size: 42, color: 'ink', cue: 'Wpłacasz' });
   });
 
   // 3. "Odsetki dopisują się do kwoty, więc słupki rosną coraz szybciej."
