@@ -34,6 +34,11 @@ const TIMING_KEYS = ['at', 'with', 'after', 'gap'];
 const SOLID = (o) => ({ spacing: 16, w: 36, angle: -0.5, ...o, solid: true });
 const ERASE_PASSES = 5;
 const AIM = 0.06;
+// ciągły ruch (ZASADY, reguła 13): w pierwszych sekundach filmu ręka nie może stać,
+// później dopuszczalny krótki oddech
+const OPENING = 6;
+const MAX_IDLE_OPENING = 1.0;
+const MAX_IDLE = 3;
 // napisy rolkowe: gruby bezszeryfowy krój z pełnymi polskimi znakami (jak w aplikacjach)
 const CAPTION_FONT = '"Montserrat", "Arial Black", sans-serif';
 
@@ -572,12 +577,41 @@ export class Storyboard {
         }
       }
     }
+    // ciągły ruch: na początku filmu ręka nie może stać (widz zaraz odpływa),
+    // później krótki oddech jest w porządku, ale nie dłuższy niż kilka sekund
+    for (const g of this.idleGaps()) {
+      const opening = g.from < OPENING;
+      if (g.dur > (opening ? MAX_IDLE_OPENING : MAX_IDLE)) {
+        warn('przestój', 'idle', g.from, `przez ${g.dur.toFixed(1)} s nic się nie dzieje (${g.from.toFixed(1)}–${g.to.toFixed(1)} s)${opening ? ' na początku filmu — tu ręka musi rysować bez przerwy' : ''} — rysuj w tym czasie to, o czym mówi lektor, albo przesuń kotwicę wcześniej`);
+      }
+    }
     for (const c of this.audio) {
       const lag = c.drawEnd - (c.start + c.dur);
       if (lag > 1.0) warn(c.id, 'say', c.start, `rysunek kończy się ${lag.toFixed(1)} s po zdaniu — następne zdanie czeka w ciszy (skróć rysunek albo dopisz zdanie)`);
     }
     for (const i of issues) i.level ??= 'error';
     return issues.sort((a, b) => a.time - b.time);
+  }
+
+  /**
+   * Przerwy, w których na ekranie nic się nie dzieje: ręka nie rysuje, nie ściera,
+   * nie ma animacji (ambient) ani ruchu kamery. Liczone od 0 s do ostatniej
+   * czynności (końcowe zatrzymanie kadru się nie liczy). Przelot ręki między
+   * krokami wlicza się do przerwy — to ruch, ale nic nowego nie przybywa.
+   * @returns {{from:number,to:number,dur:number}[]}
+   */
+  idleGaps() {
+    const busy = [
+      ...this.items.filter((i) => i.hand || i.ambient || i.kind === 'clear').map((i) => [i.seg.start, i.seg.start + i.seg.dur]),
+      ...this.cams.map((c) => [c.start, c.start + c.dur]),
+    ].sort((a, b) => a[0] - b[0]);
+    const gaps = [];
+    let t = 0;
+    for (const [a, b] of busy) {
+      if (a > t + 1e-6) gaps.push({ from: t, to: a, dur: a - t });
+      t = Math.max(t, b);
+    }
+    return gaps;
   }
 
   /**

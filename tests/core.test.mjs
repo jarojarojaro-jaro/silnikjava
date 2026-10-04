@@ -525,3 +525,24 @@ test('rolki 9:16: fizyka OK, w strefie bezpiecznej, kotwice na czas', () => {
     for (const it of sb.items.filter((x) => x.cue)) assert.ok(it.seg.start - it.cue.target < 0.85, `${id} ${it.name}`);
   }
 });
+
+test('lint: przestój — na początku filmu ręka nie stoi, później najwyżej 3 s oddechu', () => {
+  const idle = (sb) => sb.lint().filter((i) => i.name === 'przestój');
+  const a = new Storyboard();
+  a.write('Tytuł', 640, 100, { size: 40 });
+  a.wait(2);
+  a.pen([[100, 300], [400, 300]]);
+  const startGap = idle(a);
+  assert.equal(startGap.length, 1);
+  assert.equal(startGap[0].level, 'warn');
+  assert.match(startGap[0].problem, /na początku filmu/);
+
+  const b = new Storyboard();
+  b.pen([[100, 300], [900, 300]], { dur: 7 });
+  b.wait(2);
+  b.pen([[100, 400], [400, 400]]);
+  assert.equal(idle(b).length, 0, 'po 6 s krótki oddech jest w porządku');
+  b.wait(3.5);
+  b.pen([[100, 500], [400, 500]]);
+  assert.equal(idle(b).length, 1, 'ale nie dłuższy niż 3 s');
+});

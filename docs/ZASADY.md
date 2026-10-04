@@ -64,26 +64,39 @@ A zanim zacznie, wie już, jak każda rzecz ma wyglądać na końcu.
     niż zdanie, **dopisz lektorowi kilka naturalnych słów** albo przesuń część
     rysunku do następnego zdania. Nie przyspieszaj ręki i nie łam reguły 4.
     Film ma być bez ostrzeżeń o ciszy i spóźnionych kotwicach.
-13. Na tablicy tylko słowa-klucze. Pełne zdania są w głosie i w napisach.
+13. **[lint, ostrzeżenie] Coś dzieje się cały czas.** Widz nie może patrzeć
+    na stojący kadr, a już na pewno nie na początku filmu. W pierwszych
+    sekundach (do 6 s) ręka rysuje bez przerwy: przestój dłuższy niż 1 s to
+    ostrzeżenie. Później dopuszczalny jest krótki oddech (np. po dużym
+    rysunku albo gdy lektor coś dopowiada), ale najwyżej 3 s. Gdy lektor mówi,
+    a ręka nie ma nic do rysowania:
+    * przesuń kotwicę następnego obiektu na **pierwsze słowo** zdania,
+    * dorysuj to, o czym lektor właśnie mówi (data, znak zapytania, ludzie
+      na rynku, podkreślenie tytułu, podpis części),
+    * dopiero na końcu skróć tekst lektora.
+
+    Przelot ręki między krokami wlicza się do przestoju: ruch ręki w powietrzu
+    to za mało, na kartce musi przybywać rysunku.
+14. Na tablicy tylko słowa-klucze. Pełne zdania są w głosie i w napisach.
 
 ## 5. Wygląd
 
-14. Kolory tylko z nazw palety (`ink`, `pen`, `teal`, `sky`, `ochre`, `coral`,
+15. Kolory tylko z nazw palety (`ink`, `pen`, `teal`, `sky`, `ochre`, `coral`,
     `plum`, `inkSoft`, `white`). Wtedy ta sama scena działa w każdym motywie
     ([STYLE.md](STYLE.md)).
-15. Wielokąty „z linijki” (trójkąt, kwadrat, schemat) rysuj przez `polyline`
+16. Wielokąty „z linijki” (trójkąt, kwadrat, schemat) rysuj przez `polyline`
     (ostre rogi), a nie przez `polygon` (zaokrąglony szkic).
-16. Treść nie dotyka krawędzi kadru (margines ≥ 60 px) i wypełnia kadr
+17. Treść nie dotyka krawędzi kadru (margines ≥ 60 px) i wypełnia kadr
     równo, bez pustej połowy.
 
 ## 6. Rolka 9:16
 
-17. **[lint, ostrzeżenie] Rysuj tylko w strefie bezpiecznej** (720×1280:
+18. **[lint, ostrzeżenie] Rysuj tylko w strefie bezpiecznej** (720×1280:
     x 36–640, y 150–900). Wyżej, niżej i przy prawej krawędzi interfejs
     aplikacji zasłoni rysunek. Pod rysunkiem są napisy.
-18. Pierwsze zdanie to hak: pytanie albo problem widza, a nie „dzisiaj
+19. Pierwsze zdanie to hak: pytanie albo problem widza, a nie „dzisiaj
     opowiem o…”. Coś musi się rysować od pierwszej sekundy.
-19. Elementy duże i proste: tytuł ≥ 60 px, podpisy ≥ 36 px, najwyżej 3–4
+20. Elementy duże i proste: tytuł ≥ 60 px, podpisy ≥ 36 px, najwyżej 3–4
     obiekty w kadrze. Układ pionowy (z góry na dół), a nie w rzędzie.
 
 ## 7. Procedura (zawsze w tej kolejności)

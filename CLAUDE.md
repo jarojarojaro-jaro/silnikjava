@@ -10,6 +10,8 @@ Najważniejsze:
 - nic nie pojawia się samo: każdy ślad robi jedna ręka w ludzkim tempie;
 - **obiekt w całości, zanim zaczniesz następny: kontur → kolor → detale →
   podpis** (np. słońce maluj zaraz po obrysie, nie po morzu);
+- **coś dzieje się cały czas**: na początku filmu ręka rysuje bez przerwy
+  (przestój > 1 s to ostrzeżenie), później najwyżej 3 s oddechu;
 - kotwica lektora (`cue`) na pierwszym kroku obiektu. Gdy rysunek jest
   dłuższy niż zdanie, dopisz lektorowi słowa zamiast przyspieszać rękę.
 
