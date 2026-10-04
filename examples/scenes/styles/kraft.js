@@ -27,14 +27,16 @@ export function buildKraft(voice) {
   // 1. "Kawa z dripa w trzech prostych krokach."
   sb.say(B(1), () => {
     sb.write('Kawa z dripa', 640, 118, { size: 84, font: 'title', align: 'center', color: 'ink' });
+    // podkreślenie tytułu białym żelopisem — ręka nie stoi, zanim padną „trzy kroki”
+    sb.pen(curve([[430, 150], [640, 160], [850, 148]], 12), { color: 'pen', w: 3, seed: 2 });
   });
 
   // 2. "Weź ziarna kawy, zmiel je średnio grubo, wystarczy piętnaście gramów."
   sb.say(B(2), () => {
-    sb.pen(BEAN, { color: 'ink', w: 3, seed: 4, cue: 'ziarna' });
+    sb.pen(BEAN, { color: 'ink', w: 3, seed: 4, cue: 'Weź' });
     sb.pen(CREASE, { color: 'ink', w: 2.6, seed: 5 });
     sb.crayon(BEAN, { color: 'inkSoft', seed: 6 });
-    label('15 g', 250, 'piętnaście');
+    label('15 g', 250, 'wystarczy');
   });
 
   // 3. "Zalej ją wodą o temperaturze dziewięćdziesięciu czterech stopni."
