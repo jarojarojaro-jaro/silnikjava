@@ -2,7 +2,7 @@
 // Głos: examples/voice/reel-neon/. Zdanie, trzy słupki prawdopodobieństwa
 // (każdy: słowo → świecący pas → procent), zwycięzca dopisany do zdania.
 
-import { Storyboard, curve } from '../../../src/index.js';
+import { Storyboard, curve, line } from '../../../src/index.js';
 
 const BAR_X = 250, BAR_MAX = 270;
 const options = [
@@ -26,15 +26,24 @@ export function buildReelNeon(voice) {
   // 1. "Jak sztuczna inteligencja pisze tekst? Zgaduje słowo po słowie."
   sb.say(B(1), () => {
     sb.write('Jak AI pisze?', 360, 250, { size: 86, font: 'title', align: 'center', color: 'ink', cue: 'Jak' });
+    // „słowo po słowie”: miejsca na kolejne słowa połączone strzałkami
+    sb.pen(line(80, 330, 190, 330, { seed: 3, bow: 0 }), { color: 'teal', w: 3, seed: 3, cue: 'Zgaduje' });
+    sb.arrow(line(205, 330, 255, 330, { seed: 4, bow: 0 }), { color: 'teal', w: 2.4, head: 12, seed: 4 });
+    sb.pen(line(270, 330, 380, 330, { seed: 5, bow: 0 }), { color: 'teal', w: 3, seed: 5 });
+    sb.arrow(line(395, 330, 445, 330, { seed: 6, bow: 0 }), { color: 'teal', w: 2.4, head: 12, seed: 6 });
+    sb.pen(line(460, 330, 570, 330, { seed: 7, bow: 0 }), { color: 'teal', w: 3, seed: 7 });
   });
 
   // 2. "Widzi początek zdania: kot siedzi na..."
   sb.say(B(2), () => {
-    sb.write('Kot siedzi na', 70, 410, { size: 56, color: 'ink', cue: 'kot' });
+    sb.write('Kot siedzi na', 70, 410, { size: 56, color: 'ink', cue: 'Widzi' });
   });
 
   // 3. "I liczy szanse każdego słowa. Macie: sześćdziesiąt dwa procent."
-  sb.say(B(3), () => bar(options[0], 0));
+  sb.say(B(3), () => {
+    sb.write('szanse:', 70, 490, { size: 40, color: 'inkSoft', cue: 'liczy' });
+    bar(options[0], 0);
+  });
 
   // 4. "Dachu: dwadzieścia jeden procent. Oknie: tylko dziewięć."
   sb.say(B(4), () => {
