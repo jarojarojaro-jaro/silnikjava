@@ -47,11 +47,18 @@ export function buildCharcoal(voice) {
     // wulkan: zbocze, potem roztarty cień
     sb.pen(VOLCANO, { color: 'ink', w: 3.6, seed: 3, cue: 'Wezuwiusza,' });
     sb.crayon(VOLCANO, { color: 'inkSoft', seed: 4, alpha: 0.55, w: 70, spacing: 60 });
+    // „Na targu gwar”: ludzie na placu przed świątynią (głowa, tułów, nogi)
+    const person = (x, h) => [
+      [[x, 600 - h], [x, 600 - h * 0.45]],
+      [[x - 7, 600], [x, 600 - h * 0.45], [x + 7, 600]],
+      [[x - 9, 600 - h * 0.72], [x + 9, 600 - h * 0.62]],
+    ];
+    sb.strokes([...person(470, 46), ...person(498, 40), ...person(522, 44)], { color: 'ink', w: 2.4, seed: 17, cue: 'targu' });
   });
 
   // 2. "W południe góra wybucha. Ogromny słup popiołu i kamieni wznosi się na trzydzieści kilometrów w niebo."
   sb.say(B(2), () => {
-    sb.pen(CLOUD, { color: 'ink', w: 3.2, seed: 20, cue: 'wybucha.' });
+    sb.pen(CLOUD, { color: 'ink', w: 3.2, seed: 20, cue: 'południe' });
     sb.crayon(CLOUD, { color: 'ink', seed: 21, alpha: 0.7 });
     sb.pen(line(1095, 300, 1125, 300, { seed: 22, bow: 0 }), { color: 'ink', w: 2.4, seed: 22, cue: 'trzydzieści' });
     sb.arrow(line(1110, 300, 1110, 95, { seed: 23, bow: 0 }), { color: 'ink', w: 2.4, head: 14, seed: 23 });
