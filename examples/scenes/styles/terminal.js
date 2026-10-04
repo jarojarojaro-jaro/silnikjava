@@ -19,11 +19,12 @@ export function buildTerminal(voice) {
     sb.write('> APOLLO 11  [1969]', 90, 110, { size: 64, color: 'ink', cue: 'Lipiec' });
     sb.pen(SURFACE, { color: 'inkSoft', w: 2.4, seed: 3, speed: 1600, cue: 'Apollo' });
     sb.pen(PATH, { color: 'ink', w: 2.2, seed: 4, dash: [10, 9], cue: 'schodzi' });
+    sb.write('KSIĘŻYC', 1060, 660, { size: 36, color: 'inkSoft' });
   });
 
   // 2. "Nagle komputer pokładowy wyświetla alarm: tysiąc dwieście dwa."
   sb.say(B(2), () => {
-    sb.pen(polyline(ALARM, { seed: 10, bow: 0 }), { color: 'ochre', w: 2.6, seed: 10, cue: 'komputer' });
+    sb.pen(polyline(ALARM, { seed: 10, bow: 0 }), { color: 'ochre', w: 2.6, seed: 10, cue: 'Nagle' });
     sb.write('ALARM 1202', 1020, 232, { size: 60, align: 'center', color: 'ochre', cue: 'alarm:' });
   });
 
