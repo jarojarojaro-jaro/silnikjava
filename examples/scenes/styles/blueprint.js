@@ -26,7 +26,7 @@ export function buildBlueprint(voice) {
   sb.say(B(2), () => {
     box(sb, 90, 250, 220, 150, 'przeglądarka', { seed: 3, cue: 'Przeglądarka' })();
     sb.arrow(line(325, 300, 495, 300, { bow: 0, seed: 4 }), { color: 'white', w: 2.4, head: 14, seed: 4, cue: 'zapytanie' });
-    box(sb, 510, 230, 200, 190, 'serwer', { seed: 5, cue: 'serwera' })();
+    box(sb, 510, 230, 200, 190, 'serwer', { seed: 5, cue: 'wysyła' })();
   });
 
   // 3. "Serwer najpierw zagląda do pamięci podręcznej, a jeśli tam nic nie ma, dopiero potem do bazy danych, która trzyma wszystko."
