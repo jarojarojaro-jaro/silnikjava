@@ -7,7 +7,7 @@ kolorów z palety (`ink`, `pen`, `teal`, `sky`, `ochre`, `coral`, `plum`).
 Dzięki temu ten sam kod sceny daje inny film po zmianie jednej linijki:
 
 ```js
-const sb = new Storyboard({ w: 1280, h: 720, theme: 'chalk' });   // 'paper' | 'chalk' | 'blueprint' | … (19 stylów)
+const sb = new Storyboard({ w: 1280, h: 720, theme: 'chalk' });   // 'paper' | 'chalk' | 'blueprint' | … (20 stylów)
 ```
 
 Fizyka zostaje ta sama w każdym stylu. Każdy ślad robi ręka, `lint` działa
@@ -78,7 +78,25 @@ Dziesięć stylów do dłuższych opowieści (historia, technika, przyroda):
 
 Podgląd: `examples/styles.html?s=chalk` (zakładki z wszystkimi stylami).
 Każdy film ma lektora (`examples/voice/<styl>/`) i napisy; pierwsze dziewięć
-trwa 15–20 s, kolejne dziesięć 22–37 s.
+trwa 15–20 s, kolejne 22–37 s.
+
+### Izometria (`iso`) — szkice przedmiotów w 3D
+
+| | Izometria (`iso`) |
+| --- | --- |
+| podłoże | jasny karton z siatką izometrycznych kropek (krok 32 px, osie 2:1) |
+| kreska | grafion (`tech`): cienka, równa, bez przedłużeń |
+| bryły | `src/iso.js`: `isoCamera({ S })`, `solid(cam, { x0, y0, x1, y1, z1, r, b })`, `cylinder`, `seg3`, `ground`; sylwetka `ink`, krawędź górnej ścianki i detale `inkSoft` |
+| zasłanianie | najpierw bliższa bryła, dalsza linia przez `visible(ścieżka, [sylwetki])` → `sb.strokes`, ręka podnosi się nad zasłoniętym kawałkiem |
+| akcent | `pen` (pomarańczowy) znaczy w całym filmie jedną rzecz |
+| pismo | Space Grotesk (tytuły), IBM Plex Mono (podpisy) |
+| w ręce | rapidograf |
+| do czego | sprzęt, sieci, architektura systemów, „jak to działa” w technice |
+| przykład | `…/iso.js`: droga wiadomości (telefon → router → serwer) |
+
+Geometria brył pochodzi z Hairline (MIT, Lucas Marques). Zasady rysowania brył
+(mniej kresek, mocno na zewnątrz i blado w środku, nie rysuj tego, czego nie
+widać, jeden akcent) są w [ZASADY.md](ZASADY.md), sekcja 7.
 
 ## Jak to działa w silniku
 

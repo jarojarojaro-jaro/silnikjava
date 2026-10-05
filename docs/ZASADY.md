@@ -116,9 +116,11 @@ z Hairline (MIT, Lucas Marques), przełożone na rękę rysownika:
     przycięta do widocznych kawałków: `visible(ścieżka, [sylwetki bliższych])`
     i `sb.strokes(...)`. Ręka podnosi się nad zasłoniętym fragmentem
     (reguła 8). Linie pomocnicze (przerywana droga na ziemi) też przycinasz.
-24. **Jeden akcent.** W danej chwili tylko jedna rzecz jest w kolorze `pen`:
-    ta, o której mówi lektor. Akcent to kreska (sylwetka obrysowana ponownie,
-    mały znacznik), nie wielka plama koloru.
+24. **Jeden akcent.** Kolor `pen` znaczy w całym filmie jedną rzecz, tę,
+    której losy śledzi lektor (np. wiadomość: dymek → paczki → złożona
+    całość). Reszta jest w `ink` i `inkSoft`. Akcent to kreska, nie wielka
+    plama koloru. Rysunku nie da się przemalować, więc nie wyróżniaj
+    pomarańczem rzeczy, która nie jest tym wątkiem.
 
 ## 8. Procedura (zawsze w tej kolejności)
 

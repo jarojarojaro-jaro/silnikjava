@@ -14,7 +14,7 @@ canvas 2D, bez zależności i bez kroku budowania.
 * **Ręka rysuje naprawdę.** Każdy ślad prowadzi jedna ręka w ludzkim tempie, a
   `lint` pilnuje fizyki i kolejności (np. słońce maluje się zaraz po obrysie,
   a nie po narysowaniu morza). Zasady: [docs/ZASADY.md](docs/ZASADY.md).
-* **19 stylów** zmienianych jedną linijką: `new Storyboard({ theme: 'chalk' })`.
+* **20 stylów** zmienianych jedną linijką: `new Storyboard({ theme: 'chalk' })`.
 * **Lektor**: głos z tekstu (TTS) albo z Twojego nagrania. Rysunek trafia
   w słowa (`cue: 'słowo'`), są napisy SRT/VTT i MP4 z dźwiękiem.
 * **Rolki 9:16** (Reels, TikTok, Shorts): strefy bezpieczne i napisy słowo po
@@ -22,7 +22,7 @@ canvas 2D, bez zależności i bez kroku budowania.
 
 ## Galeria stylów
 
-Każdy styl ma film z lektorem (pierwsze dziewięć 15–20 s, kolejne dziesięć 22–37 s:
+Każdy styl ma film z lektorem (pierwsze dziewięć 15–20 s, kolejne 22–37 s:
 historia, technika, przyroda). Podglądy są przyspieszone
 2,2×; pełne filmy z dźwiękiem: `examples/styles.html?s=<styl>`.
 
@@ -135,8 +135,17 @@ historia, technika, przyroda). Podglądy są przyspieszone
 <b>Węgiel</b> · <code>theme: 'charcoal'</code><br>
 <sub>Film: „Pompeje: ostatni dzień”<br>ziarnista kreska węgla, cienie roztarte palcem, sangwina.<br>Do czego: historia, katastrofy.</sub>
 </td>
+<td width="33%" valign="top">
+<img src="docs/img/styles/iso.gif" alt="Izometria: Droga wiadomości" width="100%"><br>
+<b>Izometria</b> · <code>theme: 'iso'</code><br>
+<sub>Film: „Droga wiadomości”<br>szkice przedmiotów w 3D: mocna sylwetka, blade detale, zasłonięte linie się nie rysują, jeden akcent.<br>Do czego: sprzęt, sieci, architektura systemów.</sub>
+</td>
 </tr>
 </table>
+
+Przedmioty w 3D (izometria) rysuje się przez `src/iso.js`: `isoCamera`, `solid`,
+`cylinder`, `visible`. Geometria pochodzi z [Hairline](https://github.com/lucasmarkes/hairline)
+(MIT, Lucas Marques), zasady rysowania brył są w [docs/ZASADY.md](docs/ZASADY.md), sekcja 7.
 
 Jak działa motyw, czym różnią się kreski (`ink`, `chalk`, `tech`, `neon`,
 `marker`, `graphite`, `pixel`) i jak zrobić własny styl: [docs/STYLE.md](docs/STYLE.md).
@@ -179,7 +188,7 @@ Otwórz `http://localhost:8080` — galeria z demami:
 
 | demo | co pokazuje |
 | --- | --- |
-| `examples/styles.html` | 19 stylów, każdy jako film z lektorem i napisami |
+| `examples/styles.html` | 20 stylów, każdy jako film z lektorem i napisami |
 | `examples/reels.html` | rolki 9:16 w ramce telefonu, przełącznik stref interfejsu |
 | `examples/narrated.html` | explainer z lektorem: głos, synchronizacja ze słowami, napisy na żywo |
 | `examples/hero.html` | nagłówek w stylu stentor.studio: jedna ręka prowadzi główny wątek, maskotka śledzi ołówek wzrokiem |

@@ -867,6 +867,35 @@ export const THEMES = {
       vignette(ctx, w, h, 0.16);
     },
   },
+  iso: {
+    name: 'Izometria',
+    palette: {
+      // grafit na jasnym kartonie + jeden pomarańczowy akcent (reguła 24: jeden akcent naraz)
+      paper: '#f3f2ee', ink: '#23262c', inkSoft: '#979ca6', pen: '#ff5a1f', penDark: '#d8440f',
+      teal: '#1f8a8a', sky: '#3b7dd8', ochre: '#e0a526', coral: '#ff5a1f', plum: '#7a5cc9', white: '#ffffff',
+    },
+    fonts: { hand: '"IBM Plex Mono", "Courier Prime", monospace', title: '"Space Grotesk", "Kalam", sans-serif' },
+    writeScale: 1.1,
+    // grafion: cienka, równa kreska bez przedłużeń — bryły z src/iso.js
+    pen: { style: 'tech', width: 0.72, jitter: 0.12 },
+    // akcent jako delikatne kreskowanie wzdłuż osi izometrii (26,6°)
+    crayon: { w: 1.3, spacing: 6, alpha: 0.8, grain: 0, angle: 0.4636, wave: 0 },
+    highlight: { blend: 'multiply', alpha: 0.3 },
+    tools: { pencil: 'techpen', marker: 'techpen', crayon: 'techpen' },
+    outline: '#23262c',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // siatka izometrycznych kropek (krok 32 px, osie 2:1)
+      ctx.fillStyle = ctx.createPattern(texture('iso', 64, (c) => {
+        c.fillStyle = 'rgba(35,38,44,0.16)';
+        for (const [x, y] of [[0, 0], [32, 16], [0, 32], [32, 48]]) c.fillRect(x, y, 1.6, 1.6);
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      vignette(ctx, w, h, 0.06);
+    },
+  },
   sumi: {
     name: 'Tusz i pędzel',
     palette: {

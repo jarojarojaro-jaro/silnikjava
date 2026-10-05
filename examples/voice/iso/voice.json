@@ -1,0 +1,342 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-darkman-medium",
+ "meta": {
+  "głos": "pl_PL-darkman-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Co się dzieje, gdy wysyłasz wiadomość? Wszystko zaczyna się w telefonie, który trzymasz w dłoni.",
+   "notes": [
+    "tytuł, telefon"
+   ],
+   "audio": "b1.ogg",
+   "duration": 5.677,
+   "words": [
+    {
+     "w": "Co",
+     "s": 0.0,
+     "e": 0.1
+    },
+    {
+     "w": "się",
+     "s": 0.1,
+     "e": 0.24
+    },
+    {
+     "w": "dzieje,",
+     "s": 0.24,
+     "e": 0.64
+    },
+    {
+     "w": "gdy",
+     "s": 0.68,
+     "e": 1.06
+    },
+    {
+     "w": "wysyłasz",
+     "s": 1.06,
+     "e": 1.66
+    },
+    {
+     "w": "wiadomość?",
+     "s": 1.66,
+     "e": 2.4
+    },
+    {
+     "w": "Wszystko",
+     "s": 2.52,
+     "e": 2.92
+    },
+    {
+     "w": "zaczyna",
+     "s": 2.92,
+     "e": 3.36
+    },
+    {
+     "w": "się",
+     "s": 3.36,
+     "e": 3.52
+    },
+    {
+     "w": "w",
+     "s": 3.52,
+     "e": 3.64
+    },
+    {
+     "w": "telefonie,",
+     "s": 3.64,
+     "e": 4.24
+    },
+    {
+     "w": "który",
+     "s": 4.3,
+     "e": 4.5
+    },
+    {
+     "w": "trzymasz",
+     "s": 4.5,
+     "e": 5.04
+    },
+    {
+     "w": "w",
+     "s": 5.04,
+     "e": 5.1
+    },
+    {
+     "w": "dłoni.",
+     "s": 5.1,
+     "e": 5.52
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Wiadomość dzieli się na małe paczki danych. Lecą one falami radiowymi do domowego routera.",
+   "notes": [
+    "paczki, fale, router z antenami"
+   ],
+   "audio": "b2.ogg",
+   "duration": 5.538,
+   "words": [
+    {
+     "w": "Wiadomość",
+     "s": 0.0,
+     "e": 0.6
+    },
+    {
+     "w": "dzieli",
+     "s": 0.6,
+     "e": 0.92
+    },
+    {
+     "w": "się",
+     "s": 0.92,
+     "e": 1.12
+    },
+    {
+     "w": "na",
+     "s": 1.12,
+     "e": 1.32
+    },
+    {
+     "w": "małe",
+     "s": 1.32,
+     "e": 1.66
+    },
+    {
+     "w": "paczki",
+     "s": 1.66,
+     "e": 2.08
+    },
+    {
+     "w": "danych.",
+     "s": 2.08,
+     "e": 2.5
+    },
+    {
+     "w": "Lecą",
+     "s": 2.62,
+     "e": 3.04
+    },
+    {
+     "w": "one",
+     "s": 3.04,
+     "e": 3.3
+    },
+    {
+     "w": "falami",
+     "s": 3.3,
+     "e": 3.76
+    },
+    {
+     "w": "radiowymi",
+     "s": 3.76,
+     "e": 4.34
+    },
+    {
+     "w": "do",
+     "s": 4.34,
+     "e": 4.46
+    },
+    {
+     "w": "domowego",
+     "s": 4.46,
+     "e": 4.94
+    },
+    {
+     "w": "routera.",
+     "s": 4.94,
+     "e": 5.4
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Router wysyła paczki przez internet do serwerowni. Tam czeka wysoka szafa pełna serwerów, ułożonych jeden nad drugim.",
+   "notes": [
+    "droga przez internet, szafa rack"
+   ],
+   "audio": "b3.ogg",
+   "duration": 7.175,
+   "words": [
+    {
+     "w": "Router",
+     "s": 0.0,
+     "e": 0.3
+    },
+    {
+     "w": "wysyła",
+     "s": 0.3,
+     "e": 0.76
+    },
+    {
+     "w": "paczki",
+     "s": 0.76,
+     "e": 1.2
+    },
+    {
+     "w": "przez",
+     "s": 1.2,
+     "e": 1.44
+    },
+    {
+     "w": "internet",
+     "s": 1.44,
+     "e": 1.98
+    },
+    {
+     "w": "do",
+     "s": 1.98,
+     "e": 2.26
+    },
+    {
+     "w": "serwerowni.",
+     "s": 2.26,
+     "e": 3.0
+    },
+    {
+     "w": "Tam",
+     "s": 3.12,
+     "e": 3.28
+    },
+    {
+     "w": "czeka",
+     "s": 3.28,
+     "e": 3.66
+    },
+    {
+     "w": "wysoka",
+     "s": 3.66,
+     "e": 4.08
+    },
+    {
+     "w": "szafa",
+     "s": 4.08,
+     "e": 4.42
+    },
+    {
+     "w": "pełna",
+     "s": 4.42,
+     "e": 4.76
+    },
+    {
+     "w": "serwerów,",
+     "s": 4.76,
+     "e": 5.4
+    },
+    {
+     "w": "ułożonych",
+     "s": 5.68,
+     "e": 6.2
+    },
+    {
+     "w": "jeden",
+     "s": 6.2,
+     "e": 6.34
+    },
+    {
+     "w": "nad",
+     "s": 6.34,
+     "e": 6.58
+    },
+    {
+     "w": "drugim.",
+     "s": 6.58,
+     "e": 7.0
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Serwer składa paczki z powrotem w całość. Wszystko trwa ułamek sekundy.",
+   "notes": [
+    "akcent na serwerze, czas"
+   ],
+   "audio": "b4.ogg",
+   "duration": 4.83,
+   "words": [
+    {
+     "w": "Serwer",
+     "s": 0.0,
+     "e": 0.38
+    },
+    {
+     "w": "składa",
+     "s": 0.38,
+     "e": 0.82
+    },
+    {
+     "w": "paczki",
+     "s": 0.82,
+     "e": 1.32
+    },
+    {
+     "w": "z",
+     "s": 1.32,
+     "e": 1.42
+    },
+    {
+     "w": "powrotem",
+     "s": 1.42,
+     "e": 1.94
+    },
+    {
+     "w": "w",
+     "s": 1.94,
+     "e": 2.04
+    },
+    {
+     "w": "całość.",
+     "s": 2.04,
+     "e": 2.58
+    },
+    {
+     "w": "Wszystko",
+     "s": 2.74,
+     "e": 3.22
+    },
+    {
+     "w": "trwa",
+     "s": 3.22,
+     "e": 3.58
+    },
+    {
+     "w": "ułamek",
+     "s": 3.58,
+     "e": 4.0
+    },
+    {
+     "w": "sekundy.",
+     "s": 4.0,
+     "e": 4.58
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}

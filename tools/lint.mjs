@@ -38,6 +38,7 @@ const list = targets.length
       'examples/scenes/styles/patent.js:buildPatent:examples/voice/patent/voice.json',
       'examples/scenes/styles/pixel.js:buildPixel:examples/voice/pixel/voice.json',
       'examples/scenes/styles/charcoal.js:buildCharcoal:examples/voice/charcoal/voice.json',
+      'examples/scenes/styles/iso.js:buildIso:examples/voice/iso/voice.json',
       'examples/scenes/reels/notebook.js:buildReelNotebook:examples/voice/reel-notebook/voice.json',
       'examples/scenes/reels/neon.js:buildReelNeon:examples/voice/reel-neon/voice.json',
       'examples/scenes/reels/comic.js:buildReelComic:examples/voice/reel-comic/voice.json',

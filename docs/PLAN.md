@@ -164,6 +164,8 @@ mniej detali postaci, a nie szybsza ręka.
   `soft`, `blend: 'screen'`), terminal CRT, plakat, tablica korkowa, tusz
   i pędzel (ostrze `nib`), rysunek patentowy, pixel art (kreska `pixel`,
   `crayon.pixel`), węgiel. Razem dziewiętnaście stylów.
+- [x] Bryły w izometrii (`src/iso.js`, geometria z Hairline, MIT) i styl
+  „Izometria” z filmem „Droga wiadomości”. Razem dwadzieścia stylów.
 - Opis i przepis na własny styl: [STYLE.md](STYLE.md).
 
 ## Etap 3 — rozbudowa (kolejne iteracje)
