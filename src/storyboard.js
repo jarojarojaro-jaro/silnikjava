@@ -671,9 +671,13 @@ export class Storyboard {
 
     const main = [];
     const kept = [];
+    // motyw z filtrem klatki może zostawić pismo nad filtrem (ASCII: rysunki → znaki, napisy zostają tekstem)
+    const overlay = [];
+    const aboveFilter = sk.theme?.post && sk.theme.postText === 'above';
     for (const it of this.items) {
       if (!it.visible) continue;
-      if (it.keep) kept.push(it);
+      if (aboveFilter && it.kind === 'write' && it.chapter === visibleChapter) overlay.push(it);
+      else if (it.keep) kept.push(it);
       else if (it.chapter === visibleChapter) main.push(it);
     }
     const drawItem = (it) => {
@@ -762,6 +766,14 @@ export class Storyboard {
     applyCam(ctx);
     if (wipe) this.#wipe(sk, cam, wipe.q);
     kept.forEach(drawItem);
+    // filtr klatki motywu (np. ASCII): scena gotowa, ręka jeszcze nie narysowana
+    if (sk.theme?.post) {
+      ctx.restore();
+      sk.theme.post(sk, t);
+      ctx.save();
+      applyCam(ctx);
+      overlay.forEach(drawItem);
+    }
 
     // ręka — dopiero gdy czcionki są gotowe (ślad pisma zależy od kształtu liter)
     if (this.usePencil && sk.fontsReady !== false && sk.writeTrace) {

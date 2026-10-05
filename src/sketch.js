@@ -905,6 +905,7 @@ export class Sketch {
     ctx.lineJoin = 'round';
     if (type === 'eraser') this.#eraserSprite(size, lift, o);
     else if (type === 'pixelpencil') this.#pixelPencilSprite(size, lift, o);
+    else if (type === 'caret') this.#caretSprite(size, lift, o);
     else {
       const len = ({ marker: 110, chalk: 62, techpen: 132, neon: 118, ballpoint: 128, brush: 150, brushpen: 124, flipmarker: 118, quill: 150, gouge: 112, lightpen: 120, charcoal: 96 }[type] ?? 120) * size;
       const wd = ({ marker: 20, chalk: 15, techpen: 12, neon: 18, ballpoint: 11, brush: 9, brushpen: 13, flipmarker: 22, quill: 26, gouge: 12, lightpen: 14, charcoal: 15 }[type] ?? 13) * size;
@@ -1465,6 +1466,16 @@ export class Sketch {
     ctx.lineTo(9 * size, wd * 0.5);
     ctx.closePath();
     ctx.fill();
+  }
+
+  /** Kursor terminala: jasny blok wielkości znaku, czubek w lewym dolnym rogu. */
+  #caretSprite(size, lift, o) {
+    const { ctx } = this;
+    const [cw, ch] = this.theme.ascii?.cell ?? [9, 16];
+    ctx.translate(0, -lift * 8);
+    ctx.globalAlpha *= 0.9;
+    ctx.fillStyle = this.col(o.color && !['ink', 'inkSoft'].includes(o.color) ? o.color : 'ink');
+    ctx.fillRect(0, -ch * size, cw * size, ch * size);
   }
 
   /** Ołówek z pikseli, jak kursor w programie do rysowania: zawsze ukośnie, grot w (0,0). */
