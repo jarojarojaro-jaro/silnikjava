@@ -7,7 +7,7 @@ kolorów z palety (`ink`, `pen`, `teal`, `sky`, `ochre`, `coral`, `plum`).
 Dzięki temu ten sam kod sceny daje inny film po zmianie jednej linijki:
 
 ```js
-const sb = new Storyboard({ w: 1280, h: 720, theme: 'chalk' });   // 'paper' | 'chalk' | 'blueprint' | … (20 stylów)
+const sb = new Storyboard({ w: 1280, h: 720, theme: 'chalk' });   // 'paper' | 'chalk' | 'blueprint' | … (21 stylów)
 ```
 
 Fizyka zostaje ta sama w każdym stylu. Każdy ślad robi ręka, `lint` działa
@@ -97,6 +97,23 @@ trwa 15–20 s, kolejne 22–37 s.
 Geometria brył pochodzi z Hairline (MIT, Lucas Marques). Zasady rysowania brył
 (mniej kresek, mocno na zewnątrz i blado w środku, nie rysuj tego, czego nie
 widać, jeden akcent) są w [ZASADY.md](ZASADY.md), sekcja 7.
+
+### ASCII (`ascii`) — rysunek ze znaków
+
+| | ASCII (`ascii`) |
+| --- | --- |
+| podłoże | czarny ekran, cienka ramka i krzyżyki w rogach (jak w edytorze) |
+| jak działa | ręka rysuje zwykłe kreski (`tech`, grubsze), a filtr klatki `theme.post` → `asciiFilter` (`src/ascii.js`) zamienia klatkę w siatkę znaków 9 × 16 px |
+| znaki | w każdej komórce ilość tuszu i kierunek kreski (główna oś rozkładu tuszu): kreska → `-` `/` `\|` `\`, plama → `. : = + * # @`; kolor znaku = średni kolor tuszu |
+| pismo | JetBrains Mono, rysowane **nad** filtrem (`postText: 'above'`), więc napisy zostają czytelnym tekstem |
+| w ręce | kursor-blok (`caret`) |
+| uwaga | linie proste kładź na środkach komórek (x = 9k + 4,5, y = 16k + 8), inaczej krawędź dubluje się w dwóch rzędach; prostokąty przez `polyline` |
+| do czego | historia komputerów, internet, kultura cyfrowa, programowanie |
+| przykład | `…/ascii.js`: ASCII, kody liter, 7 bitów, kot w ASCII art |
+
+Filtr klatki to ogólny mechanizm: motyw z funkcją `post(sk, t)` dostaje gotową
+klatkę (bez ręki) i może ją przerobić — tak można zrobić też np. styl „mozaika”
+czy „druk rastrowy” bez zmian w scenach.
 
 ## Jak to działa w silniku
 

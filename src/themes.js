@@ -7,6 +7,7 @@
 //   new Player(canvas, scene, { sketch: { theme: 'neon' } })
 
 import { rng } from './math.js';
+import { asciiFilter } from './ascii.js';
 
 const cache = new Map();
 /** Wzór (deterministyczny) generowany raz i trzymany w pamięci. */
@@ -894,6 +895,49 @@ export const THEMES = {
       }), 'repeat');
       ctx.fillRect(0, 0, w, h);
       vignette(ctx, w, h, 0.06);
+    },
+  },
+  ascii: {
+    name: 'ASCII',
+    palette: {
+      // biały znak na czarnym ekranie + jeden pomarańczowy akcent
+      paper: '#0b0b0d', ink: '#ededed', inkSoft: '#7c7c84', pen: '#ff6b3d', penDark: '#d94f24',
+      teal: '#4fd1a5', sky: '#5aa9ff', ochre: '#ffc857', coral: '#ff6b3d', plum: '#b18cff', white: '#ffffff',
+    },
+    fonts: { hand: '"JetBrains Mono", monospace', title: '"JetBrains Mono", monospace', mono: '"JetBrains Mono", monospace' },
+    writeScale: 1.3,
+    // pod spodem zwykła, grubsza kreska — filtr zamienia ją w znaki
+    pen: { style: 'tech', width: 1.1, jitter: 0.15 },
+    crayon: { w: 6, spacing: 7, alpha: 0.9, grain: 0, wave: 0 },
+    highlight: { blend: 'screen', alpha: 0.35 },
+    tools: { pencil: 'caret', marker: 'caret', crayon: 'caret' },
+    outline: '#000000',
+    // siatka znaków: komórka 9 × 16 px sceny
+    ascii: { cell: [9, 16] },
+    // napisy nad filtrem: to już są znaki, zostają czytelnym tekstem
+    postText: 'above',
+    background(sk, w, h) {
+      sk.ctx.fillStyle = sk.col('paper');
+      sk.ctx.fillRect(0, 0, w, h);
+    },
+    post(sk) {
+      asciiFilter(sk, { cell: this.ascii.cell, font: sk.font('mono'), weight: 700 });
+      // ramka ekranu jak w edytorze: cienka linia i krzyżyki w rogach
+      const { ctx } = sk;
+      const [w, h] = sk.paperSize ?? [1280, 720];
+      ctx.save();
+      ctx.setTransform(sk.base ?? ctx.getTransform());
+      ctx.strokeStyle = 'rgba(237,237,237,0.12)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(24.5, 24.5, w - 49, h - 49);
+      ctx.strokeStyle = 'rgba(237,237,237,0.45)';
+      for (const [x, y] of [[24.5, 24.5], [w - 24.5, 24.5], [24.5, h - 24.5], [w - 24.5, h - 24.5]]) {
+        ctx.beginPath();
+        ctx.moveTo(x - 6, y); ctx.lineTo(x + 6, y);
+        ctx.moveTo(x, y - 6); ctx.lineTo(x, y + 6);
+        ctx.stroke();
+      }
+      ctx.restore();
     },
   },
   sumi: {

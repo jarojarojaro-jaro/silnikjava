@@ -166,6 +166,8 @@ mniej detali postaci, a nie szybsza ręka.
   `crayon.pixel`), węgiel. Razem dziewiętnaście stylów.
 - [x] Bryły w izometrii (`src/iso.js`, geometria z Hairline, MIT) i styl
   „Izometria” z filmem „Droga wiadomości”. Razem dwadzieścia stylów.
+- [x] Filtr klatki motywu (`theme.post`) i styl ASCII (`src/ascii.js`) z filmem
+  „ASCII: alfabet komputerów”. Razem dwadzieścia jeden stylów.
 - Opis i przepis na własny styl: [STYLE.md](STYLE.md).
 
 ## Etap 3 — rozbudowa (kolejne iteracje)
