@@ -546,3 +546,29 @@ test('lint: przestój — na początku filmu ręka nie stoi, później najwyżej
   b.pen([[100, 500], [400, 500]]);
   assert.equal(idle(b).length, 1, 'ale nie dłuższy niż 3 s');
 });
+
+test('iso: kamera 2:1, bryła = sylwetka + krawędź, zasłonięte linie się nie rysują', async () => {
+  const { iso } = await import('../src/index.js');
+  const cam = iso.isoCamera({ S: 2 });
+  // +x w prawo w dół, +y w lewo w dół, z w górę
+  const [ax, ay] = cam.P(0, 0, 0), [bx, by] = cam.P(10, 0, 0), [cx, cy] = cam.P(0, 10, 0), [, zy] = cam.P(0, 0, 10);
+  assert.ok(bx > ax && by > ay, '+x w prawo w dół');
+  assert.ok(cx < ax && cy > ay, '+y w lewo w dół');
+  assert.ok(zy < ay, 'z w górę');
+  assert.ok(Math.abs((by - ay) / (bx - ax) - 0.5) < 1e-9, 'widok 2:1');
+  // fit: środek ramki w zadanym punkcie
+  cam.fit([[0, 0, 0], [40, 40, 30]], 640, 360);
+  const box = iso.solid(cam, { x0: 0, y0: 0, x1: 40, y1: 40, z1: 30, r: 4 });
+  const xs = box.sil.map((p) => p[0]), ys = box.sil.map((p) => p[1]);
+  assert.ok(Math.abs((Math.min(...xs) + Math.max(...xs)) / 2 - 640) < 1);
+  assert.ok(Math.abs((Math.min(...ys) + Math.max(...ys)) / 2 - 360) < 1);
+  // sylwetka zamknięta, krawędź otwarta i wewnątrz sylwetki
+  assert.deepEqual(box.sil[0], box.sil[box.sil.length - 1]);
+  assert.ok(box.crease.length > 4);
+  // linia przechodząca przez bryłę: widać dwa kawałki, środek zasłonięty
+  const line = [[400, 360], [880, 360]];
+  const parts = iso.visible(line, [box.sil]);
+  assert.equal(parts.length, 2);
+  assert.ok(parts[0].at(-1)[0] <= Math.min(...xs) + 2 && parts[1][0][0] >= Math.max(...xs) - 2);
+  assert.deepEqual(iso.visible(line, []), [line]);
+});

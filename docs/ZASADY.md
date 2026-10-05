@@ -99,7 +99,28 @@ A zanim zacznie, wie już, jak każda rzecz ma wyglądać na końcu.
 20. Elementy duże i proste: tytuł ≥ 60 px, podpisy ≥ 36 px, najwyżej 3–4
     obiekty w kadrze. Układ pionowy (z góry na dół), a nie w rzędzie.
 
-## 7. Procedura (zawsze w tej kolejności)
+## 7. Bryły w izometrii (szkice przedmiotów)
+
+Przedmioty w 3D (laptop, router, szafa z serwerami, sejf) rysuj przez
+`src/iso.js`: `isoCamera`, `solid`, `cylinder`, `visible`. Zasady wzięte
+z Hairline (MIT, Lucas Marques), przełożone na rękę rysownika:
+
+21. **Mniej kresek.** Bryła to jej sylwetka i jedna krawędź górnej ścianki.
+    Bez pionowych narożników i bez dwunastu krawędzi pudełka. Rogi zawsze
+    zaokrąglone. Detale tylko takie, jakie przedmiot naprawdę ma (szczeliny,
+    diody, ekran), cienko.
+22. **Mocno na zewnątrz, blado w środku.** Sylwetka kolorem `ink`, krawędź
+    i detale kolorem `inkSoft` i cieńszą kreską. Ta hierarchia to większość
+    wrażenia porządnego rysunku.
+23. **Nie rysuj tego, czego nie widać.** Najpierw bliższa bryła, potem dalsza,
+    przycięta do widocznych kawałków: `visible(ścieżka, [sylwetki bliższych])`
+    i `sb.strokes(...)`. Ręka podnosi się nad zasłoniętym fragmentem
+    (reguła 8). Linie pomocnicze (przerywana droga na ziemi) też przycinasz.
+24. **Jeden akcent.** W danej chwili tylko jedna rzecz jest w kolorze `pen`:
+    ta, o której mówi lektor. Akcent to kreska (sylwetka obrysowana ponownie,
+    mały znacznik), nie wielka plama koloru.
+
+## 8. Procedura (zawsze w tej kolejności)
 
 ```bash
 node tools/lint.mjs scena.js:buildScena:voice.json --items   # 0 błędów, 0 ostrzeżeń; --items = czasy kroków
