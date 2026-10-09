@@ -16,6 +16,7 @@
     "lint": "node tools/lint.mjs",
     "audit": "node tools/audit.mjs",
     "check": "npm test && node tools/lint.mjs && node tools/audit.mjs",
+    "gallery": "node tools/gallery.mjs",
     "render:hero": "node tools/render.mjs examples/hero.html --out out/hero --mp4",
     "render:explainer": "node tools/render.mjs examples/explainer.html --out out/explainer --mp4"
   },

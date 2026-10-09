@@ -100,7 +100,7 @@ i przewidywalnie. Reguły oznaczone **[check]** sprawdza `npm run check`.
 5. Czcionki w linku Google Fonts w `examples/styles.html`.
 6. `npm run check`: 0 błędów, 0 ostrzeżeń, wszystko w budżecie.
 7. Arkusz klatek (`tools/render.mjs … --fps 2 --sheet`) obejrzany.
-8. README (galeria, GIF) i `docs/STYLE.md`.
+8. README: wpis w galerii i GIF (`npm run gallery -- <id>`), opis w `docs/STYLE.md`.
 9. Osobny commit na styl. Zmiany silnika idą osobnym commitem przed nim.
 
 ## 7. Kontrola
@@ -110,4 +110,5 @@ npm test          # testy jednostkowe (Node, bez przeglądarki)
 npm run lint      # fizyka, kolejność, tempo, przestoje, skoki ręki (przeglądarka)
 npm run audit     # czas klatki i płynność ręki wszystkich filmów
 npm run check     # wszystko powyżej; musi przejść przed każdym pushem
+npm run gallery   # podglądy GIF do README (wszystkie albo: npm run gallery -- iso ascii)
 ```
