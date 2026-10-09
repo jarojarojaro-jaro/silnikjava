@@ -762,7 +762,7 @@ export const THEMES = {
       teal: '#2c2c2c', sky: '#3a3a3a', ochre: '#6b5a3a', coral: '#5a2a1a', plum: '#333333', white: '#ffffff',
     },
     fonts: { hand: '"EB Garamond", "Kalam", serif', title: '"Libre Baskerville", "Kalam", serif' },
-    writeScale: 1.2,
+    writeScale: 1.3,
     // grafion: cienka, równa kreska, prawie bez drżenia i bez nacisku
     pen: { style: 'ink', width: 0.75, jitter: 0.12, pressure: 0.08, taper: 0.25 },
     // przekrój = gęste kreskowanie pod 45°
@@ -876,7 +876,7 @@ export const THEMES = {
       teal: '#1f8a8a', sky: '#3b7dd8', ochre: '#e0a526', coral: '#ff5a1f', plum: '#7a5cc9', white: '#ffffff',
     },
     fonts: { hand: '"IBM Plex Mono", "Courier Prime", monospace', title: '"Space Grotesk", "Kalam", sans-serif' },
-    writeScale: 1.1,
+    writeScale: 1.25,
     // grafion: cienka, równa kreska bez przedłużeń — bryły z src/iso.js
     pen: { style: 'tech', width: 0.72, jitter: 0.12 },
     // akcent jako delikatne kreskowanie wzdłuż osi izometrii (26,6°)

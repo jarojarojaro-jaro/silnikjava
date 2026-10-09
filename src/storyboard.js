@@ -39,6 +39,8 @@ const AIM = 0.06;
 const OPENING = 6;
 const MAX_IDLE_OPENING = 1.0;
 const MAX_IDLE = 3;
+// płynność ręki: skok w jednej klatce (30 kl./s) większy niż tyle px to „teleport”
+const HAND_JUMP = 70;
 // napisy rolkowe: gruby bezszeryfowy krój z pełnymi polskimi znakami (jak w aplikacjach)
 const CAPTION_FONT = '"Montserrat", "Arial Black", sans-serif';
 
@@ -168,8 +170,15 @@ export class Storyboard {
   }
 
   #strokeItem(kind, list, o, draw) {
-    const plan = StrokePlan.of(list);
-    return this.#add(kind, this.#planDur(o, plan), o, draw, {
+    let plan = StrokePlan.of(list);
+    let dur = this.#planDur(o, plan);
+    // przyspieszony krok (speed, dur): ściskamy rysowanie, a przeloty między kreskami
+    // najwyżej do płynnego minimum (HAND.maxLift) — ten sam plan dla kreski i dla ręki
+    if (dur < plan.total - 1e-6) {
+      plan = new StrokePlan(list, { fit: dur });
+      dur = Math.max(dur, plan.total);
+    }
+    return this.#add(kind, dur, o, (sk, p) => draw(sk, p, plan), {
       natural: true,
       box: bounds(list.flat()),
       from: plan.from,
@@ -182,16 +191,16 @@ export class Storyboard {
   /** Kreska piórem. Opcje pędzla jak w Sketch.pen + czasowe: dur, at, with, after, gap, ease, keep, name, pencil, z. */
   pen(pts, o = {}) {
     const list = [pts];
-    return this.#strokeItem('pen', list, o, (sk, p) => sk.strokes(list, p, o));
+    return this.#strokeItem('pen', list, o, (sk, p, plan) => sk.strokes(list, p, { ...o, plan }));
   }
 
   /** Kilka kresek po kolei, z podnoszeniem ołówka między nimi. */
   strokes(list, o = {}) {
-    return this.#strokeItem('strokes', list, o, (sk, p) => sk.strokes(list, p, o));
+    return this.#strokeItem('strokes', list, o, (sk, p, plan) => sk.strokes(list, p, { ...o, plan }));
   }
 
   arrow(pts, o = {}) {
-    return this.#strokeItem('arrow', arrowParts(pts, o.head ?? 16), o, (sk, p) => sk.arrow(pts, p, o));
+    return this.#strokeItem('arrow', arrowParts(pts, o.head ?? 16), o, (sk, p, plan) => sk.arrow(pts, p, { ...o, plan }));
   }
 
   /** Zamalowanie kredką w kolorze — ręka jedzie środkiem kolorowanego pasa. */
@@ -336,6 +345,9 @@ export class Storyboard {
       to: o.to ?? (() => { const a = o.trace(1); return [a.x, a.y]; })(),
       tool: o.tool ?? { type: 'pencil', color: o.color ?? 'pen' },
       trace: (sk, p) => o.trace(p),
+      // ślad z własnym planem czasu (np. Sequence postaci) idzie liniowo — easing
+      // kroku przyspieszałby w połowie także przeloty ręki
+      natural: o.natural ?? true,
     };
     return this.#add('custom', o.dur ?? 1, o, fn, hand);
   }
@@ -491,6 +503,8 @@ export class Storyboard {
       audio: this.audio.map(({ src, start, dur }) => ({ src, start, dur })),
       subtitles: (format, opts) => this.subtitles(format, opts),
       draw: (sk, t) => this.draw(sk, t),
+      // dla narzędzi (audyt, lint): harmonogram ręki i kroki
+      storyboard: this,
     };
   }
 
@@ -585,12 +599,40 @@ export class Storyboard {
         warn('przestój', 'idle', g.from, `przez ${g.dur.toFixed(1)} s nic się nie dzieje (${g.from.toFixed(1)}–${g.to.toFixed(1)} s)${opening ? ' na początku filmu — tu ręka musi rysować bez przerwy' : ''} — rysuj w tym czasie to, o czym mówi lektor, albo przesuń kotwicę wcześniej`);
       }
     }
+    // płynność: ręka nie może przeskoczyć w jednej klatce (teleport), tylko gdy znamy prawdziwy ślad pisma
+    if (sk?.writeTrace) {
+      for (const j of this.handJumps(hand)) {
+        warn('skok ręki', 'hand', j.t, `ręka przeskakuje o ${Math.round(j.px)} px w jednej klatce (${j.item ?? 'przelot'}) — wydłuż krok (dur) albo zmień kolejność, żeby przelot był krótszy`);
+      }
+    }
     for (const c of this.audio) {
       const lag = c.drawEnd - (c.start + c.dur);
       if (lag > 1.0) warn(c.id, 'say', c.start, `rysunek kończy się ${lag.toFixed(1)} s po zdaniu — następne zdanie czeka w ciszy (skróć rysunek albo dopisz zdanie)`);
     }
     for (const i of issues) i.level ??= 'error';
     return issues.sort((a, b) => a.time - b.time);
+  }
+
+  /**
+   * Skoki ręki: izolowane przesunięcie między klatkami (30 kl./s) większe niż
+   * `px` i ponad 2,5× większe niż w sąsiednich klatkach. Szybki, ale ciągły
+   * ruch się nie liczy — liczy się to, co widz odbiera jako teleport.
+   * @returns {{t:number, px:number, item?:string}[]}
+   */
+  handJumps(hand, { fps = 30, px = HAND_JUMP } = {}) {
+    const pts = [];
+    for (let i = 0; i <= Math.ceil(this.duration * fps); i++) pts.push(hand.at(i / fps));
+    const step = pts.map((p, i) => (i && p && pts[i - 1] ? Math.hypot(p.x - pts[i - 1].x, p.y - pts[i - 1].y) : 0));
+    const out = [];
+    for (let i = 1; i < pts.length; i++) {
+      const around = Math.max(step[i - 1] ?? 0, step[i + 1] ?? 0);
+      if (step[i] > px && step[i] > 2.5 * around) {
+        const t = i / fps;
+        const s = hand.sched.find((x) => t >= x.t0 && t <= x.t1);
+        out.push({ t, px: step[i], item: s?.seg?.item?.name });
+      }
+    }
+    return out;
   }
 
   /**

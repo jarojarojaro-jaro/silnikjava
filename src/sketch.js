@@ -306,7 +306,7 @@ export class Sketch {
   arrow(pts, p = 1, o = {}) {
     const parts = arrowParts(pts, o.head ?? 16);
     if (p <= 0) return null;
-    const plan = StrokePlan.of(parts);
+    const plan = o.plan ?? StrokePlan.of(parts);
     const st = plan.at(p);
     parts.forEach((s, i) => {
       if (st.progress[i] > 0) this.pen(s, st.progress[i], { ...o, seed: (o.seed ?? 1) + (i ? 4 + i : 0), taper: i ? 6 : o.taper });
@@ -1612,13 +1612,24 @@ function zigzag(poly, o) {
     const c = cnt[e] - cnt[a];
     return c > 0 ? [(cx[e] - cx[a]) / c, (cy[e] - cy[a]) / c] : null;
   });
-  // dziury (fragmenty zygzaka całkiem poza konturem) wypełniamy ciągle: ręka czeka
-  // w ostatnim miejscu, zamiast przeskakiwać; na początku — pierwszy znany punkt
+  // dziury (fragmenty zygzaka całkiem poza konturem, np. wklęsły kształt): ręka
+  // przelatuje płynnie od ostatniego do następnego znanego punktu, zamiast czekać
+  // i przeskoczyć; przed pierwszym i po ostatnim — stoi w znanym punkcie
   const first = raw.find(Boolean) ?? [b.cx, b.cy];
-  let last = first;
-  const filled = raw.map((e) => (e ? (last = e) : last));
-  // drugie wygładzenie (okno ±W/2) — bez szarpnięć przy zmianie liczby punktów w oknie
-  const h = Math.max(1, W >> 1);
+  const filled = raw.slice();
+  let prev = -1;
+  for (let i = 0; i <= n; i++) {
+    if (i < n && !raw[i]) continue;
+    const a = prev >= 0 ? raw[prev] : null, c = i < n ? raw[i] : null;
+    for (let j = prev + 1; j < i; j++) {
+      const q = (j - prev) / (i - prev);
+      filled[j] = a && c ? [a[0] + (c[0] - a[0]) * q, a[1] + (c[1] - a[1]) * q] : a ?? c ?? first;
+    }
+    prev = i;
+  }
+  // drugie wygładzenie (okno ±W, czyli jeden rząd) — bez szarpnięć przy zmianie
+  // liczby punktów w oknie (wklęsłe kształty, rzędy o bardzo różnej długości)
+  const h = Math.max(1, W);
   const sx = new Float64Array(n + 1), sy = new Float64Array(n + 1);
   filled.forEach(([x, y], i) => { sx[i + 1] = sx[i] + x; sy[i + 1] = sy[i] + y; });
   const env = filled.map((_, i) => {

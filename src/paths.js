@@ -387,3 +387,32 @@ export function pathInfo(pts, step = 2.5) {
   byStep.set(step, info);
   return info;
 }
+
+/**
+ * Kolejność rysowania niezależnych kresek tak, jak zrobiłby to człowiek:
+ * następna kreska zaczyna się możliwie blisko końca poprzedniej (w razie
+ * potrzeby rysowana od drugiego końca). Krótsze przeloty = płynniejsza ręka.
+ * Tylko dla kresek bez kierunku (połączenia, kreskowanie, siatki) — nie dla
+ * strzałek ani pisma.
+ * @param {number[][][]} list kreski
+ * @param {number[]} [start] skąd startuje ręka (domyślnie początek pierwszej kreski)
+ */
+export function chain(list, start) {
+  const left = list.slice();
+  const out = [];
+  let at = start ?? left[0]?.[0];
+  while (left.length) {
+    let best = 0, rev = false, bd = Infinity;
+    left.forEach((s, i) => {
+      const a = Math.hypot(s[0][0] - at[0], s[0][1] - at[1]);
+      const b = Math.hypot(s[s.length - 1][0] - at[0], s[s.length - 1][1] - at[1]);
+      if (a < bd) { bd = a; best = i; rev = false; }
+      if (b < bd) { bd = b; best = i; rev = true; }
+    });
+    const s = left.splice(best, 1)[0];
+    const next = rev ? s.slice().reverse() : s;
+    out.push(next);
+    at = next[next.length - 1];
+  }
+  return out;
+}

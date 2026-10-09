@@ -21,14 +21,21 @@ export const HAND = {
   startStop: 0.05, // [s] narzut na rozpoczęcie/zakończenie kreski
   maxSpeed: 3200, // px/s — fizyczny limit ręki prowadzącej narzędzie po kartce (w szczycie)
   maxTravel: 4500, // px/s — limit ręki przelatującej nad kartką
+  // px/s — szczyt krótkiego przelotu w obrębie kroku (między literami, kreskami):
+  // fizycznie ręka mogłaby szybciej, ale przy 30 kl./s skok > ~70 px na klatkę
+  // wygląda jak teleport — tu liczy się płynność obrazu, nie fizyka
+  maxLift: 2200,
 };
+
+/** Najkrótszy płynny przelot nad kartką na odległość d [px] (profil sinusoidalny). */
+const smoothLift = (d) => ((Math.PI / 2) * d) / HAND.maxLift;
 
 /**
  * Dopasowanie odcinków czasu do `target` sekund: przy przyspieszaniu ściskamy
  * głównie rysowanie, a przeloty nad kartką najwyżej do 60% — inaczej ołówek
  * "teleportuje się". Zwraca nowy czas całkowity.
  */
-function fitSegments(segs, total, target, isWork) {
+function fitSegments(segs, total, target, isWork, scale = 1) {
   const workSum = segs.reduce((a, s) => a + (isWork(s) ? s.t1 - s.t0 : 0), 0);
   const liftSum = total - workSum;
   const ratio = target / total;
@@ -40,10 +47,10 @@ function fitSegments(segs, total, target, isWork) {
   let t = 0;
   for (const s of segs) {
     let d = (s.t1 - s.t0) * (isWork(s) ? df : lf);
-    // przelot nie może być szybszy niż fizyczny limit ręki w powietrzu
+    // przelot nie może być szybszy niż płynny przelot ręki (bez teleportów)
     if (!isWork(s) && s.a && s.b) {
       const ax = s.a.x ?? s.a[0], ay = s.a.y ?? s.a[1], bx = s.b.x ?? s.b[0], by = s.b.y ?? s.b[1];
-      d = Math.max(d, ((Math.PI / 2) * Math.hypot(bx - ax, by - ay)) / HAND.maxTravel);
+      d = Math.max(d, smoothLift(Math.hypot(bx - ax, by - ay) * scale));
     }
     s.t0 = t;
     s.t1 = t + d;
@@ -133,7 +140,8 @@ export class StrokePlan {
     this.strokes.forEach((info, i) => {
       if (i > 0) {
         const a = last(this.strokes[i - 1].r), b = info.r[0];
-        const lt = (o.lift === false ? 0 : (o.liftTime ?? liftTime)(dist(a, b))) + (o.pause?.(i) ?? 0);
+        const d = dist(a, b);
+        const lt = (o.lift === false ? 0 : Math.max((o.liftTime ?? liftTime)(d), smoothLift(d))) + (o.pause?.(i) ?? 0);
         if (lt > 0) this.segs.push({ type: 'lift', i, t0: t, t1: t + lt, a, b });
         t += lt;
       }
@@ -238,6 +246,8 @@ function last(a) {
  * kartką, więc rysowanie i ślad ręki są zawsze zgodne.
  *   steps: [{ dur (waga w sekundach), trace(q) => {x,y,angle?,lift?}, tool? }]
  *   o.fit — dopasuj całość do tylu sekund (przeloty ściskane najwyżej do 60%)
+ *   o.scale — skala rysunku na ekranie (kroki w układzie lokalnym): limit płynności
+ *             przelotów liczony w pikselach ekranu
  *   at(p) -> { local: [q0, q1, ...], tip, index }
  */
 export class Sequence {
@@ -249,7 +259,7 @@ export class Sequence {
       if (i > 0) {
         const a = steps[i - 1].trace(1), b = st.trace(0);
         const d = a && b ? Math.hypot(b.x - a.x, b.y - a.y) : 0;
-        const lt = d > 0.5 ? (o.liftTime ?? liftTime)(d) : 0;
+        const lt = d > 0.5 ? Math.max((o.liftTime ?? liftTime)(d), smoothLift(d * (o.scale ?? 1))) : 0;
         if (lt > 0) this.segs.push({ type: 'lift', i, t0: t, t1: t + lt, a, b });
         t += lt;
       }
@@ -257,7 +267,7 @@ export class Sequence {
       t += st.dur;
     });
     this.total = Math.max(t, 1e-6);
-    if (o.fit > 0) this.total = fitSegments(this.segs, this.total, o.fit, (s) => s.type === 'step');
+    if (o.fit > 0) this.total = fitSegments(this.segs, this.total, o.fit, (s) => s.type === 'step', o.scale ?? 1);
   }
 
   at(p) {
