@@ -48,13 +48,13 @@ export function buildCharcoal(voice) {
     // wulkan: zbocze, potem roztarty cień
     sb.pen(VOLCANO, { color: 'ink', w: 3.6, seed: 3, cue: 'Wezuwiusza,' });
     sb.crayon(VOLCANO, { color: 'inkSoft', seed: 4, alpha: 0.55, w: 70, spacing: 60 });
-    // „Na targu gwar”: ludzie na placu przed świątynią (głowa, tułów, nogi)
+    // „Na targu gwar”: ludzie między kolumnami świątyni (tułów, nogi, ręce) — spływ ich nie zakryje
     const person = (x, h) => [
       [[x, 600 - h], [x, 600 - h * 0.45]],
       [[x - 7, 600], [x, 600 - h * 0.45], [x + 7, 600]],
       [[x - 9, 600 - h * 0.72], [x + 9, 600 - h * 0.62]],
     ];
-    sb.strokes([...person(470, 46), ...person(498, 40), ...person(522, 44)], { color: 'ink', w: 2.4, seed: 17, cue: 'targu' });
+    sb.strokes([...person(155, 46), ...person(215, 40), ...person(275, 44)], { color: 'ink', w: 2.4, seed: 17, cue: 'targu' });
   });
 
   // 2. "W południe góra wybucha. Ogromny słup popiołu i kamieni wznosi się na trzydzieści kilometrów w niebo."
