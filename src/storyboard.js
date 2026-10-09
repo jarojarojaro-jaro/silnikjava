@@ -513,6 +513,21 @@ export class Storyboard {
     };
   }
 
+  /**
+   * Rysuje klatkę t bez buforów klatek (np. na niewidocznym płótnie Player.warm), żeby wypełnić
+   * cache zależne od kształtu i ułożenia na ekranie, a nie zostawić śladu w buforach odtwarzania.
+   */
+  warm(sk, t = this.duration) {
+    const cache = this.useCache, cam = this.lastCamKey;
+    this.useCache = false;
+    try {
+      this.draw(sk, t);
+    } finally {
+      this.useCache = cache;
+      this.lastCamKey = cam;
+    }
+  }
+
   /** Zapomnij ślad ręki i bufory klatek (np. gdy czcionka doszła po starcie). */
   invalidate() {
     this.hand = null;

@@ -13,6 +13,7 @@
 
 import { Sketch, BOIL_FPS, BOIL_CYCLE, loadFonts, fontsLoaded } from './sketch.js';
 import { AudioTrack } from './audio.js';
+import { makeCanvas } from './canvas.js';
 
 const ticks = new Set();
 let rafId = 0;
@@ -77,6 +78,7 @@ export class Player {
     this.ready = loadFonts(fonts).then(() => { this.sk.fontsReady = true; this.dirty = true; });
     this.loaded = Promise.all([this.ready, fontsLoaded(fonts)]).then(() => {
       scene.storyboard?.invalidate();
+      this.warm();
       this.dirty = true;
     });
     // lektor: scena z klipami audio (Storyboard.say) dostaje ścieżkę dźwiękową
@@ -155,6 +157,28 @@ export class Player {
     this.scale = fit(cw / this.scene.w, ch / this.scene.h);
     this.ox = (cw - this.scene.w * this.scale) / 2;
     this.oy = (ch - this.scene.h * this.scale) / 2;
+  }
+
+  /**
+   * Rozgrzewka: końcowa klatka narysowana raz na niewidocznym płótnie tej samej wielkości.
+   * Wypełnia cache, które zależą tylko od kształtu i ułożenia na ekranie (gotowe plamy farby,
+   * obrazki glifów, tekstury) — podczas odtwarzania pierwsza klatka plamy czy napisu nie przycina.
+   */
+  warm() {
+    const sb = this.scene.storyboard;
+    if (!sb || !this.canvas.width) return;
+    try {
+      const c = makeCanvas(this.canvas.width, this.canvas.height);
+      const sk = new Sketch(c.getContext('2d'), { theme: this.scene.theme, ...this.o.sketch });
+      sk.fontsReady = true;
+      sk.time = this.duration;
+      sk.boil = 0;
+      sk.ctx.setTransform(this.dpr * this.scale, 0, 0, this.dpr * this.scale, this.dpr * this.ox, this.dpr * this.oy);
+      sk.base = sk.ctx.getTransform();
+      sb.warm(sk, this.duration);
+    } catch {
+      /* rozgrzewka jest tylko optymalizacją */
+    }
   }
 
   /** Deterministycznie rysuje klatkę dla czasu t (używane też przy eksporcie wideo). */
