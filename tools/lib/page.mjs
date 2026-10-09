@@ -69,18 +69,7 @@ export async function openPlayer(page, { width = 1280 } = {}) {
   // wszystkie czcionki naprawdę wczytane — inaczej ślad pisma liczy się dla czcionki zastępczej
   await tab.evaluate(() => window.__player.loaded ?? window.__player.ready);
 
-  // canvas renderujemy w docelowej rozdzielczości niezależnie od układu strony
-  const dims = await tab.evaluate((w) => {
-    const p = window.__player;
-    p.pause();
-    const c = p.canvas;
-    Object.assign(c.style, { position: 'fixed', left: '0', top: '0', zIndex: '9999', maxWidth: 'none', aspectRatio: 'auto' });
-    c.style.width = `${w}px`;
-    c.style.height = `${Math.round((w * p.scene.h) / p.scene.w)}px`;
-    p.resize();
-    return { duration: p.duration, w: c.width, h: c.height };
-  }, width);
-
+  const dims = await sizeCanvas(tab, width);
   return {
     tab,
     dims,
@@ -91,4 +80,21 @@ export async function openPlayer(page, { width = 1280 } = {}) {
       server.close();
     },
   };
+}
+
+/**
+ * Ustawia płótno odtwarzacza na `width` px szerokości (wysokość z proporcji sceny),
+ * niezależnie od układu strony. Zwraca { duration, w, h, sceneW, sceneH }.
+ */
+export async function sizeCanvas(tab, width) {
+  return tab.evaluate((w) => {
+    const p = window.__player;
+    p.pause();
+    const c = p.canvas;
+    Object.assign(c.style, { position: 'fixed', left: '0', top: '0', zIndex: '9999', maxWidth: 'none', aspectRatio: 'auto' });
+    c.style.width = `${w}px`;
+    c.style.height = `${Math.round((w * p.scene.h) / p.scene.w)}px`;
+    p.resize();
+    return { duration: p.duration, w: c.width, h: c.height, sceneW: p.scene.w, sceneH: p.scene.h };
+  }, width);
 }

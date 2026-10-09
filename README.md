@@ -436,7 +436,7 @@ const sb = new Storyboard({ format: 'reel', theme: 'neon' }); // kadr 720×1280
 ```
 
 ```bash
-node tools/render.mjs "examples/reels.html?r=neon" --width 1080 --mp4   # 1080×1920
+node tools/render.mjs "examples/reels.html?r=neon" --mp4   # 1080×1920
 ```
 
 * **Strefy bezpieczne.** Góra (do 150), dół (od 900) i prawy pas (od 640)
@@ -466,11 +466,16 @@ Produkcja seryjna mniejszymi modelami: [docs/SKALOWANIE.md](docs/SKALOWANIE.md).
 * **Klatka po klatce do MP4** (wymaga `npm i -D playwright` i ffmpeg):
 
   ```bash
-  node tools/render.mjs examples/explainer.html --out out/explainer --fps 30 --width 1920 --mp4
-  node tools/render.mjs examples/hero.html --fps 4 --sheet   # arkusz klatek do podglądu
+  node tools/render.mjs examples/explainer.html --out out/explainer --mp4   # Full HD, 30 kl./s
+  node tools/render.mjs "examples/reels.html?r=neon" --mp4                  # rolka 1080×1920
+  node tools/render.mjs examples/hero.html --fps 4 --sheet                  # arkusz klatek do podglądu
   ```
 
-  Strona musi wystawiać `window.__player`.
+  MP4 domyślnie w Full HD (inny rozmiar: `--width`). Klatki liczy równolegle kilka
+  przeglądarek (`--jobs`, domyślnie do 4), a ffmpeg koduje film w trakcie. Wynik jest
+  identyczny jak przy jednym wątku. Lektor jest wyrównany do -16 LUFS (głośność jak
+  w serwisach wideo), a film trwa dokładnie tyle co obraz. Strona musi wystawiać
+  `window.__player`.
 
 ## Własna postać
 
