@@ -55,7 +55,8 @@ export async function openPlayer(page, { width = 1280 } = {}) {
   tab.on('requestfailed', (r) => console.error('nieudane żądanie:', r.url(), r.failure()?.errorText));
   await tab.goto(url, { waitUntil: 'load' });
   await tab.waitForFunction(() => window.__player, null, { timeout: 10000 });
-  await tab.evaluate(() => window.__player.ready);
+  // wszystkie czcionki naprawdę wczytane — inaczej ślad pisma liczy się dla czcionki zastępczej
+  await tab.evaluate(() => window.__player.loaded ?? window.__player.ready);
 
   // canvas renderujemy w docelowej rozdzielczości niezależnie od układu strony
   const dims = await tab.evaluate((w) => {

@@ -8,7 +8,7 @@ export * as iso from './iso.js';
 export { isoCamera } from './iso.js';
 export { asciiFilter } from './ascii.js';
 export { THEMES, resolveTheme, themeNames } from './themes.js';
-export { Sketch, PALETTE, BOIL_FPS, BOIL_CYCLE, loadFonts, arrowParts, crayonTrace } from './sketch.js';
+export { Sketch, PALETTE, BOIL_FPS, BOIL_CYCLE, loadFonts, fontsLoaded, arrowParts, crayonTrace } from './sketch.js';
 export { StrokePlan, HandTrack, Sequence, HAND, minJerk, drawTime, liftTime, travelTime, minDuration } from './hand.js';
 export { textGeometry, thin, trace as traceSkeleton } from './handwriting.js';
 export { Timeline } from './timeline.js';

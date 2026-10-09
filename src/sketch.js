@@ -1580,6 +1580,17 @@ export function loadFonts(fonts, timeout = 2500) {
   return Promise.race([Promise.all(loads), new Promise((r) => setTimeout(r, timeout))]);
 }
 
+/**
+ * Wszystkie czcionki naprawdę wczytane (bez limitu czasu jak w loadFonts; najwyżej
+ * `max` ms). Gdy dojdą po starcie odtwarzania, trzeba przeliczyć ślad pisma.
+ */
+export function fontsLoaded(fonts, max = 20000) {
+  if (typeof document === 'undefined' || !document.fonts) return Promise.resolve();
+  const sample = 'Aa Ąą Ćć Ęę Łł Óó Śś Żż 0123';
+  const loads = Object.values(fonts).flatMap((f) => [`32px ${f}`, `700 32px ${f}`]).map((css) => document.fonts.load(css, sample).catch(() => null));
+  return Promise.race([Promise.all(loads).then(() => document.fonts.ready), new Promise((r) => setTimeout(r, max))]);
+}
+
 // ------------------------------------------------------------------ geometria pędzli (z cache)
 
 const arrowCache = new WeakMap();

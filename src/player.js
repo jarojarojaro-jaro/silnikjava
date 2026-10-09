@@ -11,7 +11,7 @@
 //     draw(sk, t, state),    // rysuje klatkę dla czasu t (bez stanu!)
 //   }
 
-import { Sketch, BOIL_FPS, BOIL_CYCLE, loadFonts } from './sketch.js';
+import { Sketch, BOIL_FPS, BOIL_CYCLE, loadFonts, fontsLoaded } from './sketch.js';
 import { AudioTrack } from './audio.js';
 
 const ticks = new Set();
@@ -69,9 +69,16 @@ export class Player {
       }, { threshold: 0.15 });
       this.io.observe(canvas);
     }
-    // gotowość czcionek — po ich wczytaniu przerysowujemy klatkę
+    // gotowość czcionek — po ich wczytaniu przerysowujemy klatkę. loadFonts czeka
+    // najwyżej 2,5 s; czcionka, która dojdzie później, zmienia kształt liter, więc
+    // ślad ręki przy piśmie i bufory klatek liczymy wtedy od nowa
+    const fonts = { ...this.sk.fonts, ...(scene.fonts ?? {}) };
     this.sk.fontsReady = false;
-    this.ready = loadFonts({ ...this.sk.fonts, ...(scene.fonts ?? {}) }).then(() => { this.sk.fontsReady = true; this.dirty = true; });
+    this.ready = loadFonts(fonts).then(() => { this.sk.fontsReady = true; this.dirty = true; });
+    this.loaded = Promise.all([this.ready, fontsLoaded(fonts)]).then(() => {
+      scene.storyboard?.invalidate();
+      this.dirty = true;
+    });
     // lektor: scena z klipami audio (Storyboard.say) dostaje ścieżkę dźwiękową
     this.audio = this.o.audio === false || !scene.audio?.length ? null : new AudioTrack(scene.audio);
     this.unsub = subscribe((now) => this.#tick(now));

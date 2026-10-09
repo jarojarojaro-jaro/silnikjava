@@ -322,7 +322,7 @@ export class Sequence {
  */
 export class HandTrack {
   constructor(segments, o = {}) {
-    // exitAt — od kiedy ręka schodzi z kadru (domyślnie 0,8 s po ostatnim kroku)
+    // endAt — kiedy ręka ma już być poza kadrem (domyślnie: zaraz po krótkim spoczynku)
     this.o = { enter: [1400, 900], exit: [1400, 900], restOffset: [34, 42], restLong: 2.5, ...o };
     const segs = segments.filter((s) => s.end > s.start).sort((a, b) => a.start - b.start);
     const sched = [];
@@ -404,15 +404,24 @@ export class HandTrack {
         return { x: lerp(a[0], b.x, q), y: lerp(a[1], b.y, q) - arc, angle: 0, lift, tool: q < 0.5 ? s.toolA : s.toolB };
       }
     }
-    // po ostatnim kroku: spoczynek przy rysunku (do exitAt — np. aż lektor skończy) i zejście z kadru
+    // po ostatnim kroku: spoczynek przy rysunku i zejście z kadru — tak, żeby ręka
+    // zniknęła dokładnie w endAt (np. koniec filmu, gdy lektor jeszcze mówi)
     if (!this.lastPos) return null;
-    const restEnd = Math.max(this.endT + 0.8, this.o.exitAt ?? 0);
+    const exitDur = this.#exitDur();
+    const restEnd = Math.max(this.endT + 0.8, (this.o.endAt ?? 0) - exitDur);
     if (t < restEnd) return { ...this.#rest({ t0: this.endT, at: this.lastPos }, t), tool: this.lastTool };
-    const q = clamp((t - restEnd) / 0.8);
+    const q = clamp((t - restEnd) / exitDur);
     if (q >= 1) return null;
     const r = this.#rest({ t0: this.endT, at: this.lastPos }, restEnd);
-    const e = ease.in(q);
+    // spokojny start, ręka przyspiesza wychodząc — szczyt prędkości ≤ HAND.maxLift
+    const e = ease.inOut(q) * 0.6 + ease.in(q) * 0.4;
     return { x: lerp(r.x, this.o.exit[0], e), y: lerp(r.y, this.o.exit[1], e), angle: 0, lift: lerp(r.lift, 1, q), tool: this.lastTool };
+  }
+
+  /** Czas zejścia z kadru: dłuższa droga = dłużej (szczyt prędkości ≤ HAND.maxLift). */
+  #exitDur() {
+    const [x, y] = this.lastPos;
+    return Math.max(0.8, (2.2 * Math.hypot(this.o.exit[0] - x, this.o.exit[1] - y)) / HAND.maxLift);
   }
 
   /** Spoczynek: ręka odsuwa się trochę od kreski, unosi i lekko "oddycha". */

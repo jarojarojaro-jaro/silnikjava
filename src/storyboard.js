@@ -508,6 +508,13 @@ export class Storyboard {
     };
   }
 
+  /** Zapomnij ślad ręki i bufory klatek (np. gdy czcionka doszła po starcie). */
+  invalidate() {
+    this.hand = null;
+    this.caches = [];
+    this.lastCamKey = null;
+  }
+
   /** Ciągła trajektoria ręki (budowana raz, po wczytaniu czcionek). */
   handTrack(sk) {
     if (this.hand) return this.hand;
@@ -533,7 +540,7 @@ export class Storyboard {
       }));
     const off = [this.w + 90, this.h + 110];
     // ręka zostaje przy rysunku do końca filmu (lektor może jeszcze mówić) i schodzi w ostatniej chwili
-    return new HandTrack(segs, { enter: off, exit: off, exitAt: this.duration - 0.8 });
+    return new HandTrack(segs, { enter: off, exit: off, endAt: this.duration });
   }
 
   /**
