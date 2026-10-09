@@ -8,7 +8,7 @@
 // a duża maskotka śledzi ołówek wzrokiem.
 
 import { Storyboard, StrokePlan, line, rect, curve, ellipse, polygon, star, wave } from '../../src/index.js';
-import { drawMascot, mascotTrace } from './mascot.js';
+import { drawMascot, mascotTrace, mascotDuration } from './mascot.js';
 
 const W = 1240, H = 900;
 const B = { x: 360, y: 80, w: 820, h: 560 };
@@ -44,7 +44,8 @@ const steamAt = (t) => steamBase.map((s, i) => s.map(([x, y]) => [x + Math.sin((
 
 export function buildHero() {
   const sb = new Storyboard({ w: W, h: H, idle: 'loop', fps: 24, speed: 1400 });
-  const BIG = { x: 250, y: 560, scale: 1.25, seed: 1, dur: 5 };
+  // czas postaci z jej naturalnego tempa (przeloty ręki w obrysie nie mogą się ścisnąć)
+  const BIG = { x: 250, y: 560, scale: 1.25, seed: 1, dur: Math.max(5, mascotDuration(1.25, 1)) };
   const MINI = { x: 1010, y: 400, scale: 0.62, seed: 5, dur: 3.2 };
   const pen = (c, w, seed) => ({ color: c, w, seed });
 

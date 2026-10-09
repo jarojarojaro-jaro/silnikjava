@@ -44,8 +44,8 @@ const seqCache = new Map();
  * Kolejność rysowania postaci (w układzie lokalnym). Wagi czasów w sekundach.
  * `dur` — czas kroku w filmie: sekwencja dopasowana tak, by przeloty nie były za szybkie.
  */
-export function mascotSequence(seed = 1, dur) {
-  const ck = `${seed}|${dur ?? ''}`;
+export function mascotSequence(seed = 1, dur, scale = 1) {
+  const ck = `${seed}|${dur ?? ''}|${scale}`;
   let seq = seqCache.get(ck);
   if (seq) return seq;
   const out = planTrace(OUTLINE);
@@ -63,7 +63,7 @@ export function mascotSequence(seed = 1, dur) {
     ...CHEEKS.map(([cx, cy], i) => ({ key: `cheek${i}`, dur: 0.16, trace: dotTrace(cx, cy, 9), tool: { type: 'pencil', color: 'coral' } })),
   ];
   // krótkie przeloty między detalami — ręka ledwo odrywa się od kartki
-  seq = new Sequence(steps, { liftTime: (d) => 0.04 + 0.045 * Math.sqrt(d / 50), fit: dur });
+  seq = new Sequence(steps, { liftTime: (d) => 0.04 + 0.045 * Math.sqrt(d / 50), fit: dur, scale });
   seq.index = Object.fromEntries(steps.map((s, i) => [s.key, i]));
   seqCache.set(ck, seq);
   return seq;
@@ -76,7 +76,7 @@ export function mascotDuration(scale = 1, seed = 1) {
 
 /** Gdzie jest ręka, gdy rysuje postać z postępem p — do Storyboard.custom({ trace }). */
 export function mascotTrace({ x, y, scale = 1, seed = 1, dur }, p) {
-  const tip = mascotSequence(seed, dur).at(p).tip;
+  const tip = mascotSequence(seed, dur, scale).at(p).tip;
   return tip && { ...tip, x: x + tip.x * scale, y: y + tip.y * scale, lift: tip.lift ?? 0 };
 }
 
@@ -89,7 +89,7 @@ export function mascotTrace({ x, y, scale = 1, seed = 1, dur }, p) {
 export function drawMascot(sk, o) {
   const { x, y, scale = 1, p = 1, seed = 1, still = false, dur } = o;
   if (p <= 0) return;
-  const seq = mascotSequence(seed, dur);
+  const seq = mascotSequence(seed, dur, scale);
   const L = seq.at(p).local;
   const q = (key) => L[seq.index[key]];
   const t = sk.time;
