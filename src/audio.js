@@ -11,6 +11,8 @@ export class AudioTrack {
     this.nodes = [];
     this.playing = false;
     this.ready = null;
+    this.t0 = 0; // czas sceny i zegara audio w chwili startu
+    this.c0 = 0;
   }
 
   /** Pobiera i dekoduje klipy (raz). */
@@ -19,13 +21,18 @@ export class AudioTrack {
     const AC = globalThis.AudioContext ?? globalThis.webkitAudioContext;
     if (!AC) return (this.ready = Promise.resolve(false));
     this.ctx = new AC();
-    this.ready = Promise.all(
+    // każdy klip osobno: brak jednego pliku nie wyłącza całego lektora
+    this.ready = Promise.allSettled(
       [...new Set(this.clips.map((c) => c.src))].map(async (src) => {
         const res = await fetch(src);
+        if (!res.ok) throw new Error(`${src}: HTTP ${res.status}`);
         const buf = await this.ctx.decodeAudioData(await res.arrayBuffer());
         this.buffers.set(src, buf);
       }),
-    ).then(() => true);
+    ).then((r) => {
+      for (const x of r) if (x.status === 'rejected' && typeof console !== 'undefined') console.warn('lektor:', x.reason?.message ?? x.reason);
+      return this.buffers.size > 0;
+    });
     return this.ready;
   }
 
@@ -69,6 +76,6 @@ export class AudioTrack {
 
   /** Bieżący czas sceny według zegara audio. */
   time() {
-    return this.t0 + (this.ctx.currentTime - this.c0);
+    return this.ctx ? this.t0 + (this.ctx.currentTime - this.c0) : this.t0;
   }
 }

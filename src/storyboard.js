@@ -26,6 +26,7 @@ import { StrokePlan, HandTrack, HAND, travelTime, minDuration } from './hand.js'
 import { arrowParts, crayonTrace } from './sketch.js';
 import { subtitleCues, reelCues, toSRT, toVTT } from './narration.js';
 import { resolveTheme } from './themes.js';
+import { makeCanvas } from './canvas.js';
 
 const PEN_SPEED = HAND.speed;
 // rodzaje kroków, które po zakończeniu wyglądają tak samo (poza drganiem kreski) — można je buforować
@@ -97,6 +98,7 @@ export class Storyboard {
    * @param {object} [hand] { trace(sk, p, t) => tip, from, to, tool, natural } — ślad ręki
    */
   #add(kind, dur, o, render, hand) {
+    this.reelCues = null; // napisy rolki liczone od nowa po każdej zmianie scenariusza
     const name = o.name ?? `${kind}#${this.n++}`;
     const useHand = !!hand && o.pencil !== false;
     const timing = { ...o };
@@ -392,6 +394,7 @@ export class Storyboard {
       const start = snap.cursor + (o.gap ?? 0) + lead + wait;
       const clip = { id: beat.id, src: beat.src, start, dur: beat.duration, text: beat.text, words: beat.words, wait };
       this.audio.push(clip);
+      this.reelCues = null;
       const outer = this.beat;
       this.beat = { ...clip, beat, lead };
       this.tl.cursor += o.gap ?? 0;
@@ -434,7 +437,7 @@ export class Storyboard {
   camera({ x = this.w / 2, y = this.h / 2, zoom = 1 } = {}, o = {}) {
     const dur = o.dur ?? 1.2;
     const start = this.tl.resolveStart(o);
-    this.cams.push({ start, dur, to: { x, y, zoom }, ease: ease[o.ease ?? 'inOut'] ?? ease.inOut });
+    this.cams.push({ start, dur, to: { x, y, zoom }, ease: easing(o.ease ?? 'inOut') });
     this.cams.sort((a, b) => a.start - b.start);
     if (!o.parallel) this.tl.cursor = Math.max(this.tl.cursor, start + dur);
     return this;
@@ -473,7 +476,7 @@ export class Storyboard {
   get duration() {
     let d = this.tl.duration;
     for (const c of this.cams) d = Math.max(d, c.start + c.dur);
-    for (const c of this.audio) d = Math.max(d, c.start + c.dur);
+    for (const c of this.audio) d = Math.max(d, c.start + (c.dur ?? 0));
     return d;
   }
 
@@ -773,7 +776,7 @@ export class Storyboard {
         // klucz bez liczby elementów: gdy przybywa ukończonych elementów, tylko je dorysowujemy
         const key = `${visibleChapter}|${sk.boil}|${camKey}|${W}x${H}|${base.a.toFixed(4)},${base.e.toFixed(1)},${base.f.toFixed(1)}`;
         const slots = (this.caches[gi] ??= []);
-        const c = (slots[slot] ??= { canvas: document.createElement('canvas'), key: null, k: 0 });
+        const c = (slots[slot] ??= { canvas: makeCanvas(W, H), key: null, k: 0 });
         if (c.key !== key || c.k > k) {
           c.canvas.width = W;
           c.canvas.height = H;

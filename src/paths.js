@@ -73,14 +73,6 @@ export function pointAt(pts, u) {
   return { x: p[0], y: p[1], angle: 0 };
 }
 
-/** Wycinek ścieżki między u0 a u1 (po długości). */
-export function slice(pts, u0, u1) {
-  const r = resample(pts, Math.max(0.5, pathLength(pts) / 400));
-  const a = Math.floor(u0 * (r.length - 1));
-  const b = Math.ceil(u1 * (r.length - 1));
-  return r.slice(a, b + 1);
-}
-
 // ---------------------------------------------------------------- kształty
 
 /** Odręczna linia: lekko wygięta w losową stronę. */
@@ -173,15 +165,6 @@ export function star(cx, cy, r1, r2 = r1 * 0.45, n = 5, { rotation = -Math.PI / 
   return polygon(pts, { seed, wobble: r1 * 0.06, seg: 3 });
 }
 
-/** Grot strzałki w punkcie (x,y) skierowany pod kątem `angle`. */
-export function arrowHead(x, y, angle, size = 18, spread = 2.55) {
-  return [
-    [x + Math.cos(angle + spread) * size, y + Math.sin(angle + spread) * size],
-    [x, y],
-    [x + Math.cos(angle - spread) * size, y + Math.sin(angle - spread) * size],
-  ];
-}
-
 export function wave(x1, y, x2, amp = 6, freq = 0.05, step = 4) {
   const out = [];
   for (let x = x1; x <= x2; x += step) out.push([x, y + Math.sin((x - x1) * freq) * amp]);
@@ -207,7 +190,6 @@ export function rotate(pts, a, ox = 0, oy = 0) {
   const c = Math.cos(a), s = Math.sin(a);
   return pts.map(([x, y]) => [ox + (x - ox) * c - (y - oy) * s, oy + (x - ox) * s + (y - oy) * c]);
 }
-export const reverse = (pts) => pts.slice().reverse();
 
 export function bounds(pts) {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
@@ -415,4 +397,14 @@ export function chain(list, start) {
     at = next[next.length - 1];
   }
   return out;
+}
+
+/** Czy punkt leży wewnątrz wielokąta (reguła parzystości przecięć). */
+export function pointInPoly([x, y], poly) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
 }

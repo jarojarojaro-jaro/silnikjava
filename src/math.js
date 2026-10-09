@@ -4,7 +4,6 @@
 
 export const clamp = (v, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
 export const lerp = (a, b, t) => a + (b - a) * t;
-export const invLerp = (a, b, v) => (b === a ? 0 : (v - a) / (b - a));
 export const smoothstep = (t) => t * t * (3 - 2 * t);
 
 /** Postęp 0..1 odcinka czasu [start, start+dur]. */

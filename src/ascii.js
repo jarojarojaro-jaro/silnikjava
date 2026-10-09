@@ -9,6 +9,8 @@
 //
 // Własny kod silnika — bez zewnętrznych usług (inspiracja: edytory ASCII art).
 
+import { makeCanvas } from './canvas.js';
+
 const RAMP = ' .:-=+*#%@';
 
 /**
@@ -94,13 +96,6 @@ export function asciiFilter(sk, o = {}) {
 }
 
 let sample = null;
-function makeCanvas(w, h) {
-  if (typeof document === 'undefined') return new OffscreenCanvas(w, h);
-  const c = document.createElement('canvas');
-  c.width = w;
-  c.height = h;
-  return c;
-}
 
 function parseColor(c) {
   const m = /^#([0-9a-f]{6})$/i.exec(c);

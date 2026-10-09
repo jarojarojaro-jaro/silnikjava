@@ -433,8 +433,4 @@ export class HandTrack {
     return { x: s.at[0] + ox * k * (1 + far * 2), y: s.at[1] + oy * k * (1 + far * 2) + bob, angle: 0, lift: 0.5 * k + 0.3 * far };
   }
 
-  /** Czy ręka jest w kadrze w czasie t. */
-  visible(t) {
-    return !!this.at(t);
-  }
 }

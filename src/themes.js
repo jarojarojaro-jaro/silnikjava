@@ -7,18 +7,9 @@
 //   new Player(canvas, scene, { sketch: { theme: 'neon' } })
 
 import { rng } from './math.js';
+import { texture } from './canvas.js';
 import { asciiFilter } from './ascii.js';
 
-const cache = new Map();
-/** Wzór (deterministyczny) generowany raz i trzymany w pamięci. */
-function texture(key, size, paint) {
-  if (cache.has(key)) return cache.get(key);
-  const c = document.createElement('canvas');
-  c.width = c.height = size;
-  paint(c.getContext('2d'), size, rng(key.length * 97 + size));
-  cache.set(key, c);
-  return c;
-}
 
 const vignette = (ctx, w, h, strength) => {
   const g = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.25, w / 2, h / 2, Math.hypot(w, h) * 0.6);

@@ -7,13 +7,24 @@ import { extname, join, resolve, relative } from 'node:path';
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 
+// flagi bez wartości; pozostałe biorą następny argument (--fps 30), więc nie jest on celem
+const SWITCHES = new Set(['mp4', 'sheet', 'items', 'json']);
+
 export function parseArgs(argv) {
   const args = argv.slice(2);
+  const positional = [];
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (!a.startsWith('--')) positional.push(a);
+    else if (!SWITCHES.has(a.slice(2)) && args[i + 1] !== undefined && !args[i + 1].startsWith('--')) i++;
+  }
   return {
-    page: args.find((a) => !a.startsWith('--')),
+    page: positional[0],
+    positional,
     opt(name, def) {
       const i = args.indexOf(`--${name}`);
       if (i < 0) return def;
+      if (SWITCHES.has(name)) return true;
       const v = args[i + 1];
       return v === undefined || v.startsWith('--') ? true : v;
     },

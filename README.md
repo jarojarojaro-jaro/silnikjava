@@ -243,7 +243,7 @@ src/
   paths.js       ścieżki jako tablice punktów: catmull, resample, pointAt,
                  line/polyline/rect/ellipse/circle/arc/polygon/star/wave/spiral, svgPath(d)
   sketch.js      Sketch — pędzle: pen, strokes, arrow, crayon, fill, liquid,
-                 highlight, dot, write, pencil, paper, group, occlude
+                 highlight, dot, write, tool, paper, group, occlude
   hand.js        model ręki: StrokePlan (profil prędkości, podnoszenie ołówka),
                  HandTrack (ciągła trajektoria ołówka przez cały film)
   handwriting.js pismo kreskami: szkielet glifów (Zhang–Suen) -> kreski w

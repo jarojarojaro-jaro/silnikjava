@@ -13,18 +13,14 @@
 
 import { hash, clamp } from './math.js';
 import { StrokePlan } from './hand.js';
+import { makeCanvas } from './canvas.js';
 
 const cache = new Map();
 export const IMG_SCALE = 3; // rozdzielczość obrazka glifów (ostrość przy zoomie kamery i DPR)
 
 export const hasDOM = () => typeof document !== 'undefined' && typeof document.createElement === 'function';
 
-function canvas(w, h) {
-  const c = document.createElement('canvas');
-  c.width = Math.max(1, Math.ceil(w));
-  c.height = Math.max(1, Math.ceil(h));
-  return c;
-}
+const canvas = makeCanvas;
 
 /**
  * Geometria tekstu do pisania odręcznego.

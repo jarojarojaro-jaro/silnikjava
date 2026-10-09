@@ -15,6 +15,8 @@
 // Świat: x/y na ziemi, z w górę. Kamera domyślna (az 45°, k 0,5): +x biegnie
 // w prawo w dół, +y w lewo w dół, więc bliżej widza jest róg z największym x + y.
 
+import { pointInPoly } from './paths.js';
+
 const rad = (d) => (d * Math.PI) / 180;
 
 /**
@@ -103,24 +105,6 @@ export function run(ring, keep) {
   return out;
 }
 
-/** Zaokrągla każdy wierzchołek zamkniętego wielokąta (radii: promień na wierzchołek). */
-export function fillet(pts, radii, n = 4) {
-  const m = pts.length, out = [];
-  const rs = typeof radii === 'number' ? pts.map(() => radii) : radii;
-  for (let i = 0; i < m; i++) {
-    const a = pts[(i + m - 1) % m], p = pts[i], b = pts[(i + 1) % m];
-    const la = Math.hypot(a[0] - p[0], a[1] - p[1]), lb = Math.hypot(b[0] - p[0], b[1] - p[1]);
-    const t = Math.min(rs[i], la / 2, lb / 2);
-    const p1 = [p[0] + ((a[0] - p[0]) / la) * t, p[1] + ((a[1] - p[1]) / la) * t];
-    const p2 = [p[0] + ((b[0] - p[0]) / lb) * t, p[1] + ((b[1] - p[1]) / lb) * t];
-    for (let k = 0; k <= n; k++) {
-      const s = k / n, w = 1 - s;
-      out.push([w * w * p1[0] + 2 * w * s * p[0] + s * s * p2[0], w * w * p1[1] + 2 * w * s * p[1] + s * s * p2[1]]);
-    }
-  }
-  return out;
-}
-
 const close = (pts) => (pts.length ? [...pts, pts[0]] : pts);
 
 /**
@@ -157,14 +141,6 @@ export const seg3 = (cam, a, b) => [cam.P(...a), cam.P(...b)];
 /** Krzywa na ziemi (z = 0 albo podane) przez punkty świata [x, y] → punkty ekranu. */
 export const ground = (cam, pts, z = 0) => pts.map(([x, y]) => cam.P(x, y, z));
 
-function inside([x, y], poly) {
-  let c = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i], [xj, yj] = poly[j];
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c;
-  }
-  return c;
-}
 
 /**
  * Widoczne kawałki linii: części ścieżki poza sylwetkami brył, które ją zasłaniają.
@@ -186,7 +162,7 @@ export function visible(path, occluders, step = 2) {
   const out = [];
   let cur = [];
   for (const p of pts) {
-    if (occluders.some((o) => inside(p, o))) {
+    if (occluders.some((o) => pointInPoly(p, o))) {
       if (cur.length > 2) out.push(cur);
       cur = [];
     } else cur.push(p);

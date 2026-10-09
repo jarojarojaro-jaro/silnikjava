@@ -11,8 +11,7 @@
 import { parseArgs, openPlayer } from './lib/page.mjs';
 import { styleTargets } from '../examples/scenes/styles/index.js';
 
-const { opt } = parseArgs(process.argv);
-const targets = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const { opt, positional: targets } = parseArgs(process.argv);
 const list = targets.length
   ? targets
   : [

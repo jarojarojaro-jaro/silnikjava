@@ -103,17 +103,20 @@ export class Player {
 
   play() {
     this.started = true;
-    if (this.t >= this.duration && this.scene.idle !== 'loop' && this.scene.idle !== 'boil') this.t = 0;
+    const idle = this.scene.idle ?? 'boil';
+    if (this.t >= this.duration && idle !== 'loop' && idle !== 'boil') this.t = 0;
     this.playing = true;
     this.lastNow = null;
     // dźwięk startuje od bieżącego czasu (przeglądarka wymaga gestu — wołaj play() z kliknięcia)
     if (this.audio && this.o.speed === 1) {
       // obraz czeka, aż dźwięk się wczyta i ruszy — start równo z głosem
       this.waitAudio = true;
-      this.audio.play(Math.max(0, this.t)).then(() => {
-        this.waitAudio = false;
-        this.lastNow = null;
-      });
+      this.audio.play(Math.max(0, this.t))
+        .catch(() => { this.audio = null; }) // dźwięk niedostępny — film gra dalej bez głosu
+        .finally(() => {
+          this.waitAudio = false;
+          this.lastNow = null;
+        });
     }
     return this;
   }
@@ -134,7 +137,7 @@ export class Player {
     this.started = true;
     this.dirty = true;
     this.render();
-    if (this.audio?.playing) this.audio.play(Math.max(0, t));
+    if (this.audio?.playing) this.audio.play(Math.max(0, t)).catch(() => { this.audio = null; });
     return this;
   }
 
@@ -158,8 +161,8 @@ export class Player {
   renderAt(t) {
     const { ctx, sk, dpr } = this;
     sk.time = t;
-    const boilIdx = this.scene.boil === false ? 0 : Math.floor(Math.max(0, t) * BOIL_FPS);
-    sk.boil = boilIdx % BOIL_CYCLE;
+    const boilIdx = Math.floor(Math.max(0, t) * BOIL_FPS);
+    sk.boil = this.scene.boil === false ? 0 : boilIdx % BOIL_CYCLE;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'source-over';
@@ -199,8 +202,9 @@ export class Player {
           this.playing = false;
           this.dirty = true;
         } else if (idle === 'boil') {
-          // po intro przerysowujemy tylko, gdy zmienia się klatka "drgania"
-          if (Math.floor(this.t * BOIL_FPS) === this.lastBoil && !this.dirty) return this.o.onTime?.(this.t);
+          // po intro przerysowujemy tylko, gdy zmienia się klatka "drgania" (bez drgania — wcale)
+          const still = this.scene.boil === false || Math.floor(this.t * BOIL_FPS) === this.lastBoil;
+          if (still && !this.dirty) return this.o.onTime?.(this.t);
         } else if (idle === 'loop' && this.scene.fps) {
           if (now - this.lastDraw < 1000 / this.scene.fps - 2 && !this.dirty) return this.o.onTime?.(this.t);
         }

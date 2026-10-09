@@ -7,7 +7,8 @@
 // danego czasu t. Dzięki temu można dowolnie przewijać, zapętlać i eksportować.
 
 import { clamp, hash, noise1, rng } from './math.js';
-import { resample, bounds, pathInfo } from './paths.js';
+import { resample, bounds, pathInfo, pointInPoly } from './paths.js';
+import { makeCanvas, texture } from './canvas.js';
 import { StrokePlan } from './hand.js';
 import { textGeometry, hasDOM, IMG_SCALE } from './handwriting.js';
 import { resolveTheme } from './themes.js';
@@ -34,8 +35,6 @@ export const BOIL_FPS = 8;
  */
 export const BOIL_CYCLE = 4;
 
-let grainCache = null;
-let paperCache = null;
 
 export class Sketch {
   /**
@@ -148,7 +147,7 @@ export class Sketch {
         if (!visible(i)) continue;
         const cx = Math.round(P[i][0] / g - 0.5 - sh), cy = Math.round(P[i][1] / g - 0.5 - sh);
         for (let a = 0; a < k; a++) for (let b = 0; b < k; b++) {
-          const key = (cx + a) * 4096 + cy + b;
+          const key = `${cx + a},${cy + b}`;
           if (seen.has(key)) continue;
           seen.add(key);
           path.rect((cx + a) * g, (cy + b) * g, g, g);
@@ -404,7 +403,7 @@ export class Sketch {
       const [x, y] = z.path[i];
       for (let cx = Math.floor((x - r) / g); cx <= Math.floor((x + r) / g); cx++) {
         for (let cy = Math.floor((y - r) / g); cy <= Math.floor((y + r) / g); cy++) {
-          const key = cx * 4096 + cy;
+          const key = `${cx},${cy}`;
           if (seen.has(key)) continue;
           seen.add(key);
           if (pointInPoly([(cx + 0.5) * g, (cy + 0.5) * g], poly)) path.rect(cx * g, cy * g, g, g);
@@ -565,11 +564,6 @@ export class Sketch {
     lc.restore();
     // domyślnie mnożenie (czarny kontur pod kolorem zostaje czarny); blend 'source-over' — kolor kryjący (np. biały lód na wodzie)
     this.#composite(box, { alpha: o.alpha ?? 1, blend: o.blend ?? 'multiply' });
-  }
-
-  /** Gdzie jest ręka przy kolorowaniu kredką (bez rysowania) — jedzie zygzakiem wewnątrz konturu. */
-  crayonTrace(poly, p, o = {}) {
-    return crayonTrace(poly, p, o);
   }
 
   /**
@@ -850,12 +844,6 @@ export class Sketch {
     return t && { x: x + t.x, y: y + t.y, angle: t.angle, lift: t.lift };
   }
 
-  /** Naturalny czas pisania tekstu [s] (z modelu ręki). */
-  writeTime(text, o = {}) {
-    if (o.mode === 'wipe' || !hasDOM()) return String(text).length / 14;
-    return this.#textGeo(text, o).plan.total;
-  }
-
   #textGeo(text, o) {
     const size = o.size ?? 32;
     const fontCss = `${o.weight ?? ''} ${size}px ${this.font(o.font)}`.trim();
@@ -970,11 +958,6 @@ export class Sketch {
       else this.#pencilSprite(len, wd, size, o);
     }
     ctx.restore();
-  }
-
-  /** Ołówek (zgodność wstecz) — to samo co tool(x, y, { type: 'pencil', ... }). */
-  pencil(x, y, o = {}) {
-    this.tool(x, y, { ...o, type: 'pencil' });
   }
 
   #pencilSprite(len, wd, size, o) {
@@ -1478,9 +1461,9 @@ export class Sketch {
     ctx.moveTo(0, 0);
     ctx.lineTo(7 * size, -wd * 0.5);
     // nierówny brzeg zwęglonej gałązki
-    for (let x = 12; x <= len; x += 10) ctx.lineTo(x, -wd * (0.48 + r() * 0.08));
+    for (let x = 12 * size; x <= len; x += 10 * size) ctx.lineTo(x, -wd * (0.48 + r() * 0.08));
     ctx.lineTo(len + 2 * size, 0);
-    for (let x = len; x >= 12; x -= 10) ctx.lineTo(x, wd * (0.46 + r() * 0.08));
+    for (let x = len; x >= 12 * size; x -= 10 * size) ctx.lineTo(x, wd * (0.46 + r() * 0.08));
     ctx.lineTo(9 * size, wd * 0.5);
     ctx.closePath();
     ctx.fill();
@@ -1767,125 +1750,83 @@ function pixelPencil() {
   return (pencilCells = out);
 }
 
-function pointInPoly([x, y], poly) {
-  let inside = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i], [xj, yj] = poly[j];
-    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
-  }
-  return inside;
-}
 
 // ------------------------------------------------------------------ tekstury
 
-function makeCanvas(w, h) {
-  if (typeof OffscreenCanvas !== 'undefined' && typeof document === 'undefined') return new OffscreenCanvas(w, h);
-  const c = document.createElement('canvas');
-  c.width = Math.max(1, w);
-  c.height = Math.max(1, h);
-  return c;
-}
 
 /** Tekstura "rys" kredki: krótkie ukośne kreski o losowej jasności. */
 function grainTexture() {
-  if (grainCache) return grainCache;
-  const S = 192;
-  const c = makeCanvas(S, S);
-  const g = c.getContext('2d');
-  const r = rng(77);
-  g.lineCap = 'round';
-  for (let i = 0; i < 1400; i++) {
-    const x = r() * S, y = r() * S;
-    const a = -0.5 + (r() - 0.5) * 0.5;
-    const l = 2 + r() * 7;
-    g.strokeStyle = `rgba(0,0,0,${0.35 + r() * 0.65})`;
-    g.lineWidth = 0.6 + r() * 1.1;
-    for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) {
-      g.beginPath();
-      g.moveTo(x + ox, y + oy);
-      g.lineTo(x + ox + Math.cos(a) * l, y + oy + Math.sin(a) * l);
-      g.stroke();
+  return texture('sketch-grain', 192, (g, S, r) => {
+    g.lineCap = 'round';
+    for (let i = 0; i < 1400; i++) {
+      const x = r() * S, y = r() * S;
+      const a = -0.5 + (r() - 0.5) * 0.5;
+      const l = 2 + r() * 7;
+      g.strokeStyle = `rgba(0,0,0,${0.35 + r() * 0.65})`;
+      g.lineWidth = 0.6 + r() * 1.1;
+      for (const ox of [-S, 0, S]) for (const oy of [-S, 0, S]) {
+        g.beginPath();
+        g.moveTo(x + ox, y + oy);
+        g.lineTo(x + ox + Math.cos(a) * l, y + oy + Math.sin(a) * l);
+        g.stroke();
+      }
     }
-  }
-  grainCache = c;
-  return c;
+  }, 77);
 }
 
-let chalkCache = null;
 /** Ziarno kredy na tablicy: gęste drobne "dziury" i krótkie poziome przetarcia. */
 function chalkTexture() {
-  if (chalkCache) return chalkCache;
-  const S = 160;
-  const c = makeCanvas(S, S);
-  const g = c.getContext('2d');
-  const r = rng(31);
-  for (let i = 0; i < 2300; i++) {
-    g.fillStyle = `rgba(0,0,0,${0.4 + r() * 0.6})`;
-    const x = r() * S, y = r() * S, s = 0.6 + r() * 1.6;
-    g.fillRect(x, y, s * (1 + r() * 2.5), s);
-  }
-  chalkCache = c;
-  return c;
+  return texture('sketch-chalk', 160, (g, S, r) => {
+    for (let i = 0; i < 2300; i++) {
+      g.fillStyle = `rgba(0,0,0,${0.4 + r() * 0.6})`;
+      const x = r() * S, y = r() * S, s = 0.6 + r() * 1.6;
+      g.fillRect(x, y, s * (1 + r() * 2.5), s);
+    }
+  }, 31);
 }
 
-let halftoneCache = null;
 /** Raster drukarski: kropki w siatce przesuniętej co drugi rząd (układ 45°). */
 function halftoneTexture() {
-  if (halftoneCache) return halftoneCache;
-  const S = 14;
-  const c = makeCanvas(S, S);
-  const g = c.getContext('2d');
-  g.fillStyle = '#000';
-  for (const [x, y] of [[0, 0], [S, 0], [0, S], [S, S], [S / 2, S / 2]]) {
-    g.beginPath();
-    g.arc(x, y, 2.6, 0, Math.PI * 2);
-    g.fill();
-  }
-  halftoneCache = c;
-  return c;
+  return texture('sketch-halftone', 14, (g, S) => {
+    g.fillStyle = '#000';
+    for (const [x, y] of [[0, 0], [S, 0], [0, S], [S, S], [S / 2, S / 2]]) {
+      g.beginPath();
+      g.arc(x, y, 2.6, 0, Math.PI * 2);
+      g.fill();
+    }
+  });
 }
 
-let granuleCache = null;
 /** Granulacja akwareli: pigment osiada w zagłębieniach papieru — drobne, nieregularne kropki. */
 function granuleTexture() {
-  if (granuleCache) return granuleCache;
-  const S = 192;
-  const c = makeCanvas(S, S);
-  const g = c.getContext('2d');
-  const r = rng(77);
-  for (let i = 0; i < 2600; i++) {
-    g.fillStyle = `rgba(0,0,0,${0.15 + r() * 0.5})`;
-    g.beginPath();
-    g.arc(r() * S, r() * S, 0.5 + r() * 1.3, 0, Math.PI * 2);
-    g.fill();
-  }
-  granuleCache = c;
-  return c;
+  return texture('sketch-granule', 192, (g, S, r) => {
+    for (let i = 0; i < 2600; i++) {
+      g.fillStyle = `rgba(0,0,0,${0.15 + r() * 0.5})`;
+      g.beginPath();
+      g.arc(r() * S, r() * S, 0.5 + r() * 1.3, 0, Math.PI * 2);
+      g.fill();
+    }
+  }, 77);
 }
 
 /** Faktura papieru: drobne plamki i włókna. */
 function paperTexture() {
-  if (paperCache) return paperCache;
-  const S = 256;
-  const c = makeCanvas(S, S);
-  const g = c.getContext('2d');
-  const r = rng(11);
-  for (let i = 0; i < 2600; i++) {
-    const v = r();
-    g.fillStyle = v > 0.5 ? `rgba(120,100,70,${0.05 + r() * 0.07})` : `rgba(255,255,255,${0.2 + r() * 0.3})`;
-    g.fillRect(r() * S, r() * S, 1 + r() * 1.5, 1 + r() * 1.5);
-  }
-  g.lineWidth = 0.6;
-  for (let i = 0; i < 70; i++) {
-    const x = r() * S, y = r() * S, a = r() * Math.PI, l = 4 + r() * 14;
-    g.strokeStyle = `rgba(110,90,60,${0.05 + r() * 0.06})`;
-    g.beginPath();
-    g.moveTo(x, y);
-    g.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + 2, y + Math.sin(a) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l);
-    g.stroke();
-  }
-  paperCache = c;
-  return c;
+  return texture('sketch-paper', 256, (g, S, r) => {
+    for (let i = 0; i < 2600; i++) {
+      const v = r();
+      g.fillStyle = v > 0.5 ? `rgba(120,100,70,${0.05 + r() * 0.07})` : `rgba(255,255,255,${0.2 + r() * 0.3})`;
+      g.fillRect(r() * S, r() * S, 1 + r() * 1.5, 1 + r() * 1.5);
+    }
+    g.lineWidth = 0.6;
+    for (let i = 0; i < 70; i++) {
+      const x = r() * S, y = r() * S, a = r() * Math.PI, l = 4 + r() * 14;
+      g.strokeStyle = `rgba(110,90,60,${0.05 + r() * 0.06})`;
+      g.beginPath();
+      g.moveTo(x, y);
+      g.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + 2, y + Math.sin(a) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l);
+      g.stroke();
+    }
+  }, 11);
 }
 
 function hashString(s) {
