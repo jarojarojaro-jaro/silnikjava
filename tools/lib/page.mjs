@@ -64,8 +64,18 @@ export async function openPlayer(page, { width = 1280 } = {}) {
   tab.on('pageerror', (e) => console.error('błąd strony:', e.message));
   tab.on('console', (m) => m.type() === 'error' && console.error('konsola:', m.text()));
   tab.on('requestfailed', (r) => console.error('nieudane żądanie:', r.url(), r.failure()?.errorText));
-  await tab.goto(url, { waitUntil: 'load' });
-  await tab.waitForFunction(() => window.__player, null, { timeout: 10000 });
+  // strona z czcionkami z sieci przy kilku przeglądarkach naraz (render --jobs) potrafi ładować
+  // się kilkanaście sekund: limit 30 s i jedna ponowna próba zamiast przerwanego renderu
+  for (let attempt = 1; ; attempt++) {
+    try {
+      await tab.goto(url, { waitUntil: 'load', timeout: 30000 });
+      await tab.waitForFunction(() => window.__player, null, { timeout: 30000 });
+      break;
+    } catch (e) {
+      if (attempt >= 2) throw e;
+      console.error(`strona ładuje się za długo (${e.name}) — ponawiam`);
+    }
+  }
   // wszystkie czcionki naprawdę wczytane — inaczej ślad pisma liczy się dla czcionki zastępczej
   await tab.evaluate(() => window.__player.loaded ?? window.__player.ready);
 
