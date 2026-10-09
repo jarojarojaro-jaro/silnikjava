@@ -2,7 +2,7 @@
 // jako jedyny kolor). "Pompeje: ostatni dzień" — film historyczny z lektorką.
 // Głos: examples/voice/charcoal/.
 
-import { Storyboard, line, polyline, catmull } from '../../../src/index.js';
+import { Storyboard, line, polyline, catmull, chain } from '../../../src/index.js';
 
 // stożek z płaskim kraterem
 const VOLCANO = polyline([[500, 600], [700, 420], [815, 305], [835, 298], [905, 298], [925, 305], [1040, 420], [1250, 600]], { closed: false, seed: 2, bow: 0.012 });
@@ -38,7 +38,8 @@ export function buildCharcoal(voice) {
     sb.strokes([
       polyline([[90, 470], [210, 415], [330, 470]], { closed: true, seed: 5, bow: 0.01 }),
       line(100, 482, 320, 482, { seed: 6 }),
-      ...[125, 185, 245, 305].map((x, i) => line(x, 488, x, 590, { seed: 7 + i, bow: 0.01 })),
+      // kolumny na zmianę z góry i z dołu — krótkie przeloty ręki
+      ...chain([125, 185, 245, 305].map((x, i) => line(x, 488, x, 590, { seed: 7 + i, bow: 0.01 })), [320, 482]),
     ], { color: 'ink', w: 2.8, seed: 5, speed: 1250, cue: 'Pompeje,' });
     sb.strokes([
       polyline([[360, 515], [450, 515], [450, 600], [360, 600]], { seed: 14, bow: 0.01 }),
@@ -68,14 +69,14 @@ export function buildCharcoal(voice) {
   // 3. "Popiół spada na ulice jak gęsty, szary śnieg. Następnego ranka zboczem spływa rozżarzona chmura gorącego gazu
   //    i pyłu, szybsza niż koń w galopie."
   sb.say(B(3), () => {
-    sb.strokes(flakes, { color: 'inkSoft', w: 2.4, seed: 30, speed: 1500, cue: 'Popiół' });
+    sb.strokes(chain(flakes), { color: 'inkSoft', w: 2.4, seed: 30, speed: 1500, cue: 'Popiół' });
     sb.pen(FLOW, { color: 'pen', w: 3, seed: 31, cue: 'zboczem' });
     sb.crayon(FLOW, { color: 'pen', seed: 32, alpha: 0.9, w: 50, spacing: 40 });
   });
 
   // 4. "Miasto znika pod grubą warstwą popiołu na prawie dwa tysiące lat. Dziś archeolodzy odkopują je ulica po ulicy."
   sb.say(B(4), () => {
-    sb.pen(catmull(ASH.slice(0, 5), 8), { color: 'ink', w: 3, seed: 40, cue: 'znika' });
+    sb.pen(catmull(ASH.slice(0, 5), 8), { color: 'ink', w: 3, seed: 40, cue: 'Miasto' });
     // popiół wraca na już narysowane miasto — świadomy powrót
     sb.crayon(ASH, { color: 'inkSoft', seed: 41, alpha: 0.75, w: 50, spacing: 40, revisit: true });
     sb.write('pod popiołem 1700 lat', 360, 668, { size: 34, align: 'center', color: 'ink', cue: 'tysiące' });
