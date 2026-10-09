@@ -427,69 +427,95 @@ export class Sketch {
     const { ctx } = this;
     const lc = this.layerCtx;
     const [x0, y0, x1, y1] = box;
-    const g = washGeometry(poly, o.seed ?? 5, o.holes);
+    const T = ctx.getTransform();
     const col = this.col(o.color, 'sky');
-    const shape = () => {
-      lc.beginPath();
-      for (const ring of g.rings) {
-        ring.forEach(([x, y], i) => (i ? lc.lineTo(x, y) : lc.moveTo(x, y)));
-        lc.closePath();
-      }
-    };
+    // gotowa plama (wypełnienie, pigment, brzeg) zależy tylko od kształtu, koloru i ułożenia
+    // na ekranie — liczymy ją raz, a w kolejnych klatkach tylko odsłaniamy mokrym frontem
+    const key = `${x0},${y0},${x1},${y1}|${[T.a, T.b, T.c, T.d].map((v) => v.toFixed(4))}|${T.e.toFixed(1)},${T.f.toFixed(1)}|${col}|${o.soft ?? ''}|${o.seed ?? 5}`;
+    let byKey = washBitmaps.get(poly);
+    if (!byKey) washBitmaps.set(poly, (byKey = new Map()));
+    let full = byKey.get(key);
+    if (!full) {
+      if (byKey.size > 6) byKey.clear(); // inne ułożenia (ruch kamery) — nie trzymamy ich bez końca
+      full = makeCanvas(x1 - x0, y1 - y0);
+      const fc = full.getContext('2d');
+      fc.setTransform(T.a, T.b, T.c, T.d, T.e - x0, T.f - y0);
+      this.#paintWash(fc, washGeometry(poly, o.seed ?? 5, o.holes), col, o);
+      byKey.set(key, full);
+    }
     lc.save();
     lc.setTransform(1, 0, 0, 1, 0, 0);
     lc.clearRect(x0, y0, x1 - x0, y1 - y0);
-    lc.setTransform(ctx.getTransform());
-    // warstwa farby (soft: mgławica — mocno rozmyta, bez brzegu)
-    if (o.soft) lc.filter = `blur(${o.soft === true ? 14 : o.soft}px)`;
-    shape();
-    lc.fillStyle = col;
-    lc.globalAlpha = 0.5;
-    lc.fill('evenodd');
-    lc.filter = 'none';
-    // nierówne rozłożenie pigmentu: kilka miękkich plam ciemniej i jaśniej
-    lc.save();
-    lc.clip('evenodd');
-    for (const b of g.blots) {
-      const gr = lc.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
-      gr.addColorStop(0, col);
-      gr.addColorStop(1, 'rgba(0,0,0,0)');
-      lc.globalAlpha = b.a;
-      lc.globalCompositeOperation = b.a > 0.2 ? 'source-over' : 'destination-out';
-      lc.fillStyle = gr;
-      lc.fillRect(b.x - b.r, b.y - b.r, b.r * 2, b.r * 2);
-    }
-    lc.restore();
-    // pigment zbiera się na brzegu wysychającej plamy
-    if (!o.soft) {
-      shape();
-      lc.strokeStyle = col;
-      lc.globalAlpha = 0.75;
-      lc.lineWidth = 2.4;
-      lc.filter = 'blur(1px)';
-      lc.stroke();
-      lc.filter = 'none';
-    }
-    // mokry front: widać tylko to, przez co przeszedł pędzel
+    lc.drawImage(full, x0, y0);
+    // mokry front: widać tylko to, przez co przeszedł pędzel; maska z rozmytym brzegiem
+    // liczona w połowie rozdzielczości (rozmycie jest najdroższą częścią klatki)
     if (p < 1) {
-      lc.globalCompositeOperation = 'destination-in';
-      lc.globalAlpha = 1;
-      lc.filter = 'blur(5px)';
-      lc.strokeStyle = '#000';
-      lc.lineCap = 'round';
-      lc.lineJoin = 'round';
-      lc.lineWidth = width * 1.7;
-      lc.beginPath();
+      const w = x1 - x0, h = y1 - y0, hw = Math.ceil(w / 2), hh = Math.ceil(h / 2);
+      const m = (this.maskCanvas ??= makeCanvas(hw, hh));
+      if (m.width < hw || m.height < hh) { m.width = Math.max(m.width, hw); m.height = Math.max(m.height, hh); }
+      const mc = m.getContext('2d');
+      mc.setTransform(1, 0, 0, 1, 0, 0);
+      mc.clearRect(0, 0, m.width, m.height);
+      mc.setTransform(T.a / 2, T.b / 2, T.c / 2, T.d / 2, (T.e - x0) / 2, (T.f - y0) / 2);
+      mc.filter = 'blur(2.5px)';
+      mc.strokeStyle = '#000';
+      mc.lineCap = 'round';
+      mc.lineJoin = 'round';
+      mc.lineWidth = width * 1.7;
+      mc.beginPath();
       for (let i = 0; i < count; i++) {
         const [x, y] = z.path[i];
-        i ? lc.lineTo(x, y) : lc.moveTo(x, y);
+        i ? mc.lineTo(x, y) : mc.moveTo(x, y);
       }
-      lc.stroke();
-      lc.filter = 'none';
+      mc.stroke();
+      mc.filter = 'none';
+      lc.globalCompositeOperation = 'destination-in';
+      lc.drawImage(m, 0, 0, hw, hh, x0, y0, w, h);
     }
     lc.restore();
     // na jasnym papierze farba mnoży się z podłożem; na ciemnym (kosmos) — świeci (blend: 'screen'/'lighter')
     this.#composite(box, { grain: o.grain ?? 0.35, granule: true, alpha: o.alpha ?? 0.9, blend: o.blend ?? 'multiply' });
+  }
+
+  /** Cała plama farby na kontekście c (w układzie sceny): wypełnienie, pigment, brzeg. */
+  #paintWash(c, g, col, o) {
+    const shape = () => {
+      c.beginPath();
+      for (const ring of g.rings) {
+        ring.forEach(([x, y], i) => (i ? c.lineTo(x, y) : c.moveTo(x, y)));
+        c.closePath();
+      }
+    };
+    // warstwa farby (soft: mgławica — mocno rozmyta, bez brzegu)
+    if (o.soft) c.filter = `blur(${o.soft === true ? 14 : o.soft}px)`;
+    shape();
+    c.fillStyle = col;
+    c.globalAlpha = 0.5;
+    c.fill('evenodd');
+    c.filter = 'none';
+    // nierówne rozłożenie pigmentu: kilka miękkich plam ciemniej i jaśniej
+    c.save();
+    c.clip('evenodd');
+    for (const b of g.blots) {
+      const gr = c.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+      gr.addColorStop(0, col);
+      gr.addColorStop(1, 'rgba(0,0,0,0)');
+      c.globalAlpha = b.a;
+      c.globalCompositeOperation = b.a > 0.2 ? 'source-over' : 'destination-out';
+      c.fillStyle = gr;
+      c.fillRect(b.x - b.r, b.y - b.r, b.r * 2, b.r * 2);
+    }
+    c.restore();
+    // pigment zbiera się na brzegu wysychającej plamy
+    if (!o.soft) {
+      shape();
+      c.strokeStyle = col;
+      c.globalAlpha = 0.75;
+      c.lineWidth = 2.4;
+      c.filter = 'blur(1px)';
+      c.stroke();
+      c.filter = 'none';
+    }
   }
 
   /**
@@ -568,10 +594,19 @@ export class Sketch {
     ctx.globalAlpha *= alpha;
     if (blend) ctx.globalCompositeOperation = blend;
     if (glow) {
+      // poświata: rozmycie liczone w połowie rozdzielczości (4× mniej pikseli),
+      // przy tym promieniu nie widać różnicy, a klatka liczy się dużo szybciej
+      const w = x1 - x0, h = y1 - y0, hw = Math.ceil(w / 2), hh = Math.ceil(h / 2);
+      const g = (this.glowCanvas ??= makeCanvas(hw, hh));
+      if (g.width < hw || g.height < hh) { g.width = Math.max(g.width, hw); g.height = Math.max(g.height, hh); }
+      const gc = g.getContext('2d');
+      gc.clearRect(0, 0, hw + 8, hh + 8);
+      gc.filter = 'blur(3.5px)';
+      gc.drawImage(this.layer, x0, y0, w, h, 0, 0, hw, hh);
+      gc.filter = 'none';
       ctx.globalCompositeOperation = 'lighter';
-      ctx.filter = 'blur(7px)';
-      ctx.drawImage(this.layer, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
-      ctx.filter = 'none';
+      ctx.drawImage(g, 0, 0, hw, hh, x0, y0, w, h);
+      ctx.globalCompositeOperation = blend ?? 'source-over';
     }
     ctx.drawImage(this.layer, x0, y0, x1 - x0, y1 - y0, x0, y0, x1 - x0, y1 - y0);
     ctx.restore();
@@ -1644,6 +1679,8 @@ function zigzag(poly, o) {
 
 /** Pozycja ręki przy kolorowaniu kredką (bez rysowania). */
 const washCache = new WeakMap();
+// gotowe bitmapy plam (#wash) — po kształcie, potem po kolorze i ułożeniu na ekranie
+const washBitmaps = new WeakMap();
 /** Kształt plamy akwareli: brzeg lekko rozlany (szum wzdłuż normalnej) + plamy pigmentu. */
 function washGeometry(poly, seed, holes = []) {
   const key = `${seed}|${holes.length}`;

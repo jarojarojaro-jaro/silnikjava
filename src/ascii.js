@@ -28,17 +28,26 @@ export function asciiFilter(sk, o = {}) {
   const [cw0, ch0] = o.cell ?? [9, 16];
   const cw = Math.max(3, Math.round(cw0 * scale)), ch = Math.max(5, Math.round(ch0 * scale));
   const paper = parseColor(sk.col(o.paper ?? 'paper'));
-  const img = ctx.getImageData(0, 0, W, H).data;
-  const step = Math.max(1, Math.round(scale)); // co który piksel próbkujemy
+  // odczyt pikseli z GPU jest drogi: czytamy kopię w rozdzielczości sceny (9 × 16 px na
+  // komórkę), także przy eksporcie w większym rozmiarze; mniej niż 1:1 psuje rozpoznawanie
+  // kierunku (poziome linie dostają wtedy znaki gęstości)
+  const k = Math.min(1, 1 / scale);
+  const SW = Math.ceil(W * k), SH = Math.ceil(H * k);
+  const small = (sample ??= makeCanvas(SW, SH));
+  if (small.width !== SW || small.height !== SH) { small.width = SW; small.height = SH; }
+  const sc = small.getContext('2d', { willReadFrequently: true });
+  sc.drawImage(canvas, 0, 0, W, H, 0, 0, SW, SH);
+  const img = sc.getImageData(0, 0, SW, SH).data;
   const cols = Math.ceil(W / cw), rows = Math.ceil(H / ch);
   const glyphs = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      const x0 = c * cw, y0 = r * ch, x1 = Math.min(W, x0 + cw), y1 = Math.min(H, y0 + ch);
+      const x0 = Math.floor(c * cw * k), y0 = Math.floor(r * ch * k);
+      const x1 = Math.min(SW, Math.floor((c + 1) * cw * k)), y1 = Math.min(SH, Math.floor((r + 1) * ch * k));
       let n = 0, sw = 0, sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, cr = 0, cg = 0, cb = 0;
-      for (let y = y0; y < y1; y += step) {
-        for (let x = x0; x < x1; x += step) {
-          const i = (y * W + x) * 4;
+      for (let y = y0; y < y1; y++) {
+        for (let x = x0; x < x1; x++) {
+          const i = (y * SW + x) * 4;
           const dr = img[i] - paper[0], dg = img[i + 1] - paper[1], db = img[i + 2] - paper[2];
           const w = Math.min(1, Math.max(Math.abs(dr), Math.abs(dg), Math.abs(db)) / 140);
           n++;
@@ -82,6 +91,15 @@ export function asciiFilter(sk, o = {}) {
   }
   ctx.restore();
   return { cols, rows, glyphs: glyphs.length };
+}
+
+let sample = null;
+function makeCanvas(w, h) {
+  if (typeof document === 'undefined') return new OffscreenCanvas(w, h);
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  return c;
 }
 
 function parseColor(c) {
