@@ -189,7 +189,9 @@ niżej. Podgląd w ramce telefonu: `examples/reels.html`.
 ```bash
 npm start            # serwer statyczny na http://localhost:8080
 npm test             # testy jednostkowe (node:test)
-node tools/lint.mjs  # kontrola fizyki i kolejności wszystkich scen (Playwright)
+npm run lint         # fizyka, kolejność, tempo, przestoje, skoki ręki we wszystkich scenach (Playwright)
+npm run audit        # czas klatki i płynność ręki wszystkich filmów (budżet p95 ≤ 33 ms)
+npm run check        # wszystko powyżej — przed każdym pushem
 ```
 
 Otwórz `http://localhost:8080` — galeria z demami:
@@ -484,6 +486,7 @@ ołówkiem jak każdą inną ścieżkę.
 | --- | --- |
 | [docs/ZASADY.md](docs/ZASADY.md) | zasady rysownika: prompt źródłowy dla człowieka i modelu (fizyka ręki, obiekt w całości, lektor, rolki) |
 | [docs/STYLE.md](docs/STYLE.md) | motywy: co zmieniają, jak zrobić własny |
+| [docs/KOD.md](docs/KOD.md) | zasady kodu: architektura, płynność ręki, budżet klatki, lista kontrolna nowego stylu |
 | [docs/LEKTOR.md](docs/LEKTOR.md) | głos z tekstu albo nagrania, format skryptu, synchronizacja |
 | [docs/PRODUKCJA.md](docs/PRODUKCJA.md) | jak powstaje film ze skryptu |
 | [docs/SKALOWANIE.md](docs/SKALOWANIE.md) | produkcja seryjna mniejszymi modelami (specyfikacja, linter, few-shot) |

@@ -15,9 +15,18 @@ Najważniejsze:
 - kotwica lektora (`cue`) na pierwszym kroku obiektu. Gdy rysunek jest
   dłuższy niż zdanie, dopisz lektorowi słowa zamiast przyspieszać rękę.
 
-Scena jest gotowa dopiero, gdy `node tools/lint.mjs` daje 0 błędów i 0 ostrzeżeń,
-`npm test` przechodzi, a arkusz klatek (`tools/render.mjs … --fps 2 --sheet`)
-został obejrzany.
+Scena jest gotowa dopiero, gdy `npm run check` przechodzi (testy, lint z 0 błędów
+i 0 ostrzeżeń, audyt płynności i czasu klatki), a arkusz klatek
+(`tools/render.mjs … --fps 2 --sheet`) został obejrzany.
+
+## Zanim zmienisz silnik
+
+Przeczytaj [docs/KOD.md](docs/KOD.md) (zasady kodu). Najważniejsze:
+- scena to czysta funkcja czasu, losowość tylko z ziaren;
+- ręka bez skoków: limity w `HAND`, nie obchodzić ich w scenach;
+- budżet klatki p95 ≤ 33 ms: drogie efekty raz, w cache;
+- pomocnik raz (math/paths/canvas), bez martwego kodu, JSDoc zgodny z kodem;
+- nowy styl: wpis w rejestrze `examples/scenes/styles/index.js`.
 
 ## Repozytorium
 

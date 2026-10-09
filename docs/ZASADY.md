@@ -22,6 +22,9 @@ A zanim zacznie, wie już, jak każda rzecz ma wyglądać na końcu.
 3. **[lint] Ludzkie tempo.** Ręka po kartce ma najwyżej ~3200 px/s, w powietrzu
    4500 px/s, a pismo ma własne tempo. Nie skracaj kroków na siłę (`dur`).
    Silnik sam wydłuży za krótki krok, a lint zgłosi za szybkie pismo.
+   **[lint, ostrzeżenie]** Ręka porusza się płynnie: nie przeskakuje w jednej
+   klatce (30 kl./s) o więcej niż 70 px. Długie przeloty skracaj kolejnością
+   rysowania (`chain` dla kresek bez kierunku), a nie przyspieszaniem.
 
 ## 2. Kompletność obiektu (najważniejsza reguła kolejności)
 
