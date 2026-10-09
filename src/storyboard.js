@@ -532,7 +532,8 @@ export class Storyboard {
         trace: (t) => it.trace(sk, it.seg.ease(clamp((t - it.seg.start) / (it.seg.dur || 1))), t),
       }));
     const off = [this.w + 90, this.h + 110];
-    return new HandTrack(segs, { enter: off, exit: off });
+    // ręka zostaje przy rysunku do końca filmu (lektor może jeszcze mówić) i schodzi w ostatniej chwili
+    return new HandTrack(segs, { enter: off, exit: off, exitAt: this.duration - 0.8 });
   }
 
   /**

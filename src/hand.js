@@ -322,6 +322,7 @@ export class Sequence {
  */
 export class HandTrack {
   constructor(segments, o = {}) {
+    // exitAt — od kiedy ręka schodzi z kadru (domyślnie 0,8 s po ostatnim kroku)
     this.o = { enter: [1400, 900], exit: [1400, 900], restOffset: [34, 42], restLong: 2.5, ...o };
     const segs = segments.filter((s) => s.end > s.start).sort((a, b) => a.start - b.start);
     const sched = [];
@@ -403,9 +404,9 @@ export class HandTrack {
         return { x: lerp(a[0], b.x, q), y: lerp(a[1], b.y, q) - arc, angle: 0, lift, tool: q < 0.5 ? s.toolA : s.toolB };
       }
     }
-    // po ostatnim kroku: krótki spoczynek i zejście z kadru
+    // po ostatnim kroku: spoczynek przy rysunku (do exitAt — np. aż lektor skończy) i zejście z kadru
     if (!this.lastPos) return null;
-    const restEnd = this.endT + 0.8;
+    const restEnd = Math.max(this.endT + 0.8, this.o.exitAt ?? 0);
     if (t < restEnd) return { ...this.#rest({ t0: this.endT, at: this.lastPos }, t), tool: this.lastTool };
     const q = clamp((t - restEnd) / 0.8);
     if (q >= 1) return null;
