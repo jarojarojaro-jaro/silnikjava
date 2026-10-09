@@ -68,7 +68,7 @@ export function buildPixel(voice) {
     sb.write('2', 640, 290, { size: 80, align: 'center', color: 'ink' });
     sb.pen(COIN, { color: 'ochre', w: 6, seed: 30, cue: 'automat' });
     sb.crayon(COIN, { color: 'ochre', seed: 31 });
-    sb.write('25¢', 1100, 540, { size: 30, weight: 700, align: 'center', color: 'paper' });
+    sb.write('¢', 1100, 545, { size: 52, weight: 700, align: 'center', color: 'paper' });
   });
   sb.wait(0.8);
   return sb;
