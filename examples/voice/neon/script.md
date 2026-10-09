@@ -8,7 +8,7 @@ GŁOS: pl_PL-gosia-medium
 2. Dane trafiają do warstwy wejściowej.
 [neurony wejścia]
 
-3. Każdy neuron waży sygnały i przekazuje je dalej.
+3. Każdy neuron waży sygnały i przekazuje je dalej, do następnej warstwy.
 [warstwa ukryta, połączenia]
 
 4. Na końcu sieć zgaduje wynik, a błąd poprawia wagi.

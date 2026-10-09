@@ -2,16 +2,17 @@
 // neuronowa?" — 15 s z lektorką. Głos: examples/voice/neon/.
 // Kreska świeci (warstwy poświaty dodawane światłem), tło prawie czarne.
 
-import { Storyboard, line, ellipse, curve } from '../../../src/index.js';
+import { Storyboard, line, ellipse, curve, chain } from '../../../src/index.js';
 
 const layer = (x, n, gap) => Array.from({ length: n }, (_, i) => [x, 380 + (i - (n - 1) / 2) * gap]);
 const node = (sb, [x, y], color, seed, o = {}) =>
   sb.pen(ellipse(x, y, 26, 26, { seed, overshoot: 0.06 }), { color, w: 3, seed, ...o });
-// połączenia: krótkie, szybkie pociągnięcia od krawędzi do krawędzi kółek
-const links = (from, to, seed) => from.flatMap(([x1, y1], i) => to.map(([x2, y2], j) => {
+// połączenia: krótkie, szybkie pociągnięcia od krawędzi do krawędzi kółek,
+// w kolejności najkrótszych przelotów (chain), jak kreśli człowiek
+const links = (from, to, seed) => chain(from.flatMap(([x1, y1], i) => to.map(([x2, y2], j) => {
   const d = Math.hypot(x2 - x1, y2 - y1), ux = (x2 - x1) / d, uy = (y2 - y1) / d;
   return line(x1 + ux * 32, y1 + uy * 32, x2 - ux * 32, y2 - uy * 32, { bow: 0.01, seed: seed + i * 7 + j });
-}));
+})));
 
 export function buildNeon(voice) {
   const sb = new Storyboard({ w: 1280, h: 720, theme: 'neon', speed: 1000 });
@@ -29,7 +30,7 @@ export function buildNeon(voice) {
     sb.write('wejście', 292, 392, { size: 34, align: 'right', color: 'teal' });
   });
 
-  // 3. "Każdy neuron waży sygnały i przekazuje je dalej."
+  // 3. "Każdy neuron waży sygnały i przekazuje je dalej, do następnej warstwy."
   sb.say(B(3), () => {
     hid.forEach((p, i) => node(sb, p, 'sky', 20 + i, i === 0 ? { cue: 'Każdy' } : {}));
     sb.strokes(links(inp, hid, 40), { color: 'plum', w: 1.6, seed: 40, speed: 2600, cue: 'przekazuje' });
@@ -37,7 +38,7 @@ export function buildNeon(voice) {
 
   // 4. "Na końcu sieć zgaduje wynik, a błąd poprawia wagi."
   sb.say(B(4), () => {
-    sb.strokes(links(hid, out, 60), { color: 'plum', w: 1.6, seed: 60, speed: 2600, cue: 'końcu' });
+    sb.strokes(links(hid, out, 60), { color: 'plum', w: 1.6, seed: 60, speed: 2600, cue: 'Na' });
     node(sb, out[0], 'ochre', 30);
     sb.write('?', 950, 400, { size: 44, align: 'center', color: 'ochre', cue: 'wynik' });
     sb.arrow(curve([[940, 560], [640, 625], [340, 560]], 12), { color: 'coral', w: 3, head: 16, seed: 70, cue: 'błąd' });
