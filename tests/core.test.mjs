@@ -5,6 +5,7 @@ import {
   svgPath, bounds, Timeline, Storyboard, StrokePlan, Sequence, minJerk, travelTime, thin, traceSkeleton,
 } from '../src/index.js';
 import { buildExplainer } from '../examples/scenes/explainer.js';
+import { STYLES } from '../examples/scenes/styles/index.js';
 import { buildHero } from '../examples/scenes/hero.js';
 import { buildScrollDiagram } from '../examples/scenes/diagram.js';
 
@@ -374,27 +375,6 @@ test('demo z lektorem: fizyka OK, kotwice w oknie synchronizacji', () => {
 // ------------------------------------------------------------------ motywy (style)
 
 import { THEMES, resolveTheme, themeNames, polyline, crayonTrace } from '../src/index.js';
-import { buildChalk } from '../examples/scenes/styles/chalk.js';
-import { buildBlueprint } from '../examples/scenes/styles/blueprint.js';
-import { buildNeon } from '../examples/scenes/styles/neon.js';
-import { buildNotebook } from '../examples/scenes/styles/notebook.js';
-import { buildWatercolor } from '../examples/scenes/styles/watercolor.js';
-import { buildComic } from '../examples/scenes/styles/comic.js';
-import { buildFlipchart } from '../examples/scenes/styles/flipchart.js';
-import { buildKraft } from '../examples/scenes/styles/kraft.js';
-import { buildSketch } from '../examples/scenes/styles/sketch.js';
-import { buildParchment } from '../examples/scenes/styles/parchment.js';
-import { buildWoodcut } from '../examples/scenes/styles/woodcut.js';
-import { buildCosmos } from '../examples/scenes/styles/cosmos.js';
-import { buildTerminal } from '../examples/scenes/styles/terminal.js';
-import { buildPoster } from '../examples/scenes/styles/poster.js';
-import { buildCorkboard } from '../examples/scenes/styles/corkboard.js';
-import { buildSumi } from '../examples/scenes/styles/sumi.js';
-import { buildPatent } from '../examples/scenes/styles/patent.js';
-import { buildPixel } from '../examples/scenes/styles/pixel.js';
-import { buildCharcoal } from '../examples/scenes/styles/charcoal.js';
-import { buildIso } from '../examples/scenes/styles/iso.js';
-import { buildAscii } from '../examples/scenes/styles/ascii.js';
 
 test('motywy: nazwy, uzupełnione domyślne pola, nieznany motyw to błąd', () => {
   assert.deepEqual(themeNames().map((t) => t.id).slice(0, 5), ['paper', 'chalk', 'blueprint', 'neon', 'notebook']);
@@ -428,8 +408,10 @@ test('motyw w Storyboardzie: scena niesie motyw, ślad kredki idzie kreskowaniem
   }
 });
 
-test('filmy w trzech stylach: fizyka OK, ~15–18 s, kotwice na czas', () => {
-  for (const [id, build] of [['chalk', buildChalk], ['blueprint', buildBlueprint], ['neon', buildNeon], ['notebook', buildNotebook], ['watercolor', buildWatercolor], ['comic', buildComic], ['flipchart', buildFlipchart], ['kraft', buildKraft], ['sketch', buildSketch], ['parchment', buildParchment], ['woodcut', buildWoodcut], ['cosmos', buildCosmos], ['terminal', buildTerminal], ['poster', buildPoster], ['corkboard', buildCorkboard], ['sumi', buildSumi], ['patent', buildPatent], ['pixel', buildPixel], ['charcoal', buildCharcoal], ['iso', buildIso], ['ascii', buildAscii]]) {
+test('filmy wszystkich stylów: fizyka OK, 12–40 s, kotwice na czas, każdy styl ma motyw', () => {
+  assert.equal(new Set(STYLES.map((x) => x.id)).size, STYLES.length, 'id stylów są unikalne');
+  for (const { id, build } of STYLES) {
+    assert.ok(THEMES[id], `motyw ${id} istnieje`);
     const v = new Voice(JSON.parse(readFileSync(new URL(`../examples/voice/${id}/voice.json`, import.meta.url), 'utf8')), `voice/${id}/`);
     const sb = build(v);
     assert.equal(sb.scene().theme, id);

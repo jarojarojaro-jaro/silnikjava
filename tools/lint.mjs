@@ -9,6 +9,7 @@
 //   --items                        # dodatkowo czasy kroków (start +czas, zdanie, kotwica)
 
 import { parseArgs, openPlayer } from './lib/page.mjs';
+import { styleTargets } from '../examples/scenes/styles/index.js';
 
 const { opt } = parseArgs(process.argv);
 const targets = process.argv.slice(2).filter((a) => !a.startsWith('--'));
@@ -19,27 +20,7 @@ const list = targets.length
       'examples/scenes/hero.js:buildHero',
       'examples/scenes/diagram.js:buildScrollDiagram',
       'examples/scenes/narrated.js:buildNarrated:examples/voice/agent/voice.json',
-      'examples/scenes/styles/chalk.js:buildChalk:examples/voice/chalk/voice.json',
-      'examples/scenes/styles/blueprint.js:buildBlueprint:examples/voice/blueprint/voice.json',
-      'examples/scenes/styles/neon.js:buildNeon:examples/voice/neon/voice.json',
-      'examples/scenes/styles/notebook.js:buildNotebook:examples/voice/notebook/voice.json',
-      'examples/scenes/styles/watercolor.js:buildWatercolor:examples/voice/watercolor/voice.json',
-      'examples/scenes/styles/comic.js:buildComic:examples/voice/comic/voice.json',
-      'examples/scenes/styles/flipchart.js:buildFlipchart:examples/voice/flipchart/voice.json',
-      'examples/scenes/styles/kraft.js:buildKraft:examples/voice/kraft/voice.json',
-      'examples/scenes/styles/sketch.js:buildSketch:examples/voice/sketch/voice.json',
-      'examples/scenes/styles/parchment.js:buildParchment:examples/voice/parchment/voice.json',
-      'examples/scenes/styles/woodcut.js:buildWoodcut:examples/voice/woodcut/voice.json',
-      'examples/scenes/styles/cosmos.js:buildCosmos:examples/voice/cosmos/voice.json',
-      'examples/scenes/styles/terminal.js:buildTerminal:examples/voice/terminal/voice.json',
-      'examples/scenes/styles/poster.js:buildPoster:examples/voice/poster/voice.json',
-      'examples/scenes/styles/corkboard.js:buildCorkboard:examples/voice/corkboard/voice.json',
-      'examples/scenes/styles/sumi.js:buildSumi:examples/voice/sumi/voice.json',
-      'examples/scenes/styles/patent.js:buildPatent:examples/voice/patent/voice.json',
-      'examples/scenes/styles/pixel.js:buildPixel:examples/voice/pixel/voice.json',
-      'examples/scenes/styles/charcoal.js:buildCharcoal:examples/voice/charcoal/voice.json',
-      'examples/scenes/styles/iso.js:buildIso:examples/voice/iso/voice.json',
-      'examples/scenes/styles/ascii.js:buildAscii:examples/voice/ascii/voice.json',
+      ...styleTargets(),
       'examples/scenes/reels/notebook.js:buildReelNotebook:examples/voice/reel-notebook/voice.json',
       'examples/scenes/reels/neon.js:buildReelNeon:examples/voice/reel-neon/voice.json',
       'examples/scenes/reels/comic.js:buildReelComic:examples/voice/reel-comic/voice.json',

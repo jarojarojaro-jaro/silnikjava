@@ -39,51 +39,9 @@
 
   <script type="module">
     import { Player, Voice } from '../src/index.js';
-    import { buildChalk } from './scenes/styles/chalk.js';
-    import { buildBlueprint } from './scenes/styles/blueprint.js';
-    import { buildNeon } from './scenes/styles/neon.js';
-    import { buildNotebook } from './scenes/styles/notebook.js';
-    import { buildWatercolor } from './scenes/styles/watercolor.js';
-    import { buildComic } from './scenes/styles/comic.js';
-    import { buildFlipchart } from './scenes/styles/flipchart.js';
-    import { buildKraft } from './scenes/styles/kraft.js';
-    import { buildSketch } from './scenes/styles/sketch.js';
-    import { buildParchment } from './scenes/styles/parchment.js';
-    import { buildWoodcut } from './scenes/styles/woodcut.js';
-    import { buildCosmos } from './scenes/styles/cosmos.js';
-    import { buildTerminal } from './scenes/styles/terminal.js';
-    import { buildPoster } from './scenes/styles/poster.js';
-    import { buildCorkboard } from './scenes/styles/corkboard.js';
-    import { buildSumi } from './scenes/styles/sumi.js';
-    import { buildPatent } from './scenes/styles/patent.js';
-    import { buildPixel } from './scenes/styles/pixel.js';
-    import { buildCharcoal } from './scenes/styles/charcoal.js';
-    import { buildIso } from './scenes/styles/iso.js';
-    import { buildAscii } from './scenes/styles/ascii.js';
+    import { STYLES as LIST } from './scenes/styles/index.js';
 
-    const STYLES = {
-      chalk: { name: 'Tablica kredowa', build: buildChalk, about: 'Kreda na zielonej tablicy: ziarnista kreska, kolorowa kreda, w ręce kawałek kredy. Lekcja, matematyka, edukacja.' },
-      blueprint: { name: 'Blueprint', build: buildBlueprint, about: 'Kalka techniczna: siatka, rapidograf o stałej grubości, kreślarskie przedłużenia linii, kreskowanie pod 45°, pismo techniczne. Architektura systemów, inżynieria, produkt.' },
-      neon: { name: 'Neon (lightboard)', build: buildNeon, about: 'Pisanie na podświetlonej szybie: świecące kreski na prawie czarnym tle, pisak z poświatą. Technologia, AI, prezentacje.' },
-      notebook: { name: 'Zeszyt w kratkę', build: buildNotebook, about: 'Notatki ucznia: kratka 5 mm i margines, niebieski długopis, czerwony do poprawek, zakreślacz i kredki. Finanse osobiste, nauka, „wytłumacz jak na lekcji”.' },
-      watercolor: { name: 'Akwarela', build: buildWatercolor, about: 'Cienkopis i plamy farby: rozlany brzeg, pigment zebrany na krawędzi, przejaśnienia, ziarno papieru; w ręce pędzel. Przyroda, podróże, opowieści.' },
-      comic: { name: 'Komiks', build: buildComic, about: 'Kadry, gruba kreska pędzelkiem z mocnym naciskiem, płaski kolor markera z rastrem kropek, dymki i napisy Bangers. Ciekawostki, popularyzacja nauki, social media.' },
-      flipchart: { name: 'Flipchart', build: buildFlipchart, about: 'Arkusz z bloku na sztaludze: gruby marker o stałej grubości ze smugami filcu, mocne kolory, wyraźne liczby. Warsztaty, sprzedaż, strategia, szkolenia.' },
-      kraft: { name: 'Papier pakowy', build: buildKraft, about: 'Brązowy papier kraft z włóknami i taśmą w rogach: czarny cienkopis, biały żelopis, kredki, przez które przebija papier. Przepisy, kawiarnie, rękodzieło, marki „eko”.' },
-      sketch: { name: 'Szkic ołówkiem', build: buildSketch, about: 'Szkicownik na spirali: grafit z ziarnem papieru, druga blada linia obok, kreskowanie zamiast koloru, jasne linie konstrukcyjne i jeden akcent koloru. Fizyka, technika, „jak to działa”.' },
-      parchment: { name: 'Stara mapa', build: buildParchment, about: 'Pergamin z plamami i przypalonymi brzegami, pióro gęsie z kałamarza (kreska blednie, gdy kończy się atrament), akwarelowe podkolorowanie map. Historia, bitwy, podróże.' },
-      woodcut: { name: 'Drzeworyt', build: buildWoodcut, about: 'Druk z klocka: gruba rytowana kreska, kolor jako równoległe nacięcia dłuta, czerń i czerwień na papierze czerpanym, odbita ramka. Dawne techniki, rzemiosło, legendy.' },
-      cosmos: { name: 'Kosmos', build: buildCosmos, about: 'Rozgwieżdżone niebo, pastelowa świecąca kreska, mgławice malowane plamą, która dodaje światła. Astronomia, fizyka, science fiction.' },
-      terminal: { name: 'Terminal CRT', build: buildTerminal, about: 'Wektorowy monitor z lat 60.: zielony fosfor, linie ekranu, zaokrąglony kineskop, w ręce pióro świetlne. Historia techniki, komputery, kosmos.' },
-      poster: { name: 'Plakat', build: buildPoster, about: 'Plakat konstruktywistyczny: czerwień, czerń i krem, płaska kryjąca farba z ziarnem druku, wysoki tytuł, sylwetki. Historia XX wieku, wojna, manifesty, kampanie.' },
-      corkboard: { name: 'Tablica korkowa', build: buildCorkboard, about: 'Tablica śledczego: korek w drewnianej ramie, kolorowe karteczki, pinezki, napisy markerem i czerwona nitka łącząca wątki. Zagadki historii, śledztwa, analizy przyczyn.' },
-      sumi: { name: 'Tusz i pędzel', build: buildSumi, about: 'Pędzel z tuszem na papierze ryżowym: kreska gruba w poprzek ostrza i cienka wzdłuż, laweowanie rozcieńczonym tuszem, czerwona pieczęć. Przyroda, geografia, spokojne opowieści.' },
-      patent: { name: 'Rysunek patentowy', build: buildPatent, about: 'Arkusz patentowy z XIX wieku: cienki tusz kreślarski, przekroje kreskowane pod 45°, numerowane odsyłacze i podpis FIG. 1. Technika, wynalazki, budowa maszyn.' },
-      pixel: { name: 'Pixel art', build: buildPixel, about: 'Ekran automatu z lat 70.: każda kreska przyciągnięta do siatki 8 px, kolor kładziony kratka po kratce, pikselowa czcionka i pikselowy ołówek w ręce. Historia gier i komputerów, technologia z przymrużeniem oka.' },
-      charcoal: { name: 'Węgiel', build: buildCharcoal, about: 'Rysunek węglem na szarym papierze Ingres: gruba, ziarnista kreska, cienie roztarte palcem, sangwina jako jedyny kolor. Historia, katastrofy, poważne i dramatyczne tematy.' },
-      iso: { name: 'Izometria', build: buildIso, about: 'Szkice przedmiotów w 3D (src/iso.js): bryły o zaokrąglonych rogach, mocna sylwetka i blade detale, zasłonięte linie się nie rysują, jeden pomarańczowy akcent. Technologia, sprzęt, architektura systemów.' },
-      ascii: { name: 'ASCII', build: buildAscii, about: 'Ekran ze znaków: ręka rysuje zwykłe kreski, a filtr klatki (src/ascii.js) zamienia je w znaki — kreska w - / | \\, plama w . : = + * # @, kolor zostaje. Kursor-blok w ręce. Historia komputerów, internet, kultura cyfrowa.' },
-    };
+    const STYLES = Object.fromEntries(LIST.map((s) => [s.id, s]));
     const id = new URLSearchParams(location.search).get('s') in STYLES ? new URLSearchParams(location.search).get('s') : 'chalk';
     const $ = (x) => document.getElementById(x);
     $('tabs').innerHTML = Object.entries(STYLES).map(([k, s]) => `<a class="btn" href="?s=${k}" ${k === id ? 'aria-current="page"' : ''}>${s.name}</a>`).join('');
