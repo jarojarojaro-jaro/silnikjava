@@ -8,7 +8,7 @@
 
 import { rng } from './math.js';
 import { texture } from './canvas.js';
-import { asciiFilter } from './ascii.js';
+import { asciiFilter, ASCII_CELL } from './ascii.js';
 
 
 const vignette = (ctx, w, h, strength) => {
@@ -744,7 +744,7 @@ export const THEMES = {
     },
   },
 
-  // ------------------------------------------------------------ tusz i pędzel
+  // ------------------------------------------------------------ rysunek patentowy
   patent: {
     name: 'Rysunek patentowy',
     palette: {
@@ -784,6 +784,7 @@ export const THEMES = {
       vignette(ctx, w, h, 0.05);
     },
   },
+  // ------------------------------------------------------------ pixel art
   pixel: {
     name: 'Pixel art',
     palette: {
@@ -815,6 +816,7 @@ export const THEMES = {
       vignette(ctx, w, h, 0.45);
     },
   },
+  // ------------------------------------------------------------ węgiel
   charcoal: {
     name: 'Węgiel',
     palette: {
@@ -859,6 +861,7 @@ export const THEMES = {
       vignette(ctx, w, h, 0.16);
     },
   },
+  // ------------------------------------------------------------ izometria (bryły z src/iso.js)
   iso: {
     name: 'Izometria',
     palette: {
@@ -888,6 +891,7 @@ export const THEMES = {
       vignette(ctx, w, h, 0.06);
     },
   },
+  // ------------------------------------------------------------ ASCII (filtr klatki src/ascii.js)
   ascii: {
     name: 'ASCII',
     palette: {
@@ -904,7 +908,7 @@ export const THEMES = {
     tools: { pencil: 'caret', marker: 'caret', crayon: 'caret' },
     outline: '#000000',
     // siatka znaków: komórka 9 × 16 px sceny
-    ascii: { cell: [9, 16] },
+    ascii: { cell: ASCII_CELL },
     // napisy nad filtrem: to już są znaki, zostają czytelnym tekstem
     postText: 'above',
     background(sk, w, h) {
@@ -915,7 +919,7 @@ export const THEMES = {
       asciiFilter(sk, { cell: this.ascii.cell, font: sk.font('mono'), weight: 700 });
       // ramka ekranu jak w edytorze: cienka linia i krzyżyki w rogach
       const { ctx } = sk;
-      const [w, h] = sk.paperSize ?? [1280, 720];
+      const [w, h] = sk.paperSize ?? [sk.ctx.canvas.width, sk.ctx.canvas.height];
       ctx.save();
       ctx.setTransform(sk.base ?? ctx.getTransform());
       ctx.strokeStyle = 'rgba(237,237,237,0.12)';
@@ -931,6 +935,7 @@ export const THEMES = {
       ctx.restore();
     },
   },
+  // ------------------------------------------------------------ tusz i pędzel
   sumi: {
     name: 'Tusz i pędzel',
     palette: {

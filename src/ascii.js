@@ -11,6 +11,8 @@
 
 import { makeCanvas } from './canvas.js';
 
+/** Domyślna komórka siatki znaków [szer, wys] w px sceny (proporcje znaku mono). */
+export const ASCII_CELL = [9, 16];
 const RAMP = ' .:-=+*#%@';
 
 /**
@@ -27,7 +29,7 @@ export function asciiFilter(sk, o = {}) {
   const W = canvas.width, H = canvas.height;
   const base = sk.base ?? ctx.getTransform();
   const scale = Math.hypot(base.a, base.b) || 1;
-  const [cw0, ch0] = o.cell ?? [9, 16];
+  const [cw0, ch0] = o.cell ?? ASCII_CELL;
   const cw = Math.max(3, Math.round(cw0 * scale)), ch = Math.max(5, Math.round(ch0 * scale));
   const paper = parseColor(sk.col(o.paper ?? 'paper'));
   // odczyt pikseli z GPU jest drogi: czytamy kopię w rozdzielczości sceny (9 × 16 px na

@@ -321,8 +321,14 @@ export class Sequence {
  * elementy, które pojawiłyby się bez ręki.
  */
 export class HandTrack {
+  /**
+   * Ciągła trajektoria ręki przez cały film.
+   * @param {object[]} segments kroki: { start, end, trace(t), tool }
+   * @param {object} o enter / exit [x, y] — skąd ręka wchodzi i dokąd schodzi, restOffset, restLong,
+   *                   endAt — kiedy ręka ma już być poza kadrem (np. koniec filmu, gdy lektor jeszcze
+   *                   mówi); domyślnie schodzi zaraz po krótkim spoczynku po ostatnim kroku
+   */
   constructor(segments, o = {}) {
-    // endAt — kiedy ręka ma już być poza kadrem (domyślnie: zaraz po krótkim spoczynku)
     this.o = { enter: [1400, 900], exit: [1400, 900], restOffset: [34, 42], restLong: 2.5, ...o };
     const segs = segments.filter((s) => s.end > s.start).sort((a, b) => a.start - b.start);
     const sched = [];

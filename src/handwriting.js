@@ -24,7 +24,9 @@ const canvas = makeCanvas;
 
 /**
  * Geometria tekstu do pisania odręcznego.
- * @returns {{ strokes: number[][][], plan: StrokePlan, lines, width, size, pad, ascent, image(color): HTMLCanvasElement }}
+ * @returns {{ strokes: number[][][], plan: StrokePlan, planFor(dur): StrokePlan, lines: object[], width: number,
+ *   size: number, weight: number, image(color): HTMLCanvasElement[] }} — lines: linie tekstu (dx, dy, pad, asc, width),
+ *   image: obrazki glifów, po jednym na linię
  */
 export function textGeometry(text, { fontCss, size, align = 'left', lineHeight = 1.15, seed = 0, speed } = {}) {
   const key = `${text}|${fontCss}|${size}|${align}|${lineHeight}|${seed}|${speed}`;

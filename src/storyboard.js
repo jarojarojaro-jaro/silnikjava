@@ -47,8 +47,10 @@ const CAPTION_FONT = '"Montserrat", "Arial Black", sans-serif';
 
 export class Storyboard {
   /**
-   * @param {object} o w, h (rozmiar sceny), pencil (czy pokazywać rękę), paper (tło),
-   *                   idle ('boil' | 'loop' | 'still'), speed (px/s ręki), background(sk,t) — własne tło,
+   * @param {object} o w, h (rozmiar sceny; domyślnie 1280×720, rolka 720×1280), pencil (czy pokazywać rękę),
+   *                   paper (tło), idle ('boil' | 'loop' | 'still' | 'restart' — co po końcu filmu),
+   *                   speed (px/s ręki), background(sk,t) — własne tło, theme (nazwa motywu z src/themes.js),
+   *                   format ('reel' — rolka 9:16), safe (strefa bezpieczna rolki), captions (napisy rolki),
    *                   handGaps (domyślnie true — przerwy na przelot ręki między elementami),
    *                   cache (domyślnie true — bufor ukończonych elementów), fps (limit klatek w idle 'loop'),
    *                   warn (domyślnie true — ostrzeżenia lint w konsoli przy pierwszym rysowaniu)

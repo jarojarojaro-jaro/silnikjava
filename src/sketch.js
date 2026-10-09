@@ -9,6 +9,7 @@
 import { clamp, hash, noise1, rng } from './math.js';
 import { resample, bounds, pathInfo, pointInPoly } from './paths.js';
 import { makeCanvas, texture } from './canvas.js';
+import { ASCII_CELL } from './ascii.js';
 import { StrokePlan } from './hand.js';
 import { textGeometry, hasDOM, IMG_SCALE } from './handwriting.js';
 import { resolveTheme } from './themes.js';
@@ -42,6 +43,7 @@ export class Sketch {
    * @param {object} [opts]
    * @param {object} [opts.palette] nadpisania kolorów
    * @param {object} [opts.fonts]   { hand, title, mono } — rodziny czcionek
+   * @param {string|object} [opts.theme] motyw (nazwa z src/themes.js albo obiekt motywu)
    */
   constructor(ctx, { palette = {}, fonts = {}, theme = 'paper' } = {}) {
     this.ctx = ctx;
@@ -113,7 +115,7 @@ export class Sketch {
     const seed = o.seed ?? 3;
     const boil = o.still ? 0 : this.boil;
     const L = info.len;
-    // kreślarski cienkopis i neon mają stałą grubość (bez nacisku i zwężeń)
+    // kreślarski cienkopis, neon i marker mają stałą grubość (bez nacisku i zwężeń)
     const uniform = kind === 'tech' || kind === 'neon' || kind === 'marker';
     const taper = uniform ? 0 : (o.taper ?? Math.min(26, L * 0.3)) * (style.taper ?? 1);
     const pressure = uniform ? 0 : o.pressure ?? style.pressure ?? 0.35;
@@ -1451,7 +1453,6 @@ export class Sketch {
     ctx.stroke();
   }
 
-  /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */
   /** Węgiel rysunkowy: nierówny, matowy patyk ze skośnie startym czubkiem. */
   #charcoalSprite(len, wd, size, o) {
     const { ctx } = this;
@@ -1489,7 +1490,7 @@ export class Sketch {
   /** Kursor terminala: jasny blok wielkości znaku, czubek w lewym dolnym rogu. */
   #caretSprite(size, lift, o) {
     const { ctx } = this;
-    const [cw, ch] = this.theme.ascii?.cell ?? [9, 16];
+    const [cw, ch] = this.theme.ascii?.cell ?? ASCII_CELL;
     ctx.translate(0, -lift * 8);
     ctx.globalAlpha *= 0.9;
     ctx.fillStyle = this.col(o.color && !['ink', 'inkSoft'].includes(o.color) ? o.color : 'ink');
@@ -1510,6 +1511,7 @@ export class Sketch {
     }
   }
 
+  /** Gąbka do tablicy: filc na dole, drewniany grzbiet; środek filcu w (0,0). */
   #eraserSprite(size, lift, o) {
     const { ctx } = this;
     const w = (o.width ?? 150) * size, h = 30 * size, back = 26 * size;
@@ -1671,7 +1673,6 @@ function zigzag(poly, o) {
   return z;
 }
 
-/** Pozycja ręki przy kolorowaniu kredką (bez rysowania). */
 const washCache = new WeakMap();
 // gotowe bitmapy plam (#wash) — po kształcie, potem po kolorze i ułożeniu na ekranie
 const washBitmaps = new WeakMap();
@@ -1706,6 +1707,7 @@ function washGeometry(poly, seed, holes = []) {
   return g;
 }
 
+/** Pozycja ręki przy kolorowaniu kredką (bez rysowania): środek kolorowanego pasa. */
 export function crayonTrace(poly, p, o = {}) {
   return crayonTip(zigzag(poly, o), p, o.seed ?? 5);
 }
