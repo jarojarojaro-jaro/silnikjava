@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   clamp, prog, noise1, rng, ease, catmull, resample, pathLength, pointAt, line, rect, ellipse,
-  svgPath, bounds, Timeline, Storyboard, StrokePlan, Sequence, minJerk, travelTime, thin, traceSkeleton,
+  svgPath, bounds, Timeline, Storyboard, StrokePlan, Sequence, minJerk, travelTime, thin, traceSkeleton, crtBuffer,
 } from '../src/index.js';
 import { buildExplainer } from '../examples/scenes/explainer.js';
 import { STYLES } from '../examples/scenes/styles/index.js';
@@ -555,4 +555,13 @@ test('iso: kamera 2:1, bryła = sylwetka + krawędź, zasłonięte linie się ni
   assert.equal(parts.length, 2);
   assert.ok(parts[0].at(-1)[0] <= Math.min(...xs) + 2 && parts[1][0][0] >= Math.max(...xs) - 2);
   assert.deepEqual(iso.visible(line, []), [line]);
+});
+
+test('CRT: bufor pikselizacji zgrubia płótno o całą kratkę', () => {
+  assert.deepEqual(crtBuffer(1280, 720, 4), [320, 180]);
+  // przy większym eksporcie (skala 2) kratka ma 2× więcej pikseli, a bufor ten sam
+  assert.deepEqual(crtBuffer(2560, 1440, 4, 2), [320, 180]);
+  // bez pikselizacji bufor ma rozmiar płótna, a dziwne rozmiary nie schodzą poniżej 1 px
+  assert.deepEqual(crtBuffer(1280, 720, 1), [1280, 720]);
+  assert.deepEqual(crtBuffer(3, 2, 10), [1, 1]);
 });
