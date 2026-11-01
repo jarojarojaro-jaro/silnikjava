@@ -28,6 +28,12 @@ Przeczytaj [docs/KOD.md](docs/KOD.md) (zasady kodu). Najważniejsze:
 - pomocnik raz (math/paths/canvas), bez martwego kodu, JSDoc zgodny z kodem;
 - nowy styl: wpis w rejestrze `examples/scenes/styles/index.js`.
 
+## Inne narzędzie: filmy wokselowe w ASCII
+
+`.claude/skills/voxel-ascii/` (skill `voxel-ascii`) to osobny pipeline w Pythonie:
+świat z klocków 3D z cieniami → animacja → filtr ASCII, rolka 1080×1920. Nie używa
+silnika z `src/` i jego zasad rysownika. Instrukcja i pułapki: jego `SKILL.md`.
+
 ## Repozytorium
 
 - Commituj jako użytkownik: `jarojarojaro-jaro <miki.jaroszek@gmail.com>`
