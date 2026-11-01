@@ -23,6 +23,7 @@ import { buildPixel } from './pixel.js';
 import { buildCharcoal } from './charcoal.js';
 import { buildIso } from './iso.js';
 import { buildAscii } from './ascii.js';
+import { buildVoxel } from './voxel.js';
 
 /** @type {{id:string, name:string, build:(voice:any)=>any, about:string}[]} */
 export const STYLES = [
@@ -47,6 +48,7 @@ export const STYLES = [
   { id: 'charcoal', name: 'Węgiel', build: buildCharcoal, about: 'Rysunek węglem na szarym papierze Ingres: gruba, ziarnista kreska, cienie roztarte palcem, sangwina jako jedyny kolor. Historia, katastrofy, poważne i dramatyczne tematy.' },
   { id: 'iso', name: 'Izometria', build: buildIso, about: 'Szkice przedmiotów w 3D (src/iso.js): bryły o zaokrąglonych rogach, mocna sylwetka i blade detale, zasłonięte linie się nie rysują, jeden pomarańczowy akcent. Technologia, sprzęt, architektura systemów.' },
   { id: 'ascii', name: 'ASCII', build: buildAscii, about: 'Ekran ze znaków: ręka rysuje zwykłe kreski, a filtr klatki (src/ascii.js) zamienia je w znaki — kreska w - / | \\, plama w . : = + * # @, kolor zostaje. Kursor-blok w ręce. Historia komputerów, internet, kultura cyfrowa.' },
+  { id: 'voxel', name: 'Voxel', build: buildVoxel, about: 'Miasteczko z klocków w izometrii: każdy klocek to trzy ściany kładzione kratka po kratce, na ekranie linie skanowania i maska fosforu (src/crt.js). Jedyny akcent to żółte światło prądu w przewodach. Energia, technika, „skąd to się bierze”.' },
 ];
 
 /** Ścieżki dla narzędzi: scena, nazwa funkcji, głos (względem katalogu repozytorium). */

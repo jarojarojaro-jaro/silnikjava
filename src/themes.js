@@ -9,6 +9,7 @@
 import { rng } from './math.js';
 import { texture } from './canvas.js';
 import { asciiFilter, ASCII_CELL } from './ascii.js';
+import { crtFilter } from './crt.js';
 
 
 const vignette = (ctx, w, h, strength) => {
@@ -889,6 +890,44 @@ export const THEMES = {
       }), 'repeat');
       ctx.fillRect(0, 0, w, h);
       vignette(ctx, w, h, 0.06);
+    },
+  },
+  // ------------------------------------------------------------ voxel (klocki w izometrii, ekran CRT)
+  voxel: {
+    name: 'Voxel',
+    palette: {
+      // noc nad miasteczkiem z klocków: granat tła, kremowa kreska, żółte światło jako jedyny akcent
+      paper: '#0e1322', ink: '#f2ecdc', inkSoft: '#7d86a8', pen: '#ffc83a', penDark: '#d99a12',
+      teal: '#4fae6b', sky: '#5b9be8', ochre: '#c98a4b', coral: '#e5604a', plum: '#9a7be0', white: '#ffffff',
+    },
+    fonts: { hand: '"VT323", monospace', title: '"Pixelify Sans", "VT323", monospace' },
+    writeScale: 1.3,
+    // kreska na siatce 4 px: krawędzie klocków schodkują jak w grze, a cienkie przewody wciąż czytelne
+    pen: { style: 'pixel', width: 2.2, jitter: 0, grid: 4 },
+    // ściana kolorowana kratka po kratce; krycie (alpha) daje cień bez dodatkowych kolorów
+    crayon: { pixel: true, w: 10, spacing: 9, alpha: 1, grain: 0 },
+    highlight: { blend: 'screen', alpha: 0.4 },
+    tools: { pencil: 'pixelpencil', crayon: 'pixelpencil', marker: 'pixelpencil' },
+    outline: '#000000',
+    // napisy nad filtrem CRT: ekranowe linie nie rozmywają podpisów
+    postText: 'above',
+    background(sk, w, h) {
+      const { ctx } = sk;
+      ctx.fillStyle = sk.col('paper');
+      ctx.fillRect(0, 0, w, h);
+      // gwiazdy: kilka jasnych punktów na nocnym niebie, tekstura raz w cache
+      ctx.fillStyle = ctx.createPattern(texture('voxel-stars', 256, (c, S, r) => {
+        for (let i = 0; i < 46; i++) {
+          c.fillStyle = `rgba(242,236,220,${0.18 + r() * 0.42})`;
+          c.fillRect(Math.floor(r() * S), Math.floor(r() * S), r() < 0.2 ? 2 : 1, r() < 0.2 ? 2 : 1);
+        }
+      }), 'repeat');
+      ctx.fillRect(0, 0, w, h);
+      vignette(ctx, w, h, 0.5);
+    },
+    // ekran: siatka 4 px, linie skanowania i maska fosforu (src/crt.js)
+    post(sk) {
+      crtFilter(sk, { pixel: 4, gap: 3, dark: 0.3, mask: 0.06 });
     },
   },
   // ------------------------------------------------------------ ASCII (filtr klatki src/ascii.js)

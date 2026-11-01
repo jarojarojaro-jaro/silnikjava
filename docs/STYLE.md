@@ -111,6 +111,20 @@ widać, jeden akcent) są w [ZASADY.md](ZASADY.md), sekcja 7.
 | do czego | historia komputerów, internet, kultura cyfrowa, programowanie |
 | przykład | `…/ascii.js`: ASCII, kody liter, 7 bitów, kot w ASCII art |
 
+### Voxel (`voxel`) — klocki w izometrii na ekranie CRT
+
+| | Voxel (`voxel`) |
+| --- | --- |
+| podłoże | ciemna noc (granat), gwiazdki w cache, winieta; na niej płyta z klocków 192 × 144 jednostki |
+| bryły | klocek = obrys (`ink`) + ściany kolorowane z krycia (`alpha`): góra w pełnym kolorze, ściany boczne jednym kształtem; krawędzie `inkSoft` |
+| kadr | `cam.fit(...)` na podłoże, wieżę i dach; skala `S = 3` |
+| pismo | VT323 (`hand`), tytuł Pixelify Sans, podpisy `ink` rysowane **nad** filtrem (`postText: 'above'`) |
+| jak działa | ręka rysuje kolor kredką pikselową (`pixel: true`) szeroką na duże pola (`BIG`) i węższą na mniejsze (`MID`); siatka pisaka 4 px (`grid: 4`) |
+| ekran | `theme.post` → `crtFilter` (`src/crt.js`): zgrubienie do kratek 4 px, linie skanowania co 3 px, maska RGB |
+| akcent | żółty (`pen`) to prąd: przewody i zapalone okna. Reszta w `ink`, `inkSoft`, `teal` (trawa), `ochre` (ziemia), `coral` (dach), `sky` (panele) |
+| do czego | energia, technika, „skąd to się bierze”, gry i automaty |
+| przykład | `…/voxel.js`: skąd bierze się prąd (podłoże, panele, wiatrak, słupy, stacja, dom) |
+
 Filtr klatki to ogólny mechanizm: motyw z funkcją `post(sk, t)` dostaje gotową
 klatkę (bez ręki) i może ją przerobić — tak można zrobić też np. styl „mozaika”
 czy „druk rastrowy” bez zmian w scenach.

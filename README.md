@@ -146,6 +146,13 @@ historia, technika, przyroda). Podglądy są przyspieszone
 <sub>Film: „ASCII: alfabet komputerów”<br>rysunki zamieniają się w znaki (kreska → - / | \, plama → . : # @), napisy zostają tekstem, kursor-blok w ręce.<br>Do czego: historia komputerów, internet, kultura cyfrowa.</sub>
 </td>
 </tr>
+<tr>
+<td width="33%" valign="top">
+<img src="docs/img/styles/voxel.gif" alt="Voxel: skąd bierze się prąd" width="100%"><br>
+<b>Voxel</b> · <code>theme: 'voxel'</code><br>
+<sub>Film: „Skąd bierze się prąd?”<br>miasteczko z klocków w izometrii, kolor kładziony kratka po kratce, ekran CRT z liniami skanowania; żółty akcent to prąd w przewodach.<br>Do czego: energia, technika, „skąd to się bierze”.</sub>
+</td>
+</tr>
 </table>
 
 Przedmioty w 3D (izometria) rysuje się przez `src/iso.js`: `isoCamera`, `solid`,
@@ -154,6 +161,8 @@ Przedmioty w 3D (izometria) rysuje się przez `src/iso.js`: `isoCamera`, `solid`
 
 Motyw może też przepuścić gotową klatkę przez filtr (`theme.post`). Tak działa
 styl ASCII (`src/ascii.js`): ręka rysuje zwykłe kreski, a ekran pokazuje je jako znaki.
+Ekran CRT (`src/crt.js`): zgrubienie do kratek, linie skanowania i maska fosforu,
+tak jak w stylu Voxel. Filtr działa po scenie, przed ręką, więc pisak zostaje ostry.
 
 Jak działa motyw, czym różnią się kreski (`ink`, `chalk`, `tech`, `neon`,
 `marker`, `graphite`, `pixel`) i jak zrobić własny styl: [docs/STYLE.md](docs/STYLE.md).

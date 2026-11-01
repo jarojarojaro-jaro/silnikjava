@@ -1,0 +1,452 @@
+{
+ "source": "tts",
+ "voice": "pl_PL-darkman-medium",
+ "meta": {
+  "głos": "pl_PL-darkman-medium"
+ },
+ "beats": [
+  {
+   "id": "b1",
+   "text": "Skąd bierze się prąd w gniazdku? Zacznijmy od kawałka ziemi, na którym stoi cała okolica. Trawa i gleba to dopiero początek opowieści.",
+   "notes": [
+    "podłoże z klocków: trawa, ziemia"
+   ],
+   "audio": "b1.ogg",
+   "duration": 9.381,
+   "words": [
+    {
+     "w": "Skąd",
+     "s": 0.0,
+     "e": 0.2
+    },
+    {
+     "w": "bierze",
+     "s": 0.2,
+     "e": 0.62
+    },
+    {
+     "w": "się",
+     "s": 0.62,
+     "e": 0.76
+    },
+    {
+     "w": "prąd",
+     "s": 0.76,
+     "e": 1.22
+    },
+    {
+     "w": "w",
+     "s": 1.22,
+     "e": 1.32
+    },
+    {
+     "w": "gniazdku?",
+     "s": 1.32,
+     "e": 1.9
+    },
+    {
+     "w": "Zacznijmy",
+     "s": 2.14,
+     "e": 2.74
+    },
+    {
+     "w": "od",
+     "s": 2.74,
+     "e": 2.9
+    },
+    {
+     "w": "kawałka",
+     "s": 2.9,
+     "e": 3.38
+    },
+    {
+     "w": "ziemi,",
+     "s": 3.38,
+     "e": 4.0
+    },
+    {
+     "w": "na",
+     "s": 4.02,
+     "e": 4.2
+    },
+    {
+     "w": "którym",
+     "s": 4.2,
+     "e": 4.46
+    },
+    {
+     "w": "stoi",
+     "s": 4.46,
+     "e": 4.9
+    },
+    {
+     "w": "cała",
+     "s": 4.9,
+     "e": 5.34
+    },
+    {
+     "w": "okolica.",
+     "s": 5.34,
+     "e": 5.94
+    },
+    {
+     "w": "Trawa",
+     "s": 6.1,
+     "e": 6.6
+    },
+    {
+     "w": "i",
+     "s": 6.6,
+     "e": 6.82
+    },
+    {
+     "w": "gleba",
+     "s": 6.82,
+     "e": 7.22
+    },
+    {
+     "w": "to",
+     "s": 7.22,
+     "e": 7.34
+    },
+    {
+     "w": "dopiero",
+     "s": 7.34,
+     "e": 7.72
+    },
+    {
+     "w": "początek",
+     "s": 7.72,
+     "e": 8.36
+    },
+    {
+     "w": "opowieści.",
+     "s": 8.36,
+     "e": 9.06
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b2",
+   "text": "Prąd produkują elektrownie. Panele słoneczne łapią światło, a obok kręci się wiatrak, który zamienia wiatr w energię.",
+   "notes": [
+    "panele, wiatrak"
+   ],
+   "audio": "b2.ogg",
+   "duration": 7.546,
+   "words": [
+    {
+     "w": "Prąd",
+     "s": 0.0,
+     "e": 0.28
+    },
+    {
+     "w": "produkują",
+     "s": 0.28,
+     "e": 0.92
+    },
+    {
+     "w": "elektrownie.",
+     "s": 0.92,
+     "e": 1.84
+    },
+    {
+     "w": "Panele",
+     "s": 1.96,
+     "e": 2.28
+    },
+    {
+     "w": "słoneczne",
+     "s": 2.28,
+     "e": 2.8
+    },
+    {
+     "w": "łapią",
+     "s": 2.8,
+     "e": 3.18
+    },
+    {
+     "w": "światło,",
+     "s": 3.18,
+     "e": 3.92
+    },
+    {
+     "w": "a",
+     "s": 4.04,
+     "e": 4.1
+    },
+    {
+     "w": "obok",
+     "s": 4.1,
+     "e": 4.32
+    },
+    {
+     "w": "kręci",
+     "s": 4.32,
+     "e": 4.76
+    },
+    {
+     "w": "się",
+     "s": 4.76,
+     "e": 4.92
+    },
+    {
+     "w": "wiatrak,",
+     "s": 4.92,
+     "e": 5.66
+    },
+    {
+     "w": "który",
+     "s": 5.76,
+     "e": 6.02
+    },
+    {
+     "w": "zamienia",
+     "s": 6.02,
+     "e": 6.44
+    },
+    {
+     "w": "wiatr",
+     "s": 6.44,
+     "e": 6.82
+    },
+    {
+     "w": "w",
+     "s": 6.82,
+     "e": 6.92
+    },
+    {
+     "w": "energię.",
+     "s": 6.92,
+     "e": 7.4
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b3",
+   "text": "Linia wysokiego napięcia niesie prąd przez pola, na wysokich słupach, do stacji transformatorowej. Im wyższe napięcie, tym mniejsze straty na drodze.",
+   "notes": [
+    "słupy, przewody, stacja"
+   ],
+   "audio": "b3.ogg",
+   "duration": 9.427,
+   "words": [
+    {
+     "w": "Linia",
+     "s": 0.0,
+     "e": 0.34
+    },
+    {
+     "w": "wysokiego",
+     "s": 0.34,
+     "e": 0.86
+    },
+    {
+     "w": "napięcia",
+     "s": 0.86,
+     "e": 1.34
+    },
+    {
+     "w": "niesie",
+     "s": 1.34,
+     "e": 1.72
+    },
+    {
+     "w": "prąd",
+     "s": 1.72,
+     "e": 2.02
+    },
+    {
+     "w": "przez",
+     "s": 2.02,
+     "e": 2.2
+    },
+    {
+     "w": "pola,",
+     "s": 2.2,
+     "e": 2.84
+    },
+    {
+     "w": "na",
+     "s": 2.92,
+     "e": 3.1
+    },
+    {
+     "w": "wysokich",
+     "s": 3.1,
+     "e": 3.56
+    },
+    {
+     "w": "słupach,",
+     "s": 3.56,
+     "e": 4.1
+    },
+    {
+     "w": "do",
+     "s": 4.44,
+     "e": 4.54
+    },
+    {
+     "w": "stacji",
+     "s": 4.54,
+     "e": 4.96
+    },
+    {
+     "w": "transformatorowej.",
+     "s": 4.96,
+     "e": 6.02
+    },
+    {
+     "w": "Im",
+     "s": 6.22,
+     "e": 6.34
+    },
+    {
+     "w": "wyższe",
+     "s": 6.34,
+     "e": 6.78
+    },
+    {
+     "w": "napięcie,",
+     "s": 6.78,
+     "e": 7.48
+    },
+    {
+     "w": "tym",
+     "s": 7.48,
+     "e": 7.98
+    },
+    {
+     "w": "mniejsze",
+     "s": 7.98,
+     "e": 8.22
+    },
+    {
+     "w": "straty",
+     "s": 8.22,
+     "e": 8.68
+    },
+    {
+     "w": "na",
+     "s": 8.68,
+     "e": 8.8
+    },
+    {
+     "w": "drodze.",
+     "s": 8.8,
+     "e": 9.22
+    }
+   ],
+   "match": 1.0
+  },
+  {
+   "id": "b4",
+   "text": "Stacja obniża napięcie, a prąd płynie prosto do domu. Gdy zapalisz światło, okna rozbłysną jak latarnie w ciemną noc.",
+   "notes": [
+    "dom, okna"
+   ],
+   "audio": "b4.ogg",
+   "duration": 7.616,
+   "words": [
+    {
+     "w": "Stacja",
+     "s": 0.0,
+     "e": 0.36
+    },
+    {
+     "w": "obniża",
+     "s": 0.36,
+     "e": 0.78
+    },
+    {
+     "w": "napięcie,",
+     "s": 0.78,
+     "e": 1.34
+    },
+    {
+     "w": "a",
+     "s": 1.66,
+     "e": 1.74
+    },
+    {
+     "w": "prąd",
+     "s": 1.74,
+     "e": 2.04
+    },
+    {
+     "w": "płynie",
+     "s": 2.04,
+     "e": 2.38
+    },
+    {
+     "w": "prosto",
+     "s": 2.38,
+     "e": 2.78
+    },
+    {
+     "w": "do",
+     "s": 2.78,
+     "e": 2.86
+    },
+    {
+     "w": "domu.",
+     "s": 2.86,
+     "e": 3.14
+    },
+    {
+     "w": "Gdy",
+     "s": 3.32,
+     "e": 3.54
+    },
+    {
+     "w": "zapalisz",
+     "s": 3.54,
+     "e": 4.12
+    },
+    {
+     "w": "światło,",
+     "s": 4.12,
+     "e": 4.8
+    },
+    {
+     "w": "okna",
+     "s": 4.98,
+     "e": 5.34
+    },
+    {
+     "w": "rozbłysną",
+     "s": 5.34,
+     "e": 5.9
+    },
+    {
+     "w": "jak",
+     "s": 5.9,
+     "e": 6.14
+    },
+    {
+     "w": "latarnie",
+     "s": 6.14,
+     "e": 6.72
+    },
+    {
+     "w": "w",
+     "s": 6.72,
+     "e": 6.76
+    },
+    {
+     "w": "ciemną",
+     "s": 6.76,
+     "e": 7.12
+    },
+    {
+     "w": "noc.",
+     "s": 7.12,
+     "e": 7.5
+    }
+   ],
+   "match": 1.0
+  }
+ ]
+}
