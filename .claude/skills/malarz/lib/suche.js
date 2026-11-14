@@ -22,7 +22,7 @@ import { szum } from './szkic.js';
  */
 export const NARZEDZIA = {
   olowek: { szer: 1.2, sila: 0.70, krycie: 0.10, ziarno: 0.75, wypelnia: 0.25, miekko: 0.55, drganie: 0.30, nierowno: 0.35, stozek: 0.4 },
-  kredka: { szer: 1.9, sila: 0.42, krycie: 0.08, ziarno: 0.72, wypelnia: 0.45, miekko: 0.60, drganie: 0.35, nierowno: 0.40, stozek: 0.3 },
+  kredka: { szer: 1.9, sila: 0.55, krycie: 0.08, ziarno: 0.72, wypelnia: 0.45, miekko: 0.60, drganie: 0.35, nierowno: 0.40, stozek: 0.3 },
   wegiel: { szer: 6.0, sila: 0.80, krycie: 0.45, ziarno: 0.95, wypelnia: 0.06, miekko: 0.75, drganie: 0.55, nierowno: 0.60, stozek: 0.1 },
   pastel: { szer: 9.0, sila: 0.85, krycie: 0.86, ziarno: 0.78, wypelnia: 0.30, miekko: 0.45, drganie: 0.50, nierowno: 0.50, stozek: 0 },
   olejna: { szer: 7.0, sila: 0.92, krycie: 0.92, ziarno: 0.50, wypelnia: 0.60, miekko: 0.35, drganie: 0.45, nierowno: 0.35, stozek: 0 },
@@ -56,7 +56,7 @@ export function Kartka(W, H, S, papier = {}) {
     C[i * 3] = kol[0] * t; C[i * 3 + 1] = kol[1] * t; C[i * 3 + 2] = kol[2] * t;
   }
   const C0 = Float32Array.from(C);
-  const o = { W, H, S, PW, PH, C, Z, F, x0: 0, y0: 0, x1: 0, y1: 0 };
+  const o = { W, H, S, PW, PH, C, Z, F, kolor: kol, x0: 0, y0: 0, x1: 0, y1: 0 };
   let nrSladu = 0;
   /** Czysta kartka od nowa (film cofnięty na początek). */
   o.czysc = () => { C.set(C0); F.fill(0); ID.fill(-1); nrSladu = 0; };
