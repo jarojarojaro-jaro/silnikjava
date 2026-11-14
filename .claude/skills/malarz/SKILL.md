@@ -1,6 +1,6 @@
 ---
 name: malarz
-description: Silnik malarski w kodzie — maluje i rysuje obrazy tak, jak robi to ręka. „Malarz” kładzie tysiące pociągnięć pędzla (olej, impresjonizm, etiuda, wierna kopia), „rysownik” rysuje narzędziami suchymi na papierze z ziarnem (kredki, suche pastele, węgiel, ołówek); wzorem jest zdjęcie albo motyw wymyślony w kodzie, można też rysować z ręki. Do tego film z pracowni (pionowo 1080×1920), na którym praca powstaje kreska po kresce. Użyj, gdy ktoś prosi o namalowanie albo narysowanie czegoś, obraz ze zdjęcia, „sztukę rysowaną kodem / JavaScriptem”, rysunek wyglądający na ręczny, film z malowania, albo pokazuje projekt w rodzaju mona-lisa-js czy p5.brush. To NIE jest silnik rysowanych filmów z src/ (ręka, lektor) ani skill voxel-ascii — osobne narzędzie w czystym JS (Node, bez zależności).
+description: Silnik malarski w kodzie — maluje i rysuje obrazy tak, jak robi to ręka. „Malarz” kładzie tysiące pociągnięć pędzla (olej, impresjonizm, etiuda, wierna kopia), „rysownik” rysuje narzędziami suchymi na papierze z ziarnem (kredki, suche pastele, węgiel, ołówek); wzorem jest zdjęcie albo motyw wymyślony w kodzie, można też rysować z ręki. Do tego film z pracowni (pionowy 1080×1920 albo poziomy 1920×1080), na którym praca powstaje kreska po kresce. Użyj, gdy ktoś prosi o namalowanie albo narysowanie czegoś, obraz ze zdjęcia, „sztukę rysowaną kodem / JavaScriptem”, rysunek wyglądający na ręczny, film z malowania, albo pokazuje projekt w rodzaju mona-lisa-js czy p5.brush. To NIE jest silnik rysowanych filmów z src/ (ręka, lektor) ani skill voxel-ascii — osobne narzędzie w czystym JS (Node, bez zależności).
 ---
 
 # malarz — obraz malowany pędzlem, pociągnięcie po pociągnięciu
@@ -24,7 +24,7 @@ M=.claude/skills/malarz                                  # wymaga: Node ≥ 20, 
 node $M/maluj.mjs zdjecie.jpg --tytul "Portret" --skup 0.5,0.3,0.15,0.18,3   # → out/malarz/zdjecie/
 node $M/maluj.mjs $M/motywy/jezioro.js --styl olej       # motyw z wyobraźni
 node $M/maluj.mjs $M/motywy/lato.js --styl pastele       # to samo narzędziami suchymi (16:9)
-node $M/film.mjs out/malarz/jezioro/obraz.json           # film.mp4 (1080×1920, ok. 34 s)
+node $M/film.mjs out/malarz/jezioro/obraz.json           # film.mp4 (ok. 34 s; pion 1080×1920, panorama 1920×1080)
 node $M/film.mjs out/malarz/jezioro/obraz.json --arkusz  # 6 klatek filmu w jednym PNG
 node $M/strona.mjs out/malarz/jezioro/obraz.json         # obraz.html: jeden plik, maluje na żywo w przeglądarce
 node $M/odtworz.mjs out/malarz/jezioro/obraz.json --skala 4 --okno 0.2,0.4,0.3,0.2   # detal z bliska
@@ -48,10 +48,10 @@ Style suche (definicje w `lib/rysownik.js`; wynik to kreski, nie pociągnięcia 
 
 | Styl | Kresek | Czas | Charakter |
 |---|---|---|---|
-| `pastele` | 40–55 tys. | ok. 15 s | suche pastele na tonowanym papierze: kryją, żywe kolory, najlepsze do pejzaży i barwnych motywów |
+| `pastele` | 45–100 tys. | ok. 20 s | suche pastele na tonowanym papierze: kryją, żywe kolory, najlepsze do pejzaży i barwnych motywów |
 | `kredki` | 110–145 tys. | ok. 30 s | kredki na jasnym papierze: warstwy szrafu, pigmenty mieszają się przez nakładanie; wychodzi ciemniej i spokojniej niż wzór |
 | `wegiel` | 30–50 tys. | ok. 15 s | węgiel i biała kreda na szarym papierze, sam walor |
-| `olowek` | 80–120 tys. | ok. 25 s | ołówek, szraf krzyżowy |
+| `olowek` | 60–120 tys. | ok. 20 s | ołówek, szraf krzyżowy |
 
 `--szczegol 1.5` mnoży liczbę pociągnięć. Styl to dane: etapy (pędzel, szerokości, długości,
 liczba), cechy pędzla (włosie, suchość, smugi), światło, ewentualnie `kolor` i `wygladz`.
@@ -90,6 +90,8 @@ liczba), cechy pędzla (włosie, suchość, smugi), światło, ewentualnie `kolo
    pędzlem: pędzel rysowany włos po włosie, lupa ×4, paleta z farbami (skupiska kolorów
    pociągnięć) i śladami mieszania, lista pędzli, licznik i 12 bajtów bieżącego pociągnięcia.
    Dla rysunków: ołówek albo pałeczka w kadrze, piórnik z użytymi kredkami zamiast palety.
+   Kadr jest pionowy (1080×1920), a dla prac szerszych niż 1,2:1 sam przechodzi w poziomy
+   (1920×1080: praca z lewej, narzędzia w kolumnie z prawej); `--uklad pion|poziom` wymusza.
    `film.mjs` zrzuca klatki przez Chromium i koduje MP4; `strona.mjs` pakuje pracownię i obraz
    do jednego pliku HTML (bez sieci i grafik; spacja = pauza, R = od nowa).
 
@@ -190,12 +192,17 @@ wielu poprawek „na oko” (render → obejrzyj → popraw) — do pełnych kom
   - ziarno o zbyt ostrym progu daje „sól i pieprz”; próg ma być miękki, a ziarno ma się wypełniać;
   - cienkie, rzadkie kreski wyglądają jak druciki: podkład kładzie się szeroko (bokiem grafitu),
     dopiero detal zaostrzoną kredką; kreska po formie tylko tam, gdzie wzór ma wyraźny rysunek;
+  - szeroka kreska przezroczystym pigmentem zalewa drobne jasne kształty (oko, okno) na zawsze:
+    tam, gdzie wzór ma rysunek, podkład kładzie się wąsko; nacisk przezroczystych kredek ≤ 1,
+    a ciemne rysują tylko tam, gdzie wygrywają ze wszystkimi. `maluj.mjs` wypisuje jasność wzoru
+    i rysunku — rysunek wyraźnie ciemniejszy znaczy, że pigmentu jest za dużo;
+  - ostra runda detalu (porównanie bez rozmycia) pomaga pastelom, a kredkom szkodzi: gonią ziarno
+    papieru i liczba kresek rośnie trzykrotnie bez zysku;
   - część śladu rysowana w filmie nie może nachodzić na poprzednią (ziarno już zalepione dałoby
     więcej pigmentu niż w całości) — odcinki dzieli się bez zakładek.
 
 ## Ograniczenia
 
-- Kadr filmu jest pionowy (1080×1920); obraz poziomy mieści się, ale zostaje dużo ściany.
 - Kredki (pigment przezroczysty) nie rozjaśnią tego, co już położone: rysunek wychodzi ciemniejszy
   i mniej nasycony niż wzór; do jaskrawych motywów lepsze są `pastele`.
 - Malarz nie „rozumie” tematu: twarz trzeba mu wskazać (`--skup`). Farby mieszają się jak

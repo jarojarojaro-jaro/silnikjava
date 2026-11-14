@@ -1,9 +1,10 @@
 // pracownia.js — pracownia: obraz powstaje na oczach widza. Jedna funkcja czasu klatka(t):
 // maluje pociągnięcia do chwili t tym samym pędzlem co malarz, oświetla fakturę i rysuje
-// wszystko dookoła (ściana, pędzel, lupa, paleta, lista pędzli, licznik). Kadr 1080 × 1920.
+// wszystko dookoła (ściana, pędzel, lupa, paleta, lista pędzli, licznik). Kadr 1080 × 1920 albo,
+// dla prac panoramicznych, 1920 × 1080.
 //
 // Parametry strony: ?obraz=adres.json (albo window.OBRAZ z tekstem pliku), czas=30 (s malowania),
-// koniec=3.5 (s na gotowy obraz), jakosc (nadpróbkowanie obrazu: 2 w filmie, 1 na żywo), szer=1080,
+// koniec=3.5 (s na gotowy obraz), uklad=pion|poziom (domyślnie wg proporcji pracy), jakosc (nadpróbkowanie obrazu: 2 w filmie, 1 na żywo), szer=1080,
 // film=1 (bez pętli: klatki zamawia film.mjs). Na żywo: spacja = pauza, R = od nowa.
 
 import { Pedzel, odczytaj, plotno, oswietl, BAJTY, RODZAJE } from '../lib/pedzel.js';
@@ -12,7 +13,7 @@ import { Kartka, ETYKIETY } from '../lib/suche.js';
 import { indeks, odczytajSlad } from '../lib/rysunek.js';
 import { rysujPedzel, rysujOlowek } from './narzedzie.js';
 
-const FW = 1080, FH = 1920, WSTEP = 0.9;
+const WSTEP = 0.9;
 const q = new URLSearchParams(location.search);
 const gladko = (a, b, x) => { x = (x - a) / (b - a); return x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x); };
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -95,13 +96,20 @@ export async function pracownia(canvas) {
   const tekst = window.OBRAZ ?? await (await fetch(q.get('obraz'))).text();
   const { naglowek: n, bajty: buf } = zTekstu(tekst), RYS = n.rodzaj === 'rysunek';
   const CZAS = Number(q.get('czas') ?? 30), KONIEC = Number(q.get('koniec') ?? 3.5), JAK = Number(q.get('jakosc') ?? (q.has('film') ? 2 : 1));
+  // dwa układy kadru: pionowy 1080×1920 (obraz u góry, narzędzia pod nim) i poziomy 1920×1080
+  // (obraz z lewej, narzędzia w kolumnie z prawej) — poziomy sam się włącza dla prac panoramicznych
+  const POZ = (q.get('uklad') ?? (n.W / n.H > 1.2 ? 'poziom' : 'pion')) === 'poziom', FW = POZ ? 1920 : 1080, FH = POZ ? 1080 : 1920;
+  const L = POZ
+    ? { pole: { x: 40, y: 40, w: 1310, h: 1000 }, tytul: [1635, 92, 44, 134, 20, 480], lupa: [1463, -1362], paleta: [1087, -1052], lista: [606, -760], listaWys: 216, stopka: [1390, 490, 1046], blat: 0 }
+    : { pole: { x: 50, y: 196, w: 980, h: 1290 }, tytul: [540, 104, 62, 150, 23, 1000], lupa: [0, 0], paleta: [0, 0], lista: [0, 0], listaWys: 300, stopka: [50, 980, 1888], blat: 1500 };
+  const przesun = (d, f) => { g.save(); g.translate(d[0] * u, d[1] * u); f(); g.restore(); };
   const szer = Number(q.get('szer') ?? FW), u = szer / FW;
   canvas.width = szer; canvas.height = Math.round(FH * u);
   const g = canvas.getContext('2d');
   await document.fonts.ready;
 
   // ---- układ: obraz u góry, na dole lupa, paleta i pędzle --------------------------------
-  const pole = { x: 50, y: 196, w: 980, h: 1290 };
+  const pole = L.pole;
   const sk = Math.min(pole.w / n.W, pole.h / n.H), dw = n.W * sk, dh = n.H * sk;
   const dx = pole.x + (pole.w - dw) / 2, dy = pole.y + (pole.h - dh) / 2;
   const S = JAK * sk * u, E = RYS ? silnikRysunku(n, buf, S) : silnikOleju(n, buf, S), N = E.N, PW = E.PW, PH = E.PH;
@@ -176,9 +184,10 @@ export async function pracownia(canvas) {
     const id = b.getImageData(0, 0, w, h), d = id.data;         // ziarno tynku
     for (let i = 0; i < w * h; i++) { const v = (h01(i * 2 + 1) - 0.5) * 9 + (h01((i >> 2) * 5 + 7) - 0.5) * 5; d[i * 4] += v; d[i * 4 + 1] += v; d[i * 4 + 2] += v; }
     b.putImageData(id, 0, 0);
-    gr = b.createLinearGradient(0, 1500 * u, 0, h);              // blat pod obrazem
+    const bl = (L.blat || FH) * u;
+    gr = b.createLinearGradient(0, bl, 0, h);                    // blat pod obrazem (układ pionowy)
     gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.12, 'rgba(8,6,5,.55)'); gr.addColorStop(1, 'rgba(4,3,3,.82)');
-    b.fillStyle = gr; b.fillRect(0, 1500 * u, w, h - 1500 * u);
+    b.fillStyle = gr; b.fillRect(0, bl, w, h - bl);
   }
   const PAL = E.kolory(), PX = 548, PY = 1672;
   const kupki = PAL.map(({ c }, j) => { const a = Math.PI * (1.08 + 0.84 * (j / (PAL.length - 1))); return { c, x: PX + Math.cos(a) * 172 + 6, y: PY + Math.sin(a) * 98 + 18, r: 21 + 5 * h01(j + 3) }; });
@@ -276,7 +285,7 @@ export async function pracownia(canvas) {
 
   function rysujListe(ie, kolor, gotowe) {
     g.save(); g.scale(u, u);
-    const x = 796, y0 = 1548, dy2 = Math.min(44, 300 / n.etapy.length);
+    const x = 796, y0 = 1548, dy2 = Math.min(44, L.listaWys / n.etapy.length);
     g.textBaseline = 'middle';
     n.etapy.forEach((e, k) => {
       const y = y0 + k * dy2, po = gotowe || k < ie, teraz = !gotowe && k === ie, od = k ? n.etapy[k - 1].koniec : 0;
@@ -312,9 +321,9 @@ export async function pracownia(canvas) {
     }
     // tytuł
     g.textAlign = 'center'; g.textBaseline = 'alphabetic';
-    g.fillStyle = '#eadcbd'; g.font = `italic ${62 * u}px Caladea, Georgia, serif`; g.fillText(n.tytul, 540 * u, 104 * u);
-    g.fillStyle = '#8f8676'; g.font = `${23 * u}px Inter, sans-serif`;
-    g.fillText(`${n.autor ? n.autor + '  ·  ' : ''}${RYS ? 'rysowane kodem, kreska po kresce' : 'malowane kodem, pociągnięcie po pociągnięciu'}`, 540 * u, 150 * u);
+    g.fillStyle = '#eadcbd'; g.font = `italic ${L.tytul[2] * u}px Caladea, Georgia, serif`; g.fillText(n.tytul, L.tytul[0] * u, L.tytul[1] * u, L.tytul[5] * u);
+    g.fillStyle = '#8f8676'; g.font = `${L.tytul[4] * u}px Inter, sans-serif`;
+    g.fillText(`${n.autor ? n.autor + '  ·  ' : ''}${RYS ? 'rysowane kodem, kreska po kresce' : 'malowane kodem, pociągnięcie po pociągnięciu'}`, L.tytul[0] * u, L.tytul[3] * u, L.tytul[5] * u);
 
     // obraz: cień na ścianie, bok podobrazia, płótno
     g.save();
@@ -332,9 +341,9 @@ export async function pracownia(canvas) {
     const kolor = [o.r, o.g, o.b];
     const lk = gladko(0.3, 2.4, t - WSTEP - CZAS);
     const tk = t - WSTEP - CZAS;                                   // na koniec lupa wolno krąży po detalu
-    rysujLupe(lerp(o.x, detal.x + detal.rx * Math.sin(tk * 0.9), lk), lerp(o.y, detal.y - detal.ry * Math.cos(tk * 0.9), lk));
-    if (RYS) rysujPiornik(kolor, o.rodzaj, !gotowe); else rysujPalete(tp, kolor, !gotowe);
-    rysujListe(ie, kolor, gotowe);
+    przesun(L.lupa, () => rysujLupe(lerp(o.x, detal.x + detal.rx * Math.sin(tk * 0.9), lk), lerp(o.y, detal.y - detal.ry * Math.cos(tk * 0.9), lk)));
+    przesun(L.paleta, () => (RYS ? rysujPiornik(kolor, o.rodzaj, !gotowe) : rysujPalete(tp, kolor, !gotowe)));
+    przesun(L.lista, () => rysujListe(ie, kolor, gotowe));
 
     // pędzel: wchodzi z prawej z dołu, maluje, po ostatnim pociągnięciu odchodzi
     const wej = gladko(0, WSTEP, t), wyj = gladko(0, 0.9, t - WSTEP - CZAS);
@@ -351,14 +360,15 @@ export async function pracownia(canvas) {
     g.save(); g.scale(u, u);
     const nr = Math.min(N, gotowe ? N : ile + 1);
     g.textBaseline = 'alphabetic'; g.textAlign = 'left'; g.fillStyle = '#cbbd9f'; g.font = '600 22px Inter, sans-serif';
-    g.fillText(`${tys(nr)}`, 50, 1888);
+    const [sx, sw, sy] = L.stopka;
+    g.fillText(`${tys(nr)}`, sx, sy);
     const wl = g.measureText(tys(nr)).width;
-    g.fillStyle = '#7d7566'; g.font = '20px Inter, sans-serif'; g.fillText(` / ${tys(N)} ${E.jednostka}  ·  ${E.narzedzie(ie, o)}`, 50 + wl, 1888);
+    g.fillStyle = '#7d7566'; g.font = '20px Inter, sans-serif'; g.fillText(` / ${tys(N)} ${E.jednostka}  ·  ${E.narzedzie(ie, o)}`, sx + wl, sy);
     const q0 = E.rekord(Math.min(N - 1, nr - 1)); let hex = '';
     for (let k = 0; k < BAJTY; k++) hex += buf[q0 + k].toString(16).padStart(2, '0').toUpperCase() + (k < BAJTY - 1 ? ' ' : '');
-    g.textAlign = 'right'; g.fillStyle = '#6f685b'; g.font = '17px "JetBrains Mono", monospace'; g.fillText(hex, 1030, 1888);
-    g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(50, 1902, 980, 3);
-    g.fillStyle = '#c9a658'; g.fillRect(50, 1902, 980 * (gotowe ? 1 : nr / N), 3);
+    g.textAlign = 'right'; g.fillStyle = '#6f685b'; g.font = '17px "JetBrains Mono", monospace'; g.fillText(hex, sx + sw, POZ ? sy - 34 : sy);     // w wąskiej kolumnie bajty idą wiersz wyżej
+    g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(sx, sy + 14, sw, 3);
+    g.fillStyle = '#c9a658'; g.fillRect(sx, sy + 14, sw * (gotowe ? 1 : nr / N), 3);
     g.restore();
   }
 

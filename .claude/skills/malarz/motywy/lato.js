@@ -5,7 +5,7 @@
 //
 //   node maluj.mjs motywy/lato.js --styl kredki      (albo pastele, olej)
 
-import { namaluj, gladko, ogr, miesz, pasmo, fbm, fbm1, h2 } from '../lib/szkic.js';
+import { namaluj, gladko, miesz, pasmo, fbm, fbm1, h2 } from '../lib/szkic.js';
 
 export const TYTUL = 'Ostatni wieczór lata';
 export const AUTOR = 'z wyobraźni';

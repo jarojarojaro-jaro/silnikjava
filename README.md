@@ -511,7 +511,7 @@ M=.claude/skills/malarz
 node $M/maluj.mjs zdjecie.jpg --styl olej --skup 0.5,0.3,0.15,0.18,3   # obraz → out/malarz/zdjecie/
 node $M/maluj.mjs $M/motywy/jezioro.js                                 # motyw z wyobraźni
 node $M/maluj.mjs $M/motywy/lato.js --styl pastele                     # rysunek pastelami (16:9)
-node $M/film.mjs out/malarz/jezioro/obraz.json                         # film z pracowni 1080×1920
+node $M/film.mjs out/malarz/jezioro/obraz.json                         # film z pracowni (pion albo poziom)
 node $M/strona.mjs out/malarz/jezioro/obraz.json                       # jeden plik HTML, maluje na żywo
 npm run test:malarz
 ```

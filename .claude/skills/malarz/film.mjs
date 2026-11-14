@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// film.mjs — film z pracowni: obraz powstaje pociągnięcie po pociągnięciu (MP4 1080 × 1920, 30 kl./s).
+// film.mjs — film z pracowni: obraz powstaje pociągnięcie po pociągnięciu (MP4, 30 kl./s).
+// Kadr pionowy 1080 × 1920, a dla prac panoramicznych poziomy 1920 × 1080 (--uklad pion|poziom wymusza).
 //
 //   node film.mjs out/malarz/perla/obraz.json                 # obok pliku: film.mp4
 //   node film.mjs obraz.json --czas 40 --koniec 4             # 40 s malowania + 4 s gotowego obrazu
@@ -19,8 +20,8 @@ import { spawn, spawnSync } from 'node:child_process';
 const TU = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2), plik = args.find((a, i) => !a.startsWith('--') && !(args[i - 1] ?? '').startsWith('--'));
 const opt = (n, d) => { const i = args.indexOf(`--${n}`); return i < 0 ? d : args[i + 1] === undefined || args[i + 1].startsWith('--') ? true : args[i + 1]; };
-if (!plik) { console.log('użycie: node film.mjs <obraz.json> [--czas 30] [--koniec 3.5] [--fps 30] [--szer 1080] [--jakosc 2] [--watki 4] [--klatki t1,t2] [--arkusz] [--out film.mp4]'); process.exit(1); }
-const fps = Number(opt('fps', 30)), szer = Number(opt('szer', 1080)), watki = Number(opt('watki', 4));
+if (!plik) { console.log('użycie: node film.mjs <obraz.json> [--czas 30] [--koniec 3.5] [--fps 30] [--uklad pion|poziom] [--szer px] [--jakosc 2] [--watki 4] [--klatki t1,t2] [--arkusz] [--out film.mp4]'); process.exit(1); }
+const fps = Number(opt('fps', 30)), watki = Number(opt('watki', 4));
 const out = resolve(opt('out', join(dirname(plik), 'film.mp4')));
 
 // serwer: pliki skilla + wskazany obraz pod /obraz.json (moduły ES nie działają z file://)
@@ -37,7 +38,7 @@ const serwer = createServer(async (req, res) => {
   } catch { res.writeHead(404); res.end(); }
 });
 await new Promise((r) => serwer.listen(0, '127.0.0.1', r));
-const url = `http://127.0.0.1:${serwer.address().port}/pracownia/pracownia.html?film=1&obraz=/obraz.json&czas=${opt('czas', 30)}&koniec=${opt('koniec', 3.5)}&jakosc=${opt('jakosc', 2)}&szer=${szer}`;
+const url = `http://127.0.0.1:${serwer.address().port}/pracownia/pracownia.html?film=1&obraz=/obraz.json&czas=${opt('czas', 30)}&koniec=${opt('koniec', 3.5)}&jakosc=${opt('jakosc', 2)}${opt('szer') ? `&szer=${opt('szer')}` : ''}${opt('uklad') ? `&uklad=${opt('uklad')}` : ''}`;
 
 const { chromium } = await import('playwright');
 const flagi = (process.env.CHROMIUM_ARGS ?? '').split(' ').filter(Boolean);
@@ -51,7 +52,7 @@ async function przegladarka() {
 }
 const br = await przegladarka();
 async function karta() {
-  const k = await br.newPage({ viewport: { width: szer, height: Math.round(szer * 16 / 9) }, deviceScaleFactor: 1 });
+  const k = await br.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });   // klatki idą z canvasu, okno nie ma znaczenia
   k.on('pageerror', (e) => console.error('błąd strony:', e.message));
   k.on('console', (m) => m.type() === 'error' && console.error('konsola:', m.text()));
   await k.goto(url);
@@ -64,7 +65,7 @@ const zrzut = async (k, t, typ = 'image/jpeg') => {
   return Buffer.from(d.slice(d.indexOf(',') + 1), 'base64');
 };
 const t0 = Date.now(), pierwsza = await karta();
-const czas = await pierwsza.evaluate(() => window.__malarz.czas);
+const { czas, kw, kh } = await pierwsza.evaluate(() => ({ czas: window.__malarz.czas, kw: window.__malarz.canvas.width, kh: window.__malarz.canvas.height }));
 
 if (opt('klatki') || opt('arkusz')) {
   const ts = opt('arkusz') ? [0.03, 0.12, 0.3, 0.55, 0.8, 1].map((f) => f * czas) : String(opt('klatki')).split(',').map(Number);
@@ -86,7 +87,7 @@ if (opt('klatki') || opt('arkusz')) {
   const karty = [pierwsza, ...(await Promise.all(Array.from({ length: Math.min(watki, n) - 1 }, karta)))];
   const gotowe = new Map(); let nast = 0, zrobione = 0;
   const wyslij = async () => { while (gotowe.has(nast)) { const b = gotowe.get(nast); gotowe.delete(nast); nast++; if (!ff.stdin.write(b)) await new Promise((r) => ff.stdin.once('drain', r)); } };
-  console.log(`${plik}: ${n} klatek (${czas.toFixed(1)} s), ${szer}×${Math.round(szer * 16 / 9)}, ${karty.length} karty`);
+  console.log(`${plik}: ${n} klatek (${czas.toFixed(1)} s), ${kw}×${kh}, ${karty.length} karty`);
   await Promise.all(karty.map(async (k, wi) => {
     for (let i = wi; i < n; i += karty.length) {
       gotowe.set(i, await zrzut(k, i / fps)); await wyslij();
