@@ -127,6 +127,9 @@ const kolor = (u, v) => {
 export const wzor = (W, H) => namaluj(W, H, kolor);
 ```
 
+Gotowe motywy: `jezioro.js` (pion 2:3), `lato.js` i `tatry.js` (panoramy 16:9; w `tatry.js` skała
+z żebrami i żlebami ze śniegiem, świerki, głazy, krokusy).
+
 Wzorzec do skopiowania: `motywy/jezioro.js` (niebo z chmurami świeconymi od dołu, dwa pasma
 gór z mgłą, lasy, chata, **odbicie w wodzie przez ponowne wywołanie funkcji świata**, brzeg,
 sosna). Zasady: najpierw obejrzyj `wzor.png` — pędzel dodaje fakturę, ale nie naprawi
