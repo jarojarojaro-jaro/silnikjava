@@ -103,6 +103,15 @@ export const STYLE_SUCHE = {
       { nazwa: 'Czerń', poForma: true, odstep: 1.5, dl: [6, 14], co: 3, staly: 1, zysk: 3500 },
     ],
   },
+  szkic: {
+    opis: 'szkic ołówkiem: pewny kontur i lekki szraf w cieniach, reszta to papier',
+    papier: { kolor: [247, 243, 233], ziarno: 1 }, narzedzie: 'olowek', mono: [52, 51, 56], szkic: 'olowek', akcent: 'olowek',
+    linie: 1.5, kontury: 1, konturPierwszy: true, konturNacisk: [0.35, 0.65], rozjasnij: 0.8, rozmycie: 2.2, krzywa: [0, 225],
+    rundy: [
+      { nazwa: 'Cienie', kat: -0.95, odstep: 2.0, dl: [28, 64], co: 7, szer: 1.4, zysk: 120 },
+      { nazwa: 'Głębsze cienie', kat: -0.45, odstep: 2.2, dl: [16, 36], co: 5, zysk: 500 },
+    ],
+  },
 };
 
 /**
