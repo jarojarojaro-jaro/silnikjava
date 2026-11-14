@@ -81,6 +81,20 @@ export const STYLE = {
       { nazwa: 'Krawędzią', nr: 'S0', pedzel: PLASKI, w: [2, 5], lr: [2, 6], n: 2600, prosto: 0.9, skup: 1.4 },
     ],
   },
+  // puentylizm: same kropki; kolor każdej odchylony od wyliczonego, więc z bliska mienią się, z daleka zlewają
+  punkty: {
+    opis: 'puentylizm: obraz z kropek czystego koloru, które miesza dopiero oko',
+    cechy: { wlosie: 0.8, suchosc: 0.5, smugi: 1.2 },
+    swiatlo: { sila: 0.55, splot: 0.9, polysk: 0.8 },
+    wygladz: 1.8,
+    kolor: { nasycenie: 1.3, rozszczep: 36 },
+    etapy: [
+      { nazwa: 'Podmalówka', nr: '24', pedzel: PLASKI, w: [40, 90], lr: [1.2, 2.6], n: 200 },
+      { nazwa: 'Duże kropki', nr: '10', pedzel: OKRAGLY, w: [10, 14], lr: [1, 1.15], n: 2400, pelne: 1, prosto: 1 },
+      { nazwa: 'Kropki', nr: '6', pedzel: OKRAGLY, w: [6.5, 9], lr: [1, 1.15], n: 6500, pelne: 1, prosto: 1 },
+      { nazwa: 'Drobne kropki', nr: '3', pedzel: OKRAGLY, w: [4, 6], lr: [1, 1.15], n: 9000, pelne: 1, prosto: 1, skup: 0.8 },
+    ],
+  },
 };
 
 /** Rozmiar roboczy z proporcji wzoru (szer./wys.), o stałym polu. */
