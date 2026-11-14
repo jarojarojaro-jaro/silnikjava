@@ -28,6 +28,11 @@ import { rozmyj, szarosc, kierunki } from './pole.js';
  * się z kilku warstw); nasycenie — rysownik przesadza kolor wzoru jak człowiek; kal — ostrożność pierwszej
  * rundy (ułamek planu); wagaBarwy — o ile ważniejszy jest odcień od jasności; zapas — o ile poziomów kanał
  * może zejść poniżej wzoru. swiatla — rundy bieli na papierze tonowanym (zysk jak wyżej).
+ * Runda może mieć własne narzedzie (technika mieszana), mono (jedna barwa), rozmycie (z jak daleka rysownik
+ * porównuje kartkę ze wzorem: duże plamy akwareli) i staly (tusz: kreska jest albo jej nie ma).
+ * Styl: linie (ile konturów), kontury (jaka część jest poprawiana na końcu albo — konturPierwszy — przed
+ * szrafem), rozjasnij (szkic: rysuje się tylko cienie), krzywa [czerń, biel] (tusz: tony jaśniejsze od
+ * progu to czysty papier), rozmycie (skala porównania dla całego stylu).
  */
 export const STYLE_SUCHE = {
   kredki: {
@@ -80,6 +85,7 @@ export const STYLE_SUCHE = {
 /**
  * Kredki do wzoru: k kolorów możliwie różnych (najpierw najdalsze od siebie próbki, potem k-średnich
  * z wagą nasycenia), od najjaśniejszego. Mała plama czystego koloru (usta, turban) dostaje własną kredkę.
+ * Zwraca najwyżej k kolorów (mniej, gdy wzór ma ich mniej).
  */
 export function paleta(T, N, k) {
   const pr = [];
@@ -103,7 +109,9 @@ export function paleta(T, N, k) {
     }
     c = c.map((old, j) => (s[j][3] ? [s[j][0] / s[j][3], s[j][1] / s[j][3], s[j][2] / s[j][3]] : old));
   }
-  return c.sort((a, b) => jas(b) - jas(a));
+  const rozne = [];                                        // wzór o kilku barwach: bez powtórzonych kredek
+  for (const q of c) if (!rozne.some((w) => d2(q, w) < 150)) rozne.push(q);
+  return rozne.sort((a, b) => jas(b) - jas(a));
 }
 
 /** Linie wzdłuż krawędzi wzoru: [{ pts: [[x, y, siła 0..1], …] }], najmocniejsze najpierw. */
@@ -149,14 +157,18 @@ export function kontury(gray, W, H, maks = 2400, minDl = 9) {
  * @returns {ReturnType<typeof Rysunek>} rysunek gotowy do obraz()
  */
 export function rysuj(o) {
-  const { W, H } = o, N = W * H, st = STYLE_SUCHE[o.styl], nz = NARZEDZIA[st.narzedzie], szcz = o.szczegol ?? 1;
+  const { W, H } = o, N = W * H, st = STYLE_SUCHE[o.styl], szcz = o.szczegol ?? 1;
   const T = Float32Array.from(o.cel);
   if (st.nasycenie) for (let i = 0; i < N; i++) { const m = 0.3 * T[i * 3] + 0.59 * T[i * 3 + 1] + 0.11 * T[i * 3 + 2]; for (let c = 0; c < 3; c++) T[i * 3 + c] = Math.max(0, Math.min(255, m + (T[i * 3 + c] - m) * st.nasycenie)); }
   if (st.mono) for (let i = 0; i < N; i++) T[i * 3] = T[i * 3 + 1] = T[i * 3 + 2] = 0.3 * T[i * 3] + 0.59 * T[i * 3 + 1] + 0.11 * T[i * 3 + 2];   // sam walor
+  if (st.krzywa) { const [a, b] = st.krzywa; for (let i = 0; i < N * 3; i++) T[i] = 255 * Math.max(0, Math.min(1, (T[i] - a) / (b - a))); }   // tusz: jasne tony to czysty papier
+  if (st.rozjasnij) for (let i = 0; i < N * 3; i++) T[i] = 255 - (255 - T[i]) * st.rozjasnij;          // szkic: tylko cienie, i to lżej
   const r = Rysunek({ W, H, papier: { ...st.papier, ...o.papier }, tytul: o.tytul, autor: o.autor, styl: o.styl, ziarno: o.ziarno });
   const K = r.kartka, gray = szarosc(T, N), pole = kierunki(gray, W, H, 2.2);
   const kanal = (src, c) => { const k = new Float32Array(N); for (let i = 0; i < N; i++) k[i] = src[i * 3 + c]; return k; };
-  const Tm = [0, 1, 2].map((c) => rozmyj(kanal(T, c), W, H, 1.2)), To = [0, 1, 2].map((c) => rozmyj(kanal(T, c), W, H, 0.6));
+  const SG = st.rozmycie ?? 1.2;                          // z jakiej odległości rysownik porównuje kartkę ze wzorem
+  const Tm = [0, 1, 2].map((c) => rozmyj(kanal(T, c), W, H, SG)), To = [0, 1, 2].map((c) => rozmyj(kanal(T, c), W, H, 0.6));
+  const cele = { [SG]: Tm }, celRozmyty = (sigma) => (cele[sigma] ??= [0, 1, 2].map((c) => rozmyj(kanal(T, c), W, H, sigma)));   // runda może patrzeć z dalszej odległości (duże plamy)
   const probka = (m, x, y) => {                          // dwuliniowo z mapy W×H
     const xx = Math.max(0, Math.min(W - 1.001, x - 0.5)), yy = Math.max(0, Math.min(H - 1.001, y - 0.5)), xi = xx | 0, yi = yy | 0, fx = xx - xi, fy = yy - yi, i = yi * W + xi;
     return m[i] * (1 - fx) * (1 - fy) + m[i + 1] * fx * (1 - fy) + m[i + W] * (1 - fx) * fy + m[i + W + 1] * fx * fy;
@@ -196,20 +208,20 @@ export function rysuj(o) {
   // mapy tonu dla zestawu kredek: w każdym miejscu rysuje tylko ta, która trafia w kolor najlepiej.
   // Bez tego kredki o złym odcieniu „poprawiają” jasność (kolory idą w brąz), a podobne kredki
   // nakładają tę samą poprawkę kilka razy (rysunek wychodzi za ciemny). Mieszanie robi się między rundami.
-  function tony(kredki, narz, minZysk = 30, ostro = false) {
-    const Tb = ostro ? To : Tm, Cb = rozmyta(ostro ? 0.6 : 1.2), pr = kredki.map((k) => proba(k, narz, Cb, Tb)), naj = new Float32Array(N).fill(1e12);
-    for (const p of pr) for (let i = 0; i < N; i++) if (p.Ew[i] < naj[i]) naj[i] = p.Ew[i];
+  function tony(kredki, narz, minZysk = 30, ostro = false, sigma = SG) {
+    const Tb = ostro ? To : celRozmyty(sigma), Cb = rozmyta(ostro ? 0.6 : sigma), pr = kredki.map((k) => proba(k, narz, Cb, Tb)), naj = new Float32Array(N).fill(1e12), kto = new Uint8Array(N);
+    pr.forEach((p, nr) => { for (let i = 0; i < N; i++) if (p.Ew[i] < naj[i]) { naj[i] = p.Ew[i]; kto[i] = nr; } });
     let plan = 0;
     const mapy = pr.map((p, nr) => {
       const kol = kredki[nr], kr = narz.krycie, am = narz.sila * 0.95;
       for (let i = 0; i < N; i++) {
-        if (p.Ew[i] > naj[i] || p.E0[i] - p.E[i] <= minZysk) { p.D[i] = 0; continue; }   // jedna kredka na miejsce w rundzie: suchego pigmentu nie da się cofnąć
+        if (kto[i] !== nr || p.E0[i] - p.E[i] <= minZysk) { p.D[i] = 0; continue; }   // jedna kredka na miejsce w rundzie: suchego pigmentu nie da się cofnąć
         const a = am * p.D[i], m = a * (1 - kr), ok = a * kr;
         for (let c = 0; c < 3; c++) plan += JAS[c] * Math.abs(Cb[c][i] - (Cb[c][i] * (1 - m * (1 - kol[c] / 255)) * (1 - ok) + kol[c] * ok));
       }
-      return rozmyj(p.D, W, H, 0.8);
+      return rozmyj(p.D, W, H, Math.max(0.8, sigma * 0.5));
     });
-    mapy.plan = plan; mapy.przed = Cb;
+    mapy.plan = plan; mapy.przed = Cb; mapy.sigma = ostro ? 0.6 : sigma;
     return mapy;
   }
   // ile z planu naprawdę trafiło na kartkę (szraf ma przerwy i zakładki, ziarno łapie różnie): rysownik
@@ -217,7 +229,7 @@ export function rysuj(o) {
   let kal = st.kal ?? 0.95;
   const rozlicz = (mapy) => {
     if (!(mapy.plan > N * 0.02)) return;
-    const po = rozmyta(1.2); let zrob = 0;
+    const po = rozmyta(mapy.sigma); let zrob = 0;
     for (let i = 0; i < N; i++) for (let c = 0; c < 3; c++) zrob += JAS[c] * Math.abs(mapy.przed[c][i] - po[c][i]);
     const ile = zrob / mapy.plan;
     kal = Math.max(0.35, Math.min(1.25, kal / Math.pow(Math.max(0.2, ile), 0.8)));
@@ -230,7 +242,7 @@ export function rysuj(o) {
     for (let k = 0; k <= 32; k++) {
       const p = k / 32; let m = 0;
       for (const z of zs) { const zl = (z - (1 - p * 1.08 - 0.15)) * 2.6 + 0.5; m += zl < 0 ? 0 : zl > 1 ? 1 : zl; }
-      tab[k] = (0.3 + 0.7 * p) * (1 - g + g * m / zs.length);
+      tab[k] = narz.mokre ? 0.08 + 0.92 * p : (0.3 + 0.7 * p) * (1 - g + g * m / zs.length);
     }
     return (d) => { const cel = Math.max(0, Math.min(1, d)) * tab[32]; let k = 0; while (k < 32 && tab[k + 1] < cel) k++; return k >= 32 ? 1 : Math.min(1, (k + (cel - tab[k]) / Math.max(1e-6, tab[k + 1] - tab[k])) / 32); };
   };
@@ -245,34 +257,52 @@ export function rysuj(o) {
   const poFormie = (kat) => (x, y) => (wyr(x, y) ? pole[Math.max(0, Math.min(H - 1, y | 0)) * W + Math.max(0, Math.min(W - 1, x | 0))] : kat);
 
   // 1. szkic
-  const linie = kontury(gray, W, H, Math.round(2400 * szcz));
-  const sz = NARZEDZIA[st.szkic];
-  r.etap('Szkic', st.szkic);
-  for (const l of linie) {
-    const pts = l.pts.filter((_, i) => i % 4 === 0 || i === l.pts.length - 1).slice(0, 250).map((p) => [p[0], p[1], 0.14 + 0.3 * p[2]]);
-    r.kreska(st.szkic, st.mono ?? [92, 88, 92], pts, sz.szer * (st.szkic === 'wegiel' ? 0.22 : 0.9));
+  const linie = kontury(gray, W, H, Math.round(2400 * szcz * (st.linie ?? 1)));
+  if (st.szkic) {
+    const sz = NARZEDZIA[st.szkic];
+    r.etap('Szkic', st.szkic);
+    for (const l of linie) {
+      const pts = l.pts.filter((_, i) => i % 4 === 0 || i === l.pts.length - 1).slice(0, 250).map((p) => [p[0], p[1], 0.14 + 0.3 * p[2]]);
+      r.kreska(st.szkic, st.mono ?? [92, 88, 92], pts, sz.szer * (st.szkic === 'wegiel' ? 0.22 : 0.9));
+    }
+    o.log?.(`  Szkic: ${r.ile} linii`);
   }
-  o.log?.(`  Szkic: ${r.ile} linii`);
+  // kontury: kolorem miejscowym (ciemniejszym) albo jedyną barwą stylu; w tuszu i szkicu idą przed szrafem
+  const obrysuj = () => {
+    const ak = NARZEDZIA[st.akcent], przed = r.ile, [n0, n1] = st.konturNacisk ?? [0.3, 0.6];
+    r.etap('Kontury', st.akcent);
+    for (const l of linie.slice(0, Math.round(linie.length * (st.kontury ?? 0.6)))) {
+      const s = l.pts[l.pts.length >> 1], kol = st.mono ?? [0, 1, 2].map((c) => Math.round(probka(Tm[c], s[0], s[1]) * 0.5));
+      const pts = l.pts.filter((_, i) => i % 3 === 0 || i === l.pts.length - 1).slice(0, 250).map((p) => [p[0], p[1], n0 + n1 * p[2]]);
+      r.kreska(st.akcent, kol, pts, ak.szer * (st.konturSzer ?? (st.akcent === 'wegiel' ? 0.2 : 0.75)));
+    }
+    o.log?.(`  Kontury: +${r.ile - przed}`);
+  };
+  if (st.konturPierwszy) obrysuj();
 
-  // 2–3. kredki i warstwy szrafu. Kredka to pigment mocniejszy od koloru, który ma dać: jedno przejście
-  // zostawia go tylko na szczytach ziarna, pełny kolor robi się z kilku warstw (moc = ile razy gęstszy).
-  const K0 = r.kartka.kolor, pigment = (c, pap, moc) => (st.kryjace ? c.map((v) => Math.round(255 * Math.pow(v / 255, moc))) : c.map((v, j) => Math.round(255 * Math.pow(Math.min(1, v / pap[j]), moc))));
-  let kredki = st.mono ? [st.mono] : paleta(T, N, st.barw).map((c) => pigment(c, K0, st.moc));
-  if (st.kryjace) kredki = kredki.slice().reverse();          // pastel: od ciemnych do jasnych, światła na wierzchu
-  const nac = naciskDla(nz);
+  // 2–3. kredki i warstwy szrafu. Kredka przezroczysta to pigment mocniejszy od koloru, który ma dać: jedno
+  // przejście zostawia go tylko na szczytach ziarna, pełny kolor robi się z kilku warstw (moc = ile razy
+  // gęstszy). Pałeczki kryjące mają kolor wzoru i idą od ciemnych do jasnych (światła na wierzchu).
+  const K0 = K.kolor, barwy = st.mono ? null : paleta(T, N, st.barw), naciski = {};
+  const kredkiDla = (narz, ru) => {
+    if (ru.mono ?? st.mono) return [ru.mono ?? st.mono];
+    return narz.krycie >= 0.5 ? barwy.map((c) => c.map(Math.round)).reverse() : barwy.map((c) => c.map((v, j) => Math.round(255 * Math.pow(Math.min(1, v / K0[j]), st.moc ?? 1.4))));
+  };
   for (const ru of st.rundy) {
-    const przed = r.ile; r.etap(ru.nazwa, st.narzedzie);
-    // ciemne kredki rysują tylko tam, gdzie wygrywają ze wszystkimi — inaczej „poprawiałyby” jasność czernią
-    const mapy = tony(kredki, nz, ru.zysk ?? (ru.ostro ? 120 : 30), ru.ostro), prog = ru.ciemne ? kredki.map(jas).sort((a, b) => a - b)[Math.min(kredki.length, ru.ciemne) - 1] : Infinity;
+    const nazwa = ru.narzedzie ?? st.narzedzie, nz = NARZEDZIA[nazwa], kryje = nz.krycie >= 0.5, kredki = kredkiDla(nz, ru), nac = naciski[nazwa] ??= naciskDla(nz);
+    const przed = r.ile; r.etap(ru.nazwa, nazwa);
+    const mapy = tony(kredki, nz, ru.zysk ?? (ru.ostro ? 120 : 30), ru.ostro, ru.rozmycie), prog = ru.ciemne ? kredki.map(jas).sort((a, b) => a - b)[Math.min(kredki.length, ru.ciemne) - 1] : Infinity;
     kredki.forEach((kol, nr) => {
       if (jas(kol) > prog) return;
-      const D = mapy[nr], ton = st.kryjace ? (x, y) => Math.pow(Math.min(1, probka(D, x, y) * 1.15), 0.62) : (x, y) => (ru.rysunek && !wyr(x, y) ? 0 : nac(probka(D, x, y) * kal));
-      const szrafuj = (t, szer) => r.szraf(t, st.narzedzie, kol, {
-        kat: ru.kat, odstep: szer * ru.odstep / Math.sqrt(szcz), dl: ru.dl, nacisk: ru.nacisk, co: ru.co, szer,
-        kierunek: ru.poForma ? poFormie(-0.7) : undefined,
+      const D = mapy[nr], ile = kryje ? (x, y) => Math.pow(Math.min(1, probka(D, x, y) * 1.15), 0.62) : (x, y) => nac(probka(D, x, y) * kal);
+      const ton = ru.rysunek ? (x, y) => (wyr(x, y) ? ile(x, y) : 0) : ile;
+      const szrafuj = (t, szer) => r.szraf(t, nazwa, kol, {
+        kat: ru.kat, odstep: szer * ru.odstep / Math.sqrt(szcz), dl: ru.dl, nacisk: ru.nacisk, co: ru.co, szer, staly: ru.staly,
+        poprzek: !kryje && szer > 5 ? szer : 0,                  // szeroki pędzel z farbą przezroczystą omija jasne miejsca całą szerokością
+        kierunek: ru.poForma ? poFormie(ru.kat ?? -0.7) : undefined,
       });
       const szer = nz.szer * (ru.szer ?? 1);
-      if (!st.kryjace && (ru.szer ?? 1) > 1) {
+      if (!kryje && !nz.mokre && (ru.szer ?? 1) > 1) {
         // szeroka kreska przezroczystym pigmentem zalałaby drobne jasne kształty (oko, okno) na zawsze:
         // tam, gdzie wzór ma rysunek, podkład kładzie się wąsko
         szrafuj((x, y) => (wyr(x, y) ? 0 : ton(x, y)), szer);
@@ -280,20 +310,13 @@ export function rysuj(o) {
       } else szrafuj(ton, szer);
     });
     o.log?.(`  ${ru.nazwa}: +${r.ile - przed} kresek`);
-    if (!st.kryjace) rozlicz(mapy);
+    if (!kryje) rozlicz(mapy);
   }
 
-  // 4. akcenty: kontury kolorem miejscowym (ciemniejszym), światła bielą
-  const ak = NARZEDZIA[st.akcent]; let przed = r.ile;
-  r.etap('Kontury', st.akcent);
-  for (const l of linie.slice(0, Math.round(linie.length * 0.6))) {
-    const s = l.pts[l.pts.length >> 1], kol = st.mono ?? [0, 1, 2].map((c) => Math.round(probka(Tm[c], s[0], s[1]) * 0.5));
-    const pts = l.pts.filter((_, i) => i % 3 === 0 || i === l.pts.length - 1).slice(0, 250).map((p) => [p[0], p[1], 0.3 + 0.6 * p[2]]);
-    r.kreska(st.akcent, kol, pts, ak.szer * (st.akcent === 'wegiel' ? 0.2 : 0.75));
-  }
-  o.log?.(`  Kontury: +${r.ile - przed}`);
+  // 4. akcenty: kontury i światła bielą
+  if (!st.konturPierwszy && st.akcent) obrysuj();
   if (st.biel) {
-    przed = r.ile; r.etap('Światła', st.biel);
+    const przed = r.ile; r.etap('Światła', st.biel);
     const b = NARZEDZIA[st.biel], biel = [255, 253, 246];
     for (const ru of st.swiatla) {
       const D = tony([biel], b, ru.zysk)[0], szer = b.szer * ru.szer;

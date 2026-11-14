@@ -73,13 +73,17 @@ export function Rysunek(o) {
      * Szrafowanie: równoległe kreski tam, gdzie ton(x, y) > próg; nacisk każdej kreski idzie za tonem,
      * więc szraf sam cieniuje. Ręka nie jest liniałem: odstęp, kąt, długość i łuk kresek są nierówne.
      * @param {(x:number, y:number) => number} ton 0..1 — ile pigmentu ma tu trafić
-     * @param {{obszar?:number[], kat?:number, odstep?:number, dl?:number[], nacisk?:number, prog?:number, luk?:number, co?:number, kierunek?:(x:number,y:number)=>number}} [u]
+     * @param {{obszar?:number[], kat?:number, odstep?:number, dl?:number[], nacisk?:number, prog?:number, luk?:number, co?:number, szer?:number, staly?:number, poprzek?:number, kierunek?:(x:number,y:number)=>number}} [u]
      *   obszar [x0,y0,x1,y1]; kat (rad); odstep między kreskami; dl [min,max] długość kreski; nacisk — mnożnik;
      *   co — odstęp punktów kontrolnych; kierunek — zamiast stałego kąta kreska idzie za polem kierunków
+     *   staly — tusz: kreska ma stały nacisk albo jej nie ma (ton robi gęstość kresek, nie nacisk);
+     *   poprzek — szerokość pędzla: ton brany jako najmniejszy z całej szerokości śladu (szeroka plama
+     *   przezroczystej farby nie wjedzie w jasne miejsce obok swojej osi)
      */
     szraf(ton, narzedzie, kolor, u = {}) {
       const nz = NARZEDZIA[narzedzie], [x0, y0, x1, y1] = u.obszar ?? [0, 0, o.W, o.H];
       const odstep = u.odstep ?? nz.szer * 1.5, [dmin, dmax] = u.dl ?? [28, 60], nac = u.nacisk ?? 1, prog = u.prog ?? 0.06, co = u.co ?? 6, luk = u.luk ?? 0.04;
+      const pop = (u.poprzek ?? 0) * 0.36;
       const kat = u.kat ?? -0.95, c = Math.cos(kat), s = Math.sin(kat), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, R = Math.hypot(x1 - x0, y1 - y0) / 2;
       for (let v = -R; v < R; v += odstep * (0.75 + 0.5 * rnd())) {
         let t = -R - dmax * rnd();
@@ -91,8 +95,10 @@ export function Rysunek(o) {
           let mx = 0;
           for (let i = 0; i < n; i++) {
             const f = i / (n - 1), bok = wyg * 4 * f * (1 - f), x = ax + kc * dl * f - ks * bok, y = ay + ks * dl * f + kc * bok;
-            const tn = x < x0 || y < y0 || x > x1 || y > y1 ? 0 : ton(x, y); if (tn > mx) mx = tn;
-            pts.push([x, y, Math.min(1, tn * nac)]);
+            let tn = x < x0 || y < y0 || x > x1 || y > y1 ? 0 : ton(x, y);
+            if (pop > 0 && tn > 0) tn = Math.min(tn, ton(x - ks * pop, y + kc * pop), ton(x + ks * pop, y - kc * pop));
+            if (tn > mx) mx = tn;
+            pts.push([x, y, u.staly ? (tn > prog ? u.staly : 0) : Math.min(1, tn * nac)]);
           }
           // jasne miejsca dostają rzadsze kreski, nie tylko lżejsze
           if (mx > prog && rnd() < 0.25 + mx * 2.2) {

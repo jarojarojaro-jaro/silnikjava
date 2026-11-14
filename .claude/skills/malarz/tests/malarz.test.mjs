@@ -258,7 +258,7 @@ test('rysownik: paleta łapie małą plamę czystego koloru, kontury idą po kra
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const q = (y * W + x) * 3, c = x > 70 && y > 44 ? [230, 30, 40] : x < 45 ? [200, 200, 205] : [60, 62, 70]; T[q] = c[0]; T[q + 1] = c[1]; T[q + 2] = c[2]; }
   const p = paleta(T, W * H, 4);
   assert.ok(p.some((c) => c[0] > 180 && c[1] < 90), 'czerwień ma własną kredkę, choć zajmuje 5% wzoru');
-  assert.ok(p[0][0] > p[3][0], 'od najjaśniejszej');
+  assert.ok(p.length === 3 && p[0][0] > p[2][0], 'od najjaśniejszej, bez powtórzeń (wzór ma trzy barwy)');
   const g = new Float32Array(W * H); for (let i = 0; i < W * H; i++) g[i] = 0.3 * T[i * 3] + 0.59 * T[i * 3 + 1] + 0.11 * T[i * 3 + 2];
   const l = kontury(g, W, H);
   assert.ok(l.length >= 1 && l[0].pts.length > 10);
@@ -274,6 +274,56 @@ test('rysownik: każdy styl suchy zbliża kartkę do wzoru i jest powtarzalny', 
     assert.ok(NAZWY.includes(STYLE_SUCHE[styl].narzedzie) && r.ile > 200);
   }
   assert.deepEqual(rysuj({ W, H, cel, styl: 'kredki' }).obraz().bajty, rysuj({ W, H, cel, styl: 'kredki' }).obraz().bajty);
+});
+
+test('akwarela: plama ma równy ton i ciemniejszy brzeg, laserunki przeświecają, lawowanie ma miękki brzeg', () => {
+  const k = Kartka(120, 60, 2, { ziarno: 0 }), pk = [15, 30, 1, 60, 30, 1, 105, 30, 1];
+  k.slad(NARZEDZIA.akwarela, [40, 90, 200], 16, pk, 3);
+  const sr = srednia(k, 80, 56, 160, 64), brzeg = srednia(k, 80, 44, 160, 47);
+  assert.ok(brzeg < sr - 8, `brzeg plamy ciemniejszy od środka (${brzeg.toFixed(0)} vs ${sr.toFixed(0)})`);
+  let mn = 255, mx = 0; for (let x = 70; x < 170; x += 4) { const v = srednia(k, x, 58, x + 4, 62); mn = Math.min(mn, v); mx = Math.max(mx, v); }
+  assert.ok(mx - mn < 26, `środek plamy bez pasów na łączeniach odcinków (${(mx - mn).toFixed(0)})`);
+  k.slad(NARZEDZIA.akwarela, [250, 220, 40], 16, pk, 4);
+  const [r, g, b] = [0, 1, 2].map((c) => srednia(k, 80, 56, 160, 64, c));
+  assert.ok(g > r && g > b, `żółty laserunek na niebieskim daje zieleń (${[r, g, b].map(Math.round)})`);
+  const przejscie = (nz) => {                                   // ile pikseli zajmuje brzeg plamy (od 10% do 90% tonu)
+    const q = Kartka(120, 80, 2, { ziarno: 0 }); q.slad(nz, [20, 20, 20], 24, [15, 40, 1, 105, 40, 1], 2);
+    const p0 = q.kolor[0], gl = p0 - srednia(q, 110, 78, 130, 82); let n = 0;
+    for (let y = 0; y < 80; y++) { const d = p0 - srednia(q, 110, y, 130, y + 1); if (d > gl * 0.1 && d < gl * 0.9) n++; }
+    return n;
+  };
+  assert.ok(przejscie(NARZEDZIA.lawowanie) > przejscie(NARZEDZIA.akwarela) * 2, 'lawowanie rozpływa się, pędzel zostawia ostry brzeg');
+  const a = Kartka(80, 40, 2), c = Kartka(80, 40, 2), p2 = [10, 20, 0.7, 40, 12, 0.9, 70, 24, 0.6];
+  a.slad(NARZEDZIA.akwarela, [200, 40, 40], 8, p2, 5);
+  for (const [t0, t1] of [[0, 0.4], [0.4, 1]]) c.slad(NARZEDZIA.akwarela, [200, 40, 40], 8, p2, 5, t0, t1, 9);
+  let maxd = 0; for (let i = 0; i < a.C.length; i++) maxd = Math.max(maxd, Math.abs(a.C[i] - c.C[i]));
+  assert.ok(maxd < 0.5, `plama w kawałkach = w całości (${maxd})`);
+});
+
+test('szraf: tusz ma kreskę albo jej nie ma; szeroki pędzel nie wjeżdża w jasne miejsce obok', () => {
+  const r = Rysunek({ W: 120, H: 80 });
+  r.szraf((x) => (x < 60 ? 0.2 : 0.9), 'tusz', [20, 20, 20], { staly: 0.8, odstep: 3 });
+  const { bajty } = r.obraz(), ind = indeks(bajty);
+  for (let i = 0; i < ind.length; i++) { const s = odczytajSlad(bajty, ind[i]); for (let j = 2; j < s.pk.length; j += 3) assert.ok(s.pk[j] === 0 || Math.abs(s.pk[j] - 0.8) < 0.01, 'stały nacisk'); }
+  const wjechalo = (poprzek) => {
+    const q = Rysunek({ W: 120, H: 80, papier: { ziarno: 0 } });
+    q.szraf((x, y) => (y > 36 && y < 44 ? 0 : 1), 'akwarela', [30, 60, 160], { kat: 0, szer: 14, odstep: 10, poprzek });
+    return q.kartka.kolor[0] - srednia(q.kartka, 20, 38, 100, 42);
+  };
+  assert.ok(wjechalo(0) > 25 && wjechalo(14) < wjechalo(0) * 0.35, `jasny pas zostaje papierem (${wjechalo(14).toFixed(0)} vs ${wjechalo(0).toFixed(0)})`);
+});
+
+test('rysownik: przezroczysty pigment trzyma barwę wzoru i nie przeciemnia', () => {
+  const W = 120, H = 80, cel = new Float32Array(W * H * 3);
+  for (let i = 0; i < W * H; i++) { const c = (i % W) < 60 ? [40, 150, 90] : [235, 120, 60]; cel.set(c, i * 3); }   // zieleń i oranż
+  for (const styl of ['kredki']) {
+    const r = rysuj({ W, H, cel, styl: styl }), K = r.kartka, n = STYLE_SUCHE[styl].nasycenie;
+    const z = [0, 1, 2].map((c) => srednia(K, 10, 10, 50, 70, c)), o = [0, 1, 2].map((c) => srednia(K, 70, 10, 110, 70, c));
+    assert.ok(z[1] > z[0] + 40 && z[1] > z[2] + 25, `${styl}: zieleń została zielenią (${z.map(Math.round)})`);
+    assert.ok(o[0] > o[1] + 50 && o[1] > o[2] + 25, `${styl}: oranż został oranżem (${o.map(Math.round)})`);
+    const cz = [40, 150, 90].map((v) => 127 + (v - 127) * n);        // wzór po przesadzeniu barwy przez rysownika
+    assert.ok(z[0] > Math.max(0, cz[0]) - 22 && z[2] > cz[2] - 22, `${styl}: żaden kanał nie zszedł wyraźnie poniżej wzoru (${z.map(Math.round)})`);
+  }
 });
 
 // ---- przypadki brzegowe (z recenzji) -------------------------------------------------------------

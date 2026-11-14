@@ -10,7 +10,7 @@
 import { Pedzel, odczytaj, plotno, oswietl, BAJTY, RODZAJE, hasz as h01 } from '../lib/pedzel.js';
 import { gladko, lerp } from '../lib/szkic.js';
 import { zTekstu } from '../lib/plik.js';
-import { Kartka, ETYKIETY } from '../lib/suche.js';
+import { Kartka, ETYKIETY, NARZEDZIA } from '../lib/suche.js';
 import { indeks, odczytajSlad } from '../lib/rysunek.js';
 import { rysujPedzel, rysujOlowek } from './narzedzie.js';
 
@@ -83,7 +83,7 @@ function silnikRysunku(n, buf, S) {
       const m = new Map();
       for (let i = 0; i < ind.length && m.size < 14; i += Math.max(1, Math.floor(ind.length / 3000))) {
         odczytajSlad(buf, ind[i], s); if (s.nazwa === 'palec') continue;
-        const k = `${s.nazwa}${s.kol}`; if (!m.has(k)) m.set(k, { c: s.kol.slice(), nazwa: s.nazwa });
+        const nzw = s.nazwa === 'lawowanie' ? 'akwarela' : s.nazwa, k = `${nzw}${s.kol}`; if (!m.has(k)) m.set(k, { c: s.kol.slice(), nazwa: nzw });
       }
       return [...m.values()];
     },
@@ -244,12 +244,20 @@ export async function pracownia(canvas) {
     g.fillStyle = gr; g.beginPath(); g.roundRect(x0, y0 + 34, x1 - x0, y1 - y0 - 34, 12); g.fill();
     g.strokeStyle = 'rgba(255,225,170,.18)'; g.lineWidth = 1.5; g.stroke();
     let naj = 0, nd = 1e9;
-    PAL.forEach((p, j) => { const d = (p.c[0] - kolor[0]) ** 2 + (p.c[1] - kolor[1]) ** 2 + (p.c[2] - kolor[2]) ** 2 + (p.nazwa === nazwa ? 0 : 1e5); if (d < nd) { nd = d; naj = j; } });
+    PAL.forEach((p, j) => { const d = (p.c[0] - kolor[0]) ** 2 + (p.c[1] - kolor[1]) ** 2 + (p.c[2] - kolor[2]) ** 2 + (p.nazwa === (nazwa === 'lawowanie' ? 'akwarela' : nazwa) ? 0 : 1e5); if (d < nd) { nd = d; naj = j; } });
     PAL.forEach((p, j) => {
       const cx = x0 + 12 + sz * (j + 0.5) + (x1 - x0 - 24 - sz * k) / 2, w = sz * 0.74, gruby = p.nazwa === 'pastel' || p.nazwa === 'wegiel' || p.nazwa === 'olejna';
       const top = y0 + 52 - (j === naj && rysuje ? 26 : 0) + 8 * h01(j * 7 + 1), dol = y1 - 14;
       gr = g.createLinearGradient(cx - w / 2, 0, cx + w / 2, 0);
       gr.addColorStop(0, css(p.c.map((v) => Math.min(255, v * 1.15 + 20)))); gr.addColorStop(0.5, css(p.c)); gr.addColorStop(1, css(p.c.map((v) => v * 0.6)));
+      if (NARZEDZIA[p.nazwa]?.mokre) {                          // kostka akwareli w kasecie
+        const yk = (y0 + y1) / 2 + 20 - (j === naj && rysuje ? 10 : 0), bok = Math.min(w, 26);
+        g.fillStyle = '#e9e4d8'; g.beginPath(); g.roundRect(cx - bok / 2 - 2, yk - bok / 2 - 2, bok + 4, bok + 4, 3); g.fill();
+        g.fillStyle = gr; g.beginPath(); g.roundRect(cx - bok / 2, yk - bok / 2, bok, bok, 2); g.fill();
+        g.fillStyle = 'rgba(255,255,255,.22)'; g.beginPath(); g.ellipse(cx - bok * 0.12, yk - bok * 0.16, bok * 0.24, bok * 0.13, -0.5, 0, 6.2832); g.fill();
+        if (j === naj && rysuje) { g.strokeStyle = 'rgba(255,236,190,.9)'; g.lineWidth = 2; g.beginPath(); g.roundRect(cx - bok / 2 - 5, yk - bok / 2 - 5, bok + 10, bok + 10, 4); g.stroke(); }
+        return;
+      }
       if (gruby) { g.fillStyle = gr; g.beginPath(); g.roundRect(cx - w / 2, top + 30, w, dol - top - 30, 3); g.fill(); g.fillStyle = 'rgba(245,238,225,.85)'; g.fillRect(cx - w / 2, top + 84, w, 46); }
       else {
         g.fillStyle = gr; g.fillRect(cx - w / 2, top + 44, w, dol - top - 44);
@@ -350,7 +358,8 @@ export async function pracownia(canvas) {
       const tx = (dx + o.x * sk) * u, ty = (dy + o.y * sk) * u, poza = (1 - wej) + wyj;
       g.save();
       const wsp = { x: tx + poza * 420 * u, y: ty + poza * 520 * u, kat: o.kat, u, nacisk: poza > 0 ? 0 : o.nacisk, unies: Math.min(1, o.unies + poza * 2), kolor, alfa: 1 - wyj };
-      if (RYS) rysujOlowek(g, { ...wsp, narzedzie: o.rodzaj, w: Math.max(3 * u, o.wid * sk * u) });
+      if (RYS && NARZEDZIA[o.rodzaj]?.mokre) rysujPedzel(g, { ...wsp, w: Math.max(7 * u, o.wid * sk * u), rodzaj: 2 });   // akwarela: pędzel okrągły
+      else if (RYS) rysujOlowek(g, { ...wsp, narzedzie: o.rodzaj, w: Math.max(3 * u, o.wid * sk * u) });
       else rysujPedzel(g, { ...wsp, w: Math.max(7 * u, o.wid * sk * u), rodzaj: o.rodzaj, nr: n.etapy[ie].nr });
       g.restore();
     }

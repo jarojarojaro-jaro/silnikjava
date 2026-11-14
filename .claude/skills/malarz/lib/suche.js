@@ -1,5 +1,5 @@
-// suche.js — narzędzia suche na papierze: ołówek, kredka, węgiel, pastel sucha i olejna, tusz, biel,
-// rozcieranie palcem. Jedna implementacja dla Node i pracowni (film kładzie te same ślady).
+// suche.js — narzędzia na papierze: ołówek, kredka, węgiel, pastel sucha i olejna, tusz, biel,
+// rozcieranie palcem i farba wodna (akwarela, lawowanie). Jedna implementacja dla Node i pracowni (film kładzie te same ślady).
 //
 // Dlaczego to wygląda na rysunek ręczny, a nie na wektor:
 //   - papier ma ZIARNO (mapa wysokości włókien). Suchy pigment łapie najpierw szczyty; im mocniejszy
@@ -8,6 +8,8 @@
 //   - pigment przezroczysty MNOŻY kolor pod spodem (żółta kredka na niebieskiej daje zieleń),
 //     kryjący (pastel, biel) go zasłania; każde narzędzie ma swoje proporcje,
 //   - ślad to ścieżka z NACISKIEM: ręka drży, kreska zaczyna się i kończy lżej, nacisk faluje.
+//   - farba WODNA nie zna ziarna-progu: wchodzi w doliny, w nich osiada gęściej (granulacja), jedna plama
+//     ma równy ton i ciemniejszy brzeg, a kolejne plamy przeświecają przez siebie jak laserunki.
 //
 // Wszystko w jednostkach roboczych (jak pędzel), więc rysunek renderuje się w dowolnej skali.
 
@@ -29,10 +31,14 @@ export const NARZEDZIA = {
   tusz: { szer: 0.9, sila: 1.00, krycie: 0.90, ziarno: 0.06, wypelnia: 0.50, miekko: 0.35, drganie: 0.22, nierowno: 0.25, stozek: 0 },
   biel: { szer: 1.3, sila: 0.95, krycie: 1.00, ziarno: 0.15, wypelnia: 0.50, miekko: 0.40, drganie: 0.25, nierowno: 0.30, stozek: 0 },
   palec: { szer: 12.0, sila: 0.55, rozciera: 1, miekko: 0.9, drganie: 0.6, nierowno: 0.3 },
+  // farba wodna (mokre: 1): nacisk to ilość pigmentu w wodzie, nie siła ręki; ziarno — granulacja (pigment
+  // osiada w dolinach papieru), brzeg — ciemniejsza obwódka plamy (pigment spływa do krawędzi i tam schnie)
+  akwarela: { szer: 14.0, sila: 0.50, krycie: 0, ziarno: 0.30, wypelnia: 0, miekko: 0.14, drganie: 0.9, nierowno: 0.30, mokre: 1, brzeg: 0.55 },
+  lawowanie: { szer: 30.0, sila: 0.42, krycie: 0, ziarno: 0.35, wypelnia: 0, miekko: 0.85, drganie: 1.4, nierowno: 0.35, mokre: 1, brzeg: 0 },
 };
 export const NAZWY = Object.keys(NARZEDZIA);
 /** Nazwy narzędzi do pokazania człowiekowi. */
-export const ETYKIETY = { olowek: 'ołówek', kredka: 'kredka', wegiel: 'węgiel', pastel: 'pastel', olejna: 'pastel olejna', tusz: 'tusz', biel: 'biel', palec: 'palec' };
+export const ETYKIETY = { olowek: 'ołówek', kredka: 'kredka', wegiel: 'węgiel', pastel: 'pastel', olejna: 'pastel olejna', tusz: 'tusz', biel: 'biel', palec: 'palec', akwarela: 'akwarela', lawowanie: 'akwarela, lawowanie' };
 
 const fbm1 = (x, z) => 0.6 * szum(x, 0.5, z) + 0.3 * szum(x * 2.3, 1.5, z + 7) + 0.1 * szum(x * 5.1, 2.5, z + 13);
 
@@ -105,10 +111,11 @@ export function Kartka(W, H, S, papier = {}) {
     // odcinki dzielone bez zakładek: kolejne części śladu (film) dają razem dokładnie to, co całość
     const iA = Math.round(tA * (k - 1)), iB = Math.round(tB * (k - 1));
     const Tr = kol[0] / 255, Tg = kol[1] / 255, Tb = kol[2] / 255, kr = nz.krycie ?? 0, g = nz.ziarno ?? 0, stoz = nz.stozek ?? 0;
+    const mokre = nz.mokre ?? 0, brz = (nz.brzeg ?? 0) * Math.min(1, szer / 9), zs = (seed * 13) % 977, wA = mokre ? 0.85 : 0.5, wB = mokre ? 0.25 : 0.6;
     let X0 = PW, Y0 = PH, X1 = 0, Y1 = 0;
     for (let q = iA; q < iB; q++) {
       const ax = p[q * 3], ay = p[q * 3 + 1], ap = p[q * 3 + 2], bx = p[q * 3 + 3], by = p[q * 3 + 4], bp = p[q * 3 + 5];
-      const hwA = 0.5 * szer * (0.5 + 0.6 * ap), hwB = 0.5 * szer * (0.5 + 0.6 * bp), hm = Math.max(hwA, hwB);
+      const hwA = 0.5 * szer * (wA + wB * ap), hwB = 0.5 * szer * (wA + wB * bp), hm = Math.max(hwA, hwB);
       const mk = Math.max(0.45 / S, nz.miekko * hm), r = hm + mk;
       let x0 = Math.floor((Math.min(ax, bx) - r) * S), x1 = Math.ceil((Math.max(ax, bx) + r) * S);
       let y0 = Math.floor((Math.min(ay, by) - r) * S), y1 = Math.ceil((Math.max(ay, by) + r) * S);
@@ -119,7 +126,7 @@ export function Kartka(W, H, S, papier = {}) {
         const wy = (y + 0.5) / S - ay;
         for (let x = x0; x < x1; x++) {
           const wx = (x + 0.5) / S - ax;
-          let t = (wx * dx + wy * dy) / d2; t = t < 0 ? 0 : t > 1 ? 1 : t;
+          const tr = (wx * dx + wy * dy) / d2; let t = tr < 0 ? 0 : tr > 1 ? 1 : tr;
           const ex = wx - dx * t, ey = wy - dy * t, d = Math.sqrt(ex * ex + ey * ey), hw = hwA + (hwB - hwA) * t;
           let cov = (hw - d) * imk + 0.5; if (cov <= 0) continue; if (cov > 1) cov = 1;
           const pr = ap + (bp - ap) * t; if (pr <= 0.004) continue;
@@ -134,6 +141,17 @@ export function Kartka(W, H, S, papier = {}) {
             }
             const j = i * 3; C[j] += (sr / nn - C[j]) * a; C[j + 1] += (sg / nn - C[j + 1]) * a; C[j + 2] += (sb / nn - C[j + 2]) * a;
             F[i] += (1 - F[i]) * a * 0.5;
+          } else if (mokre) {
+            // plama farby wodnej: równy ton, ciemniejszy brzeg (tylko na obrysie plamy, nie na łączeniach
+            // odcinków), granulacja w dolinach papieru i łagodne zacieki
+            let a = cov * nz.sila * (0.08 + 0.92 * pr);
+            if (brz > 0 && d < hw && ((tr >= 0 && tr <= 1) || (q === 0 && tr < 0) || (q === k - 2 && tr > 1))) { let rg = (d / hw - 0.6) * 2.5; if (rg > 0) { if (rg > 1) rg = 1; a *= 1 - 0.3 * brz + 1.3 * brz * rg * rg; } else a *= 1 - 0.3 * brz; } else if (brz > 0) a *= 1 - 0.3 * brz;
+            a *= (1 + g * (0.5 - Z[i]) * 1.4) * (0.82 + 0.36 * szum((x + 0.5) / S / 11, (y + 0.5) / S / 11, zs));
+            if (a < 0.003) continue; if (a > 0.98) a = 0.98;
+            let da = a;
+            if (ID[i] === nr) { if (a <= MX[i]) continue; da = (a - MX[i]) / (1 - MX[i] + 1e-6); MX[i] = a; } else { ID[i] = nr; MX[i] = a; }
+            const j = i * 3;
+            C[j] *= 1 - da * (1 - Tr); C[j + 1] *= 1 - da * (1 - Tg); C[j + 2] *= 1 - da * (1 - Tb);
           } else {
             if (stoz > 0) cov *= 1 - stoz * (d / hw) * (d / hw) * 0.8;
             // pigment sięga w doliny papieru tym głębiej, im mocniejszy nacisk i im bardziej ziarno jest już zalepione
