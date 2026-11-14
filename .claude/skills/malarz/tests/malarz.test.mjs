@@ -153,6 +153,21 @@ test('malarz: styl z żywym kolorem zmienia farbę, ale nadal poprawia obraz', (
   assert.ok(m.rmse() < r0 * 0.6);
 });
 
+test('malarz: rozszczepiona barwa — kropki różnią się odcieniem, średnio trzymają kolor wzoru', () => {
+  const W = 100, H = 80, cel = new Float32Array(W * H * 3); for (let i = 0; i < W * H; i++) cel.set([90, 150, 110], i * 3);
+  const m = Malarz({ W, H, cel, K0: 10, MUT: 10, kolor: { rozszczep: 36 } });
+  m.etap({ w: [40, 80], lr: [1.2, 2.5], n: 30, pedzel: PLASKI });
+  const szerokie = m.ile, b0 = m.bajty();
+  for (let i = 0; i < szerokie; i++) assert.ok(Math.abs(odczytaj(b0, i).r - 90) < 12, 'podmalówka w kolorze wzoru');
+  m.etap({ w: [6, 9], lr: [1, 1.15], n: 400, pedzel: OKRAGLY, pelne: 1, prosto: 1 });
+  const b = m.bajty(), r = [], jas = [];
+  for (let i = szerokie; i < m.ile; i++) { const s = odczytaj(b, i); r.push(s.r); jas.push(0.3 * s.r + 0.59 * s.g + 0.11 * s.b); }
+  const sr = (a) => suma(a) / a.length, odch = (a) => Math.sqrt(sr(a.map((v) => (v - sr(a)) ** 2)));
+  assert.ok(odch(r) > 12, `kropki mają różne odcienie (odchylenie czerwieni ${odch(r).toFixed(1)})`);
+  assert.ok(odch(jas) < odch(r) * 0.6, 'jasność zmienia się mniej niż barwa');
+  assert.ok(m.rmse() < 30, `z daleka nadal kolor wzoru (rmse ${m.rmse().toFixed(1)})`);
+});
+
 test('plik obrazu: zapis i odczyt, render w dwóch skalach, część pociągnięć', () => {
   const r = Reka({ W: 90, H: 60, tytul: 'Test', styl: 'etiuda' });
   r.etap('Tło', 24, PLASKI).pociagnij({ x: 45, y: 30, dlugosc: 80, szerokosc: 40, kolor: [40, 60, 120] });

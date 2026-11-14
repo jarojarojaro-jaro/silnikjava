@@ -24,7 +24,8 @@ import { kierunki, szarosc, Los } from './pole.js';
  * @param {Float32Array} [o.wagi] mapa ważności (W*H)
  * @param {number[]} [o.grunt] kolor gruntu
  * @param {object} [o.cechy] cechy pędzla (wlosie, suchosc, smugi)
- * @param {{nasycenie?:number, drganie?:number}} [o.kolor] zmiana wyliczonego koloru (styl)
+ * @param {{nasycenie?:number, drganie?:number, rozszczep?:number}} [o.kolor] zmiana wyliczonego koloru (styl):
+ *   nasycenie, drganie (cieplej/zimniej), rozszczep (odchylenie barwy przy tej samej jasności, puentylizm)
  */
 export function Malarz(o) {
   const { W, H, cel: T } = o, N = W * H;
@@ -35,7 +36,7 @@ export function Malarz(o) {
   const C = plotno(W, H, grunt);
   const gray = szarosc(T, N);
   const POLA = [kierunki(gray, W, H, 1.2), kierunki(gray, W, H, 3), kierunki(gray, W, H, 8)];
-  const nas = o.kolor?.nasycenie ?? 1, drg = o.kolor?.drganie ?? 0;
+  const nas = o.kolor?.nasycenie ?? 1, drg = o.kolor?.drganie ?? 0, roz = o.kolor?.rozszczep ?? 0;
   const maxL = Math.min(380, 0.55 * Math.max(W, H));
 
   // mapa błędu + siatka komórek G×G do losowania miejsca
@@ -123,6 +124,14 @@ export function Malarz(o) {
     return d;
   }
   function poloz(p) {
+    if (roz > 0 && p.wid < 20) {                      // szeroka podmalówka zostaje w kolorze wzoru
+      // puentylizm: kolor rozszczepiony — każda kropka odchylona w inną stronę koła barw przy tej samej
+      // jasności. Malarz wybiera kropkę według koloru wzoru, a odchylenie dostaje ona dopiero na płótnie,
+      // więc nie da się go „odsiać” wyborem kandydata; z daleka kropki zlewają się z powrotem w kolor wzoru.
+      const hs = Math.imul(rekordy.length + 7, 2246822519), kat = hasz(hs) * 6.2832, ile = roz * (0.45 + 0.55 * hasz(hs + 1));
+      const u = Math.cos(kat) * ile, v = Math.sin(kat) * ile, dr = u, dg = -0.5 * u + 0.866 * v, db = -0.5 * u - 0.866 * v, dl = 0.3 * dr + 0.59 * dg + 0.11 * db;
+      p.r = Math.round(c255(p.r + dr - dl)); p.g = Math.round(c255(p.g + dg - dl)); p.b = Math.round(c255(p.b + db - dl));
+    }
     B.maluj(C, p.x, p.y, p.ang, p.len, p.wid, p.bend, p.op, p.kind, rekordy.length, p.r, p.g, p.b);
     odswiez(B.x0, B.y0, B.x0 + B.w, B.y0 + B.h);
     rekordy.push([p.xc, p.yc, p.ac, p.lc, p.wc, p.bc, p.r, p.g, p.b, p.oc | (p.kind << 2)]);
@@ -131,10 +140,11 @@ export function Malarz(o) {
 
   /**
    * Jeden etap: n pociągnięć pędzlem o szerokości w[0]..w[1].
-   * @param {{w:number[], lr:number[], n:number, pedzel:number, skup?:number, pole?:number, prosto?:number, pelne?:number, rozrzut?:number}} e
+   * @param {{w:number[], lr:number[], n:number, pedzel:number, skup?:number, pole?:number, prosto?:number, pelne?:number, rozrzut?:number, proby?:number}} e
    *   lr — długość jako wielokrotność szerokości; skup — potęga mapy ważności przy losowaniu miejsca
    *   (0 = cały obraz, 2 = prawie tylko ważne miejsca); pole — które pole kierunków (0 drobne … 2 ogólne);
-   *   prosto — udział pociągnięć bez wygięcia; pelne — udział pełnego krycia; rozrzut — odchyłka kąta od krawędzi
+   *   prosto — udział pociągnięć bez wygięcia; pelne — udział pełnego krycia; rozrzut — odchyłka kąta od krawędzi;
+   *   proby — ile razy więcej prób niż pociągnięć wolno zrobić (domyślnie 3; kropki o odchylonej barwie częściej odpadają)
    */
   function etap(e) {
     const [wmin, wmax] = e.w, [lrmin, lrmax] = e.lr, kind = e.pedzel;
@@ -145,7 +155,7 @@ export function Malarz(o) {
     odswiez(0, 0, W, H);
     const co = wmax > 20 ? 1 : wmax > 6 ? 4 : 16;
     let zrobione = 0, proby = 0, odPrzel = 1e9;
-    while (zrobione < e.n && proby < e.n * 3) {
+    while (zrobione < e.n && proby < e.n * (e.proby ?? 3)) {
       proby++;
       if (odPrzel >= co) { przelicz(); odPrzel = 0; }
       if (suma <= 0) break;
