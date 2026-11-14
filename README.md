@@ -485,6 +485,34 @@ Produkcja seryjna mniejszymi modelami: [docs/SKALOWANIE.md](docs/SKALOWANIE.md).
 Gotowe rysunki z Figmy/Inkscape można wczytać przez `svgPath(d)` i animować
 ołówkiem jak każdą inną ścieżkę.
 
+## Malarz — obrazy malowane pędzlem
+
+Osobne narzędzie w repozytorium (skill [`malarz`](.claude/skills/malarz/SKILL.md), czysty JS bez
+zależności, niezależny od silnika z `src/`): program patrzy na wzór i maluje go tysiącami
+pociągnięć pędzla — od szerokiego płaskiego do cienkiego okrągłego. Wzorem może być zdjęcie
+albo **motyw z wyobraźni**, czyli obraz opisany funkcją w kodzie (bez żadnego pliku graficznego).
+Wynik to lista pociągnięć (12 bajtów każde), którą można odtworzyć w dowolnej skali i sfilmować.
+
+![Obrazy namalowane przez malarza](docs/img/malarz/galeria.jpg)
+
+*Od lewej: „Jezioro o świcie” (motyw z wyobraźni, olej, 15 tys. pociągnięć), kopia „Dziewczyny
+z perłą” Vermeera (62 tys.), kot ze zdjęcia (olej), „Gwiaździsta noc” van Gogha (impresja).*
+
+![Pracownia: obraz powstaje pociągnięcie po pociągnięciu](docs/img/malarz/pracownia.jpg)
+
+```bash
+M=.claude/skills/malarz
+node $M/maluj.mjs zdjecie.jpg --styl olej --skup 0.5,0.3,0.15,0.18,3   # obraz → out/malarz/zdjecie/
+node $M/maluj.mjs $M/motywy/jezioro.js                                 # motyw z wyobraźni
+node $M/film.mjs out/malarz/jezioro/obraz.json                         # film z pracowni 1080×1920
+node $M/strona.mjs out/malarz/jezioro/obraz.json                       # jeden plik HTML, maluje na żywo
+npm run test:malarz
+```
+
+Style: `olej`, `impresja`, `etiuda`, `kopia`. Jak to działa, procedura i pułapki:
+[SKILL.md](.claude/skills/malarz/SKILL.md). Pomysł za projektem
+[mona-lisa-js](https://github.com/ChetasLua/mona-lisa-js) (MIT), kod napisany od nowa.
+
 ## Dokumentacja
 
 | plik | o czym |

@@ -1,0 +1,97 @@
+#!/usr/bin/env node
+// maluj.mjs — maluje obraz pędzlem: wzór (zdjęcie albo motyw z kodu) → lista pociągnięć.
+//
+//   node maluj.mjs zdjecie.jpg                         # styl „olej”, wynik w out/malarz/zdjecie/
+//   node maluj.mjs zdjecie.jpg --styl kopia            # wierna kopia (62 tys. pociągnięć)
+//   node maluj.mjs zdjecie.jpg --styl impresja --tytul "Zatoka o świcie"
+//   node maluj.mjs motywy/zatoka.js --styl olej        # motyw z wyobraźni (wzór rysuje kod)
+//   node maluj.mjs portret.jpg --skup 0.48,0.30,0.14,0.16,4   # twarz: środek x,y i promienie (ułamki), waga
+//
+// Opcje: --styl, --nazwa, --tytul, --autor, --szczegol 1 (mnożnik liczby pociągnięć), --skup (wiele razy),
+//        --detal 2 (waga drobnego rysunku), --grunt r,g,b | auto, --ziarno 1503, --skala 2 (PNG), --kadr x,y,w,h, --out katalog
+// Wynik: obraz.json (pociągnięcia), obraz.png (ze światłem na fakturze), porownanie.png, etapy.png.
+
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { basename, extname, join, resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { Malarz } from './lib/malarz.js';
+import { STYLE, rozmiarRoboczy } from './lib/style.js';
+import { szarosc, waznosc, rozmyj } from './lib/pole.js';
+import { rozmiar, wczytaj, zapiszPNG, obok } from './lib/grafika.js';
+import { doTekstu } from './lib/plik.js';
+import { renderuj } from './lib/render.js';
+import { RODZAJE } from './lib/pedzel.js';
+
+const args = process.argv.slice(2);
+const wzor = args.find((a, i) => !a.startsWith('--') && !(args[i - 1] ?? '').startsWith('--'));
+const opt = (n, d) => { const i = args.indexOf(`--${n}`); return i < 0 ? d : args[i + 1]; };
+const wiele = (n) => args.flatMap((a, i) => (a === `--${n}` ? [args[i + 1]] : []));
+if (!wzor) { console.log('użycie: node maluj.mjs <wzor.jpg | motyw.js> [--styl olej|kopia|impresja|etiuda] [--tytul …] [--skup x,y,rx,ry,waga]'); process.exit(1); }
+
+const stylNazwa = opt('styl', 'olej'), styl = STYLE[stylNazwa];
+if (!styl) { console.error(`nieznany styl ${stylNazwa}; dostępne: ${Object.keys(STYLE).join(', ')}`); process.exit(1); }
+const nazwa = opt('nazwa', basename(wzor, extname(wzor)));
+const out = resolve(opt('out', join('out', 'malarz', nazwa)));
+mkdirSync(out, { recursive: true });
+const t0 = Date.now();
+
+// ---- wzór: plik graficzny albo motyw (moduł z funkcją wzor(W, H) → Float32Array RGB) ----------
+let W, H, cel, motyw = null;
+if (wzor.endsWith('.js') || wzor.endsWith('.mjs')) {
+  motyw = await import(pathToFileURL(resolve(wzor)).href);
+  ({ W, H } = rozmiarRoboczy(motyw.PROPORCJA ?? 2 / 3));
+  cel = motyw.wzor(W, H);
+} else {
+  const kadr = opt('kadr') ? (([x, y, w, h]) => ({ x, y, w, h }))(opt('kadr').split(',').map(Number)) : null;
+  const r = kadr ?? rozmiar(wzor);
+  ({ W, H } = rozmiarRoboczy(r.w / r.h));
+  cel = wczytaj(wzor, W, H, kadr);
+}
+const N = W * H;
+zapiszPNG(join(out, 'wzor.png'), cel, W, H);            // na co malarz patrzy (zostaje w out/, nie w pliku obrazu)
+if (styl.wygladz && !motyw) {                       // malarz patrzy na formę, nie na szum zdjęcia
+  for (let c = 0; c < 3; c++) {
+    const k = new Float32Array(N); for (let i = 0; i < N; i++) k[i] = cel[i * 3 + c];
+    const r = rozmyj(k, W, H, styl.wygladz); for (let i = 0; i < N; i++) cel[i * 3 + c] = r[i];
+  }
+}
+const gray = szarosc(cel, N);
+const skupienia = [...(motyw?.SKUPIENIA ?? []), ...wiele('skup').map((s) => { const [x, y, rx, ry, ile] = s.split(',').map(Number); return { x, y, rx, ry, ile: ile ?? 3 }; })];
+const wagi = waznosc(gray, W, H, Number(opt('detal', 2)), skupienia);
+
+let grunt = [222, 212, 190];                       // ciepły gesso
+const g = opt('grunt', motyw?.GRUNT);
+if (g === 'auto') {                                // imprimatura: przygaszony, średni ton wzoru
+  const m = [0, 0, 0]; for (let i = 0; i < N; i++) for (let c = 0; c < 3; c++) m[c] += cel[i * 3 + c] / N;
+  const sz = 0.3 * m[0] + 0.59 * m[1] + 0.11 * m[2];
+  grunt = m.map((v) => Math.round(150 + (v - sz) * 0.55 + (sz - 128) * 0.25));
+} else if (Array.isArray(g)) grunt = g;
+else if (g) grunt = g.split(',').map(Number);
+
+// ---- malowanie ------------------------------------------------------------------------------
+const szczegol = Number(opt('szczegol', 1));
+const m = Malarz({ W, H, cel, wagi, grunt, ziarno: Number(opt('ziarno', 1503)), cechy: styl.cechy, kolor: styl.kolor });
+console.log(`${nazwa}: ${W}×${H}, styl ${stylNazwa} (${styl.opis}), grunt ${grunt}`);
+const etapy = [];
+for (const e of styl.etapy) {
+  const t = Date.now(), r = m.etap({ ...e, n: Math.round(e.n * szczegol) });
+  etapy.push({ nazwa: e.nazwa, nr: e.nr, pedzel: e.pedzel, w: e.w, koniec: m.ile });
+  console.log(`  ${e.nazwa.padEnd(12)} nr ${e.nr.padEnd(3)} ${RODZAJE[e.pedzel].padEnd(10)} ${String(e.w[0]).padStart(4)}–${String(e.w[1]).padEnd(4)} +${String(r.zrobione).padStart(5)}  razem ${String(m.ile).padStart(5)}  rmse ${m.rmse().toFixed(2)}  ${((Date.now() - t) / 1000).toFixed(1)} s`);
+}
+const bajty = m.bajty();
+const naglowek = { W, H, grunt, tytul: opt('tytul', motyw?.TYTUL ?? nazwa), autor: opt('autor', motyw?.AUTOR ?? ''), styl: stylNazwa, cechy: styl.cechy, swiatlo: styl.swiatlo, etapy, rmse: Number(m.rmse().toFixed(2)) };
+writeFileSync(join(out, 'obraz.json'), doTekstu(naglowek, bajty));
+
+// ---- podglądy --------------------------------------------------------------------------------
+const S = Number(opt('skala', 2));
+const fin = renderuj(naglowek, bajty, S);
+zapiszPNG(join(out, 'obraz.png'), fin.px, fin.w, fin.h, 4);
+const plaski = renderuj(naglowek, bajty, 1, { swiatlo: false });
+const wz = new Uint8ClampedArray(N * 3); for (let i = 0; i < N * 3; i++) wz[i] = cel[i];
+const jeden = renderuj(naglowek, bajty, 1);
+const por = obok([{ px: wz, w: W, h: H }, { px: plaski.px, w: W, h: H, kanaly: 4 }, { px: jeden.px, w: W, h: H, kanaly: 4 }]);
+zapiszPNG(join(out, 'porownanie.png'), por.px, por.w, por.h);
+const kl = etapy.map((e) => { const r = renderuj(naglowek, bajty, 0.5, { ile: e.koniec }); return { px: r.px, w: r.w, h: r.h, kanaly: 4 }; });
+const et = obok(kl, 8);
+zapiszPNG(join(out, 'etapy.png'), et.px, et.w, et.h);
+console.log(`gotowe: ${m.ile} pociągnięć (${(bajty.length / 1024).toFixed(0)} KB), rmse ${m.rmse().toFixed(2)}, ${((Date.now() - t0) / 1000).toFixed(0)} s → ${out}`);

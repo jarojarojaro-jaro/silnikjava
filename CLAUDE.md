@@ -34,6 +34,13 @@ Przeczytaj [docs/KOD.md](docs/KOD.md) (zasady kodu). Najważniejsze:
 świat z klocków 3D z cieniami → animacja → filtr ASCII, rolka 1080×1920. Nie używa
 silnika z `src/` i jego zasad rysownika. Instrukcja i pułapki: jego `SKILL.md`.
 
+## Inne narzędzie: malarz (obrazy malowane pędzlem)
+
+`.claude/skills/malarz/` (skill `malarz`) to osobny pipeline w czystym JS (Node, bez zależności):
+wzór (zdjęcie albo motyw z kodu) → lista pociągnięć pędzla → podglądy PNG i film z pracowni
+1080×1920. Nie używa silnika z `src/` i jego zasad rysownika. Instrukcja, style i pułapki:
+jego `SKILL.md`; testy: `node --test .claude/skills/malarz/tests/*.test.mjs`.
+
 ## Repozytorium
 
 - Commituj jako użytkownik: `jarojarojaro-jaro <miki.jaroszek@gmail.com>`
