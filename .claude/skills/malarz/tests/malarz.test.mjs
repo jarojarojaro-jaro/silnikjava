@@ -3,7 +3,8 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { inflateSync } from 'node:zlib';
@@ -15,7 +16,7 @@ import { doTekstu, zTekstu } from '../lib/plik.js';
 import { renderuj } from '../lib/render.js';
 import { Reka } from '../lib/reka.js';
 import { namaluj, fbm, pasmo } from '../lib/szkic.js';
-import { zapiszPNG } from '../lib/grafika.js';
+import { zapiszPNG, rozmiar, wczytaj } from '../lib/grafika.js';
 import { szelest, wav } from '../lib/dzwiek.js';
 
 const suma = (a) => a.reduce((s, v) => s + v, 0);
@@ -375,6 +376,22 @@ test('dźwięk: cisza, gdy narzędzie stoi; szelest w rytm ruchu; ołówek brzmi
   assert.equal(szelest(new Array(HZ * 4).fill(0), HZ).every((v) => v === 0), true, 'bez ruchu sama cisza');
   const w = wav(p, sr);
   assert.equal(w.toString('ascii', 0, 4), 'RIFF'); assert.equal(w.readUInt32LE(24), sr); assert.equal(w.length, 44 + p.length * 2);
+});
+
+test('zdjęcie obrócone znacznikiem EXIF: rozmiar i piksele są takie, jak widzi je człowiek', (tc) => {
+  if (spawnSync('ffmpeg', ['-version']).status !== 0) return tc.skip('brak ffmpeg');
+  const kat = mkdtempSync(join(tmpdir(), 'malarz-exif-')), png = join(kat, 'a.png'), jpg = join(kat, 'a.jpg');
+  const px = new Uint8ClampedArray(40 * 20 * 3); for (let i = 0; i < 40 * 20; i++) px.set((i % 40) < 20 ? [230, 30, 30] : [30, 30, 230], i * 3);   // lewa czerwona, prawa niebieska
+  zapiszPNG(png, px, 40, 20);
+  assert.equal(spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-i', png, '-q:v', '2', jpg]).status, 0);
+  assert.deepEqual(rozmiar(jpg), { w: 40, h: 20 });
+  // dopisany segment EXIF z Orientation = 6 („obróć o 90° w prawo”): tak zapisują pionowe zdjęcia telefony
+  const tiff = Buffer.from([0x49, 0x49, 0x2A, 0, 8, 0, 0, 0, 1, 0, 0x12, 0x01, 3, 0, 1, 0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0]);
+  const exif = Buffer.concat([Buffer.from('Exif\0\0', 'binary'), tiff]), b = readFileSync(jpg);
+  writeFileSync(jpg, Buffer.concat([b.subarray(0, 2), Buffer.from([0xFF, 0xE1, (exif.length + 2) >> 8, (exif.length + 2) & 255]), exif, b.subarray(2)]));
+  assert.deepEqual(rozmiar(jpg), { w: 20, h: 40 }, 'po obrocie zdjęcie jest pionowe');
+  const T = wczytaj(jpg, 20, 40), gora = T[(5 * 20 + 10) * 3], dol = T[(34 * 20 + 10) * 3];
+  assert.ok(gora > 180 && dol < 80, `lewa (czerwona) strona trafia na górę (${gora.toFixed(0)}, ${dol.toFixed(0)})`);
 });
 
 // ---- przypadki brzegowe (z recenzji) -------------------------------------------------------------
