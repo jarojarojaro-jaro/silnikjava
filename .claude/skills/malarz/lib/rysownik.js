@@ -80,6 +80,18 @@ export const STYLE_SUCHE = {
       { nazwa: 'Dociemnienie', kat: -1.4, odstep: 1.0, dl: [8, 18], nacisk: 1, co: 3 },
     ],
   },
+  akwarela: {
+    opis: 'akwarela: przezroczyste plamy od jasnych do ciemnych, biel to czysty papier',
+    papier: { kolor: [250, 247, 238], ziarno: 0.85 }, narzedzie: 'akwarela', barw: 14, moc: 1.5, nasycenie: 1.15, szkic: 'olowek', akcent: 'akwarela', kontury: 0.3, konturSzer: 0.085, konturNacisk: [0.5, 0.5],
+    rundy: [                                               // rozmycie: z jak daleka malarz patrzy — pierwsze plamy są duże
+      { nazwa: 'Lawowanie', narzedzie: 'lawowanie', kat: 0.06, odstep: 0.7, dl: [90, 200], co: 16, rozmycie: 8 },
+      { nazwa: 'Laserunek', narzedzie: 'lawowanie', kat: -0.2, odstep: 0.7, dl: [70, 160], co: 14, szer: 0.8, rozmycie: 5 },
+      { nazwa: 'Drugie lawowanie', narzedzie: 'lawowanie', kat: 0.3, odstep: 0.75, dl: [40, 100], co: 10, szer: 0.5, rozmycie: 3 },
+      { nazwa: 'Plamy', poForma: true, kat: -0.4, odstep: 0.85, dl: [20, 50], co: 6, szer: 0.6, rozmycie: 2, zysk: 40 },
+      { nazwa: 'Cienie', poForma: true, odstep: 0.9, dl: [10, 26], co: 4, szer: 0.3, zysk: 80, rysunek: true },
+      { nazwa: 'Detal', poForma: true, odstep: 0.9, dl: [5, 14], co: 2.5, szer: 0.13, zysk: 140, rysunek: true },
+    ],
+  },
 };
 
 /**

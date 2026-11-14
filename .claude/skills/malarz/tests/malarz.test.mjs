@@ -270,7 +270,8 @@ test('rysownik: każdy styl suchy zbliża kartkę do wzoru i jest powtarzalny', 
   const blad = (r) => { let s = 0; for (let i = 0; i < W * H * 3; i++) s += (r.kartka.C[i] - cel[i]) ** 2; return Math.sqrt(s / (W * H * 3)); };
   for (const styl of Object.keys(STYLE_SUCHE)) {
     const pusty = blad(Rysunek({ W, H, papier: STYLE_SUCHE[styl].papier })), r = rysuj({ W, H, cel, styl });
-    assert.ok(blad(r) < pusty * (STYLE_SUCHE[styl].mono ? 0.9 : 0.62), `${styl}: ${blad(r).toFixed(1)} vs pusta kartka ${pusty.toFixed(1)}`);
+    // akwarela na tak małej kartce (pędzel szeroki na ćwierć obrazu) zostawia więcej białego papieru
+    assert.ok(blad(r) < pusty * (STYLE_SUCHE[styl].mono ? 0.9 : styl === 'akwarela' ? 0.72 : 0.62), `${styl}: ${blad(r).toFixed(1)} vs pusta kartka ${pusty.toFixed(1)}`);
     assert.ok(NAZWY.includes(STYLE_SUCHE[styl].narzedzie) && r.ile > 200);
   }
   assert.deepEqual(rysuj({ W, H, cel, styl: 'kredki' }).obraz().bajty, rysuj({ W, H, cel, styl: 'kredki' }).obraz().bajty);
@@ -316,7 +317,7 @@ test('szraf: tusz ma kreskę albo jej nie ma; szeroki pędzel nie wjeżdża w ja
 test('rysownik: przezroczysty pigment trzyma barwę wzoru i nie przeciemnia', () => {
   const W = 120, H = 80, cel = new Float32Array(W * H * 3);
   for (let i = 0; i < W * H; i++) { const c = (i % W) < 60 ? [40, 150, 90] : [235, 120, 60]; cel.set(c, i * 3); }   // zieleń i oranż
-  for (const styl of ['kredki']) {
+  for (const styl of ['kredki', 'akwarela']) {
     const r = rysuj({ W, H, cel, styl: styl }), K = r.kartka, n = STYLE_SUCHE[styl].nasycenie;
     const z = [0, 1, 2].map((c) => srednia(K, 10, 10, 50, 70, c)), o = [0, 1, 2].map((c) => srednia(K, 70, 10, 110, 70, c));
     assert.ok(z[1] > z[0] + 40 && z[1] > z[2] + 25, `${styl}: zieleń została zielenią (${z.map(Math.round)})`);
