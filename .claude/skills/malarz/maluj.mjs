@@ -87,7 +87,8 @@ if (g === 'auto') {                                // imprimatura: przygaszony, 
 else if (g) grunt = g.split(',').map(Number);
 
 // ---- malowanie ------------------------------------------------------------------------------
-const m = Malarz({ W, H, cel, wagi, grunt, ziarno: Number(opt('ziarno', 1503)), cechy: styl.cechy, kolor: styl.kolor });
+const cechy = opt('mokro') != null ? { ...styl.cechy, mokro: Number(opt('mokro')) } : styl.cechy;   // --mokro 0..0.6: ile farby spod spodu zabiera pędzel
+const m = Malarz({ W, H, cel, wagi, grunt, ziarno: Number(opt('ziarno', 1503)), cechy, kolor: styl.kolor });
 console.log(`${nazwa}: ${W}×${H}, styl ${stylNazwa} (${styl.opis}), grunt ${grunt}`);
 const etapy = [];
 for (const e of styl.etapy) {
@@ -96,7 +97,7 @@ for (const e of styl.etapy) {
   console.log(`  ${e.nazwa.padEnd(12)} nr ${e.nr.padEnd(3)} ${RODZAJE[e.pedzel].padEnd(10)} ${String(e.w[0]).padStart(4)}–${String(e.w[1]).padEnd(4)} +${String(r.zrobione).padStart(5)}  razem ${String(m.ile).padStart(5)}  rmse ${m.rmse().toFixed(2)}  ${((Date.now() - t) / 1000).toFixed(1)} s`);
 }
 const bajty = m.bajty();
-const naglowek = { W, H, grunt, tytul: opt('tytul', motyw?.TYTUL ?? nazwa), autor: opt('autor', motyw?.AUTOR ?? ''), styl: stylNazwa, cechy: styl.cechy, swiatlo: styl.swiatlo, etapy, rmse: Number(m.rmse().toFixed(2)) };
+const naglowek = { W, H, grunt, tytul: opt('tytul', motyw?.TYTUL ?? nazwa), autor: opt('autor', motyw?.AUTOR ?? ''), styl: stylNazwa, cechy, swiatlo: styl.swiatlo, etapy, rmse: Number(m.rmse().toFixed(2)) };
 writeFileSync(join(out, 'obraz.json'), doTekstu(naglowek, bajty));
 
 // ---- podglądy --------------------------------------------------------------------------------

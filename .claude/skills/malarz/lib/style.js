@@ -2,6 +2,7 @@
 // Etapy idą od najszerszego pędzla do najcieńszego. Szerokości są w jednostkach roboczych
 // (obraz ma ok. 536 tys. jednostek², np. 600 × 894), liczby pociągnięć mnoży --szczegol.
 // wygladz: rozmycie wzoru przed malowaniem (malarz nie kopiuje spękań, kurzu i szumu zdjęcia).
+// cechy.mokro: malowanie mokre w mokre — pędzel zabiera farbę spod spodu (kopia i kropki malują na sucho).
 
 import { PLASKI, KOCI, OKRAGLY } from './pedzel.js';
 
@@ -27,7 +28,7 @@ export const STYLE = {
   // olej alla prima: widać pociągnięcia i fakturę; drobny pędzel tylko tam, gdzie patrzy oko
   olej: {
     opis: 'olej alla prima: widoczne pociągnięcia, gruba farba, detal tylko w ważnych miejscach',
-    cechy: { wlosie: 1.25, suchosc: 1.1, smugi: 1.6 },
+    cechy: { wlosie: 1.25, suchosc: 1.1, smugi: 1.6, mokro: 0.3 },
     swiatlo: { sila: 0.6, splot: 1, polysk: 1 },
     wygladz: 1.1,
     etapy: [
@@ -42,7 +43,7 @@ export const STYLE = {
   // impresjonizm: krótkie, grube dotknięcia czystym kolorem, bez wygładzania
   impresja: {
     opis: 'impresjonizm: krótkie, grube dotknięcia, żywy, rozedrgany kolor',
-    cechy: { wlosie: 1.3, suchosc: 0.9, smugi: 2.2 },
+    cechy: { wlosie: 1.3, suchosc: 0.9, smugi: 2.2, mokro: 0.3 },
     swiatlo: { sila: 0.75, splot: 0.8, polysk: 1.2 },
     wygladz: 1.5,
     kolor: { nasycenie: 1.22, drganie: 16 },
@@ -57,7 +58,7 @@ export const STYLE = {
   // etiuda: kilkaset szerokich pociągnięć — sam układ plam i światła
   etiuda: {
     opis: 'etiuda: kilkaset szerokich pociągnięć, sam układ plam',
-    cechy: { wlosie: 1.4, suchosc: 1.25, smugi: 1.8 },
+    cechy: { wlosie: 1.4, suchosc: 1.25, smugi: 1.8, mokro: 0.5 },
     swiatlo: { sila: 0.7, splot: 1.2, polysk: 1 },
     wygladz: 2,
     etapy: [
@@ -69,7 +70,7 @@ export const STYLE = {
   // szpachla: farba kładziona nożem — proste, krótkie płaszczyzny, gruba faktura, prawie bez włosia
   szpachla: {
     opis: 'szpachla: krótkie, proste płaszczyzny gęstej farby, mocna faktura',
-    cechy: { wlosie: 0.35, suchosc: 1.5, smugi: 2.6 },
+    cechy: { wlosie: 0.35, suchosc: 1.5, smugi: 2.6, mokro: 0.45 },
     swiatlo: { sila: 1.0, splot: 0.6, polysk: 1.5 },
     wygladz: 1.6,
     kolor: { nasycenie: 1.12, drganie: 8 },

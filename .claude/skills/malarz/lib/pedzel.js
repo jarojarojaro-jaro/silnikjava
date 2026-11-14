@@ -13,7 +13,9 @@
 //   - włosie: kępki i pojedyncze włosy, trochę jaśniejsze i ciemniejsze, wędrujące w poprzek,
 //   - zapas farby: ku końcowi pędzel wysycha, włosy wypadają i prześwituje spód,
 //   - fakturę (grubość farby): grzbiety wzdłuż włosów, wałek na brzegach. Kolor od niej
-//     nie zależy; czyta ją dopiero światło (oswietl).
+//     nie zależy; czyta ją dopiero światło (oswietl),
+//   - mokre w mokre (cecha `mokro`): włosie zabiera farbę, po której jedzie, i ciągnie ją dalej —
+//     pociągnięcie zaczyna się czystym kolorem, a kończy smugami tego, co było pod spodem.
 //
 // Pomysł i układ (pędzel jako funkcja maski + rekord 12 bajtów) za projektem
 // ChetasLua/mona-lisa-js (MIT); implementacja własna, z rodzajami pędzli, stylami i światłem.
@@ -65,12 +67,16 @@ function wlosie(seed, wid) {
 /**
  * Pędzel dla obrazu W × H jednostek w skali S px na jednostkę.
  * @param {number} W @param {number} H @param {number} S
- * @param {{wlosie?:number, suchosc?:number, smugi?:number}} [cechy] siła włosia, suchość, smugi odcienia
+ * @param {{wlosie?:number, suchosc?:number, smugi?:number, mokro?:number}} [cechy] siła włosia, suchość, smugi odcienia,
+ *   mokro — ile farby spod spodu włosie zabiera ze sobą (0 = sucha warstwa pod spodem, 0,5 = bardzo mokra)
  */
 export function Pedzel(W, H, S, cechy = {}) {
   const PW = Math.round(W * S), PH = Math.round(H * S);
   const MA = new Float32Array(PW * PH), MS = new Float32Array(PW * PH), MR = new Float32Array(PW * PH);
-  const kWl = cechy.wlosie ?? 1, kSu = cechy.suchosc ?? 1, kSm = cechy.smugi ?? 1;
+  const kWl = cechy.wlosie ?? 1, kSu = cechy.suchosc ?? 1, kSm = cechy.smugi ?? 1, kMo = cechy.mokro ?? 0;
+  // mokre w mokre: położenie piksela w pociągnięciu (wzdłuż i w poprzek) + to, co włosie zebrało po drodze
+  const MT = kMo > 0 ? new Float32Array(PW * PH) : null, MV = kMo > 0 ? new Float32Array(PW * PH) : null;
+  const NV = 12, NT = 10, zebrane = new Float32Array(NV * NT * 4); let zebraneDla = -1;
   const o = { PW, PH, S, MA, MS, MR, x0: 0, y0: 0, w: 0, h: 0, grubosc: 0 };
 
   /**
@@ -137,6 +143,7 @@ export function Pedzel(W, H, S, cechy = {}) {
         let en = av / hh;
         if (en > 0.55) { en = en > 0.95 ? 1 : (en - 0.55) * 2.5; rg += 0.22 * walek * en * en * (3 - 2 * en); }
         MA[k] = a * op; MS[k] = sh; MR[k] = rg;
+        if (MT) { MT[k] = t; MV[k] = v * ihw + 0.5; }
       }
     }
     return w * h;
@@ -147,6 +154,25 @@ export function Pedzel(W, H, S, cechy = {}) {
    * Hb (opcjonalnie, PW*PH) zbiera grubość farby dla światła.
    */
   o.maluj = (C, x, y, ang, len, wid, bend, op, kind, seed, r, g, b, tA, tB, Hb) => {
+    const mokro = kMo > 0 && wid >= 2.5 ? kMo * gladko(2.5, 8, wid) : 0;
+    if (mokro > 0 && (zebraneDla !== seed || !(tA > 0))) {
+      // co leży pod całym pociągnięciem, zanim pędzel go dotknie: średni kolor w kratkach (w poprzek × wzdłuż),
+      // potem sumowany wzdłuż — włos w miejscu t niesie to, po czym przejechał od początku. Liczone raz na
+      // pociągnięcie (film kładzie je w kawałkach i musi dostać to samo co malarz).
+      zebrane.fill(0); zebraneDla = seed;
+      if (o.maska(x, y, ang, len, wid, bend, op, kind, seed)) {
+        const { x0, y0, w, h } = o; let k = 0;
+        for (let yy = 0; yy < h; yy++) {
+          let j = ((y0 + yy) * PW + x0) * 3;
+          for (let xx = 0; xx < w; xx++, k++, j += 3) {
+            const a = MA[k]; if (a === 0) continue;
+            const q = (Math.min(NV - 1, Math.max(0, (MV[k] * NV) | 0)) * NT + Math.min(NT - 1, (MT[k] * NT) | 0)) * 4;
+            zebrane[q] += a * C[j]; zebrane[q + 1] += a * C[j + 1]; zebrane[q + 2] += a * C[j + 2]; zebrane[q + 3] += a;
+          }
+        }
+        for (let v = 0; v < NV; v++) for (let t = 1; t < NT; t++) { const q = (v * NT + t) * 4; for (let c = 0; c < 4; c++) zebrane[q + c] += zebrane[q - 4 + c]; }
+      }
+    }
     if (!o.maska(x, y, ang, len, wid, bend, op, kind, seed, tA, tB)) return;
     const { x0, y0, w, h, grubosc } = o;
     let k = 0;
@@ -154,10 +180,17 @@ export function Pedzel(W, H, S, cechy = {}) {
       let i = (y0 + yy) * PW + x0, j = i * 3;
       for (let xx = 0; xx < w; xx++, k++, i++, j += 3) {
         const a = MA[k]; if (a === 0) continue;
-        const ia = 1 - a, as = a * MS[k]; let n;
-        n = C[j] * ia + r * as; C[j] = n > 255 ? 255 : n;
-        n = C[j + 1] * ia + g * as; C[j + 1] = n > 255 ? 255 : n;
-        n = C[j + 2] * ia + b * as; C[j + 2] = n > 255 ? 255 : n;
+        const ia = 1 - a, as = a * MS[k]; let n, fr = r, fg = g, fb = b;
+        if (mokro > 0) {
+          const t = MT[k], q = (Math.min(NV - 1, Math.max(0, (MV[k] * NV) | 0)) * NT + Math.min(NT - 1, (t * NT) | 0)) * 4, wg = zebrane[q + 3];
+          if (wg > 0.5) {                                          // im dalej od lądowania, tym więcej cudzej farby na włosiu
+            const m = mokro * Math.sqrt(t) / wg, im = 1 - mokro * Math.sqrt(t);
+            fr = r * im + zebrane[q] * m; fg = g * im + zebrane[q + 1] * m; fb = b * im + zebrane[q + 2] * m;
+          }
+        }
+        n = C[j] * ia + fr * as; C[j] = n > 255 ? 255 : n;
+        n = C[j + 1] * ia + fg * as; C[j + 1] = n > 255 ? 255 : n;
+        n = C[j + 2] * ia + fb * as; C[j + 2] = n > 255 ? 255 : n;
         if (Hb) Hb[i] += a * (grubosc * MR[k] - 0.55 * Hb[i]);
       }
     }

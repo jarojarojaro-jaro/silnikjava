@@ -86,6 +86,22 @@ test('pędzel: pociągnięcie malowane w kawałkach daje to samo co w całości'
   assert.ok(cale.some((v) => v < 150), 'farba położona');
 });
 
+test('mokre w mokre: pędzel ciągnie farbę spod spodu; w kawałkach = w całości; bez cechy nic się nie zmienia', () => {
+  const W = 200, H = 120, tlo = () => { const C = plotno(W, H, [20, 40, 200]); for (let y = 0; y < H; y++) for (let x = 100; x < W; x++) C.set([240, 230, 60], (y * W + x) * 3); return C; };   // lewa niebieska, prawa żółta
+  const maluj = (cechy, czesci = [[0, 1]]) => { const P = Pedzel(W, H, 1, cechy), C = tlo(); for (const [a, b] of czesci) P.maluj(C, 100, 60, 0, 160, 30, 0, 1, PLASKI, 4, 200, 30, 30, a, b); return C; };
+  const kolor = (C, x) => [0, 1, 2].map((c) => { let s = 0; for (let y = 52; y < 68; y++) s += C[(y * W + x) * 3 + c]; return s / 16; });
+  const sucho = maluj({ wlosie: 0, smugi: 0 }), mokro = maluj({ wlosie: 0, smugi: 0, mokro: 0.5 });
+  assert.ok(Math.abs(kolor(sucho, 150)[2] - 30) < 6, 'na sucho koniec pociągnięcia ma kolor farby');
+  assert.ok(kolor(mokro, 150)[2] > kolor(sucho, 150)[2] + 25, `mokry pędzel dowiózł błękit z lewej na żółtą stronę (${kolor(mokro, 150).map(Math.round)})`);
+  assert.ok(Math.abs(kolor(mokro, 26)[0] - kolor(sucho, 26)[0]) < 20 && Math.abs(kolor(mokro, 26)[0] - kolor(sucho, 26)[0]) < Math.abs(kolor(mokro, 150)[0] - kolor(sucho, 150)[0]), 'początek pociągnięcia to jeszcze prawie czysta farba');
+  const czesciami = maluj({ wlosie: 0, smugi: 0, mokro: 0.5 }, [[0, 0.3], [0.3, 0.8], [0.8, 1]]);
+  let maxd = 0; for (let i = 0; i < mokro.length; i++) maxd = Math.max(maxd, Math.abs(mokro[i] - czesciami[i]));
+  assert.ok(maxd < 1e-3, `film (kawałki) kładzie to samo co malarz (${maxd})`);
+  assert.deepEqual(maluj({ wlosie: 0, smugi: 0, mokro: 0 }), sucho);
+  for (const s of ['olej', 'impresja', 'etiuda', 'szpachla']) assert.ok(STYLE[s].cechy.mokro > 0, `${s} maluje mokre w mokre`);
+  assert.ok(!STYLE.kopia.cechy.mokro && !STYLE.punkty.cechy.mokro, 'kopia i kropki na sucho');
+});
+
 test('światło: siła 0 oddaje czysty kolor, faktura zmienia tylko jasność', () => {
   const P = Pedzel(60, 60, 1), C = plotno(60, 60, [100, 150, 200]), Hb = new Float32Array(3600);
   P.maluj(C, 30, 30, 0, 40, 16, 0, 1, PLASKI, 2, 200, 50, 50, 0, 1, Hb);
