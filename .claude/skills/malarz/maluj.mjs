@@ -1,11 +1,11 @@
 #!/usr/bin/env node
-// maluj.mjs — maluje obraz pędzlem: wzór (zdjęcie albo motyw z kodu) → lista pociągnięć.
+// maluj.mjs — maluje albo rysuje obraz: wzór (zdjęcie albo motyw z kodu) → lista pociągnięć pędzla albo kresek.
 //
 //   node maluj.mjs zdjecie.jpg                         # styl „olej”, wynik w out/malarz/zdjecie/
 //   node maluj.mjs zdjecie.jpg --styl kopia            # wierna kopia (62 tys. pociągnięć)
 //   node maluj.mjs zdjecie.jpg --styl impresja --tytul "Zatoka o świcie"
 //   node maluj.mjs motywy/jezioro.js --styl olej       # motyw z wyobraźni (wzór rysuje kod)
-//   node maluj.mjs zdjecie.jpg --styl pastele          # rysunek narzędziami suchymi (też: kredki, wegiel, olowek)
+//   node maluj.mjs zdjecie.jpg --styl pastele          # praca na papierze (też: kredki, olejne, mieszane, akwarela, wegiel, olowek, szkic, tusz)
 //   node maluj.mjs portret.jpg --skup 0.48,0.30,0.14,0.16,4   # twarz: środek x,y i promienie (ułamki), waga
 //
 // Opcje: --styl, --nazwa, --tytul, --autor, --szczegol 1 (mnożnik liczby pociągnięć), --skup (wiele razy),
@@ -58,7 +58,7 @@ if (styl.wygladz && !motyw) {                       // malarz patrzy na formę, 
 }
 const szczegol = Number(opt('szczegol', 1));
 const wz = new Uint8ClampedArray(N * 3); for (let i = 0; i < N * 3; i++) wz[i] = cel[i];
-// ---- rysowanie narzędziami suchymi (kredki, pastele, węgiel, ołówek) -------------------------
+// ---- praca na papierze (kredki, pastele, węgiel, ołówek, tusz, akwarela, technika mieszana) ---
 if (suchy) {
   console.log(`${nazwa}: ${W}×${H}, styl ${stylNazwa} (${suchy.opis})`);
   const r = rysuj({ W, H, cel, styl: stylNazwa, tytul: opt('tytul', motyw?.TYTUL ?? nazwa), autor: opt('autor', motyw?.AUTOR ?? ''), ziarno: Number(opt('ziarno', 2024)), szczegol, papier: opt('papier') ? { kolor: opt('papier').split(',').map(Number) } : undefined, log: console.log });

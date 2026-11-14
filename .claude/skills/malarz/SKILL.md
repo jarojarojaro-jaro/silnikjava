@@ -1,6 +1,6 @@
 ---
 name: malarz
-description: Silnik malarski w kodzie — maluje i rysuje obrazy tak, jak robi to ręka. „Malarz” kładzie tysiące pociągnięć pędzla (olej, impresjonizm, etiuda, wierna kopia), „rysownik” rysuje narzędziami suchymi na papierze z ziarnem (kredki, suche pastele, węgiel, ołówek); wzorem jest zdjęcie albo motyw wymyślony w kodzie, można też rysować z ręki. Do tego film z pracowni (pionowy 1080×1920 albo poziomy 1920×1080), na którym praca powstaje kreska po kresce. Użyj, gdy ktoś prosi o namalowanie albo narysowanie czegoś, obraz ze zdjęcia, „sztukę rysowaną kodem / JavaScriptem”, rysunek wyglądający na ręczny, film z malowania, albo pokazuje projekt w rodzaju mona-lisa-js czy p5.brush. To NIE jest silnik rysowanych filmów z src/ (ręka, lektor) ani skill voxel-ascii — osobne narzędzie w czystym JS (Node, bez zależności).
+description: Silnik malarski w kodzie — maluje i rysuje obrazy tak, jak robi to ręka. „Malarz” kładzie tysiące pociągnięć pędzla (olej, impresjonizm, etiuda, szpachla, puentylizm, wierna kopia), „rysownik” pracuje na papierze z ziarnem (kredki, suche i olejne pastele, węgiel, ołówek, szkic, tusz, akwarela, technika mieszana); wzorem jest zdjęcie albo motyw wymyślony w kodzie, można też rysować z ręki. Do tego film z pracowni (pionowy 1080×1920 albo poziomy 1920×1080, opcjonalnie z szelestem narzędzia), na którym praca powstaje kreska po kresce, i arkusz „ten sam wzór we wszystkich stylach”. Użyj, gdy ktoś prosi o namalowanie albo narysowanie czegoś, obraz ze zdjęcia, „sztukę rysowaną kodem / JavaScriptem”, rysunek wyglądający na ręczny, film z malowania, albo pokazuje projekt w rodzaju mona-lisa-js czy p5.brush. To NIE jest silnik rysowanych filmów z src/ (ręka, lektor) ani skill voxel-ascii — osobne narzędzie w czystym JS (Node, bez zależności).
 ---
 
 # malarz — obraz malowany pędzlem, pociągnięcie po pociągnięciu
@@ -11,7 +11,7 @@ pociągnięć** (12 bajtów każde), nie siatka pikseli: można ją odtworzyć w
 zatrzymać w dowolnym momencie i sfilmować.
 
 Są dwie „ręce”: **malarz** (pędzel i farba olejna, `lib/malarz.js`) i **rysownik** (kredki, pastele,
-węgiel, ołówek na papierze z ziarnem, `lib/rysownik.js`). Obie zapisują pracę jako listę ruchów ręki.
+węgiel, ołówek, tusz i akwarela na papierze z ziarnem, `lib/rysownik.js`). Obie zapisują pracę jako listę ruchów ręki.
 
 Wzór może być **zdjęciem / reprodukcją** albo **motywem z wyobraźni** — obrazem opisanym
 funkcją w kodzie (`motywy/*.js`), bez żadnego pliku graficznego. Można też malować **z ręki**:
@@ -26,9 +26,11 @@ node $M/maluj.mjs $M/motywy/jezioro.js --styl olej       # motyw z wyobraźni
 node $M/maluj.mjs $M/motywy/lato.js --styl pastele       # to samo narzędziami suchymi (16:9)
 node $M/film.mjs out/malarz/jezioro/obraz.json           # film.mp4 (ok. 34 s; pion 1080×1920, panorama 1920×1080)
 node $M/film.mjs out/malarz/jezioro/obraz.json --arkusz  # 6 klatek filmu w jednym PNG
+node $M/film.mjs out/malarz/jezioro/obraz.json --dzwiek  # film ze ścieżką dźwiękową (szelest narzędzia)
+node $M/przeglad.mjs zdjecie.jpg                         # ten sam wzór w 14 stylach na arkuszu z podpisami (ok. 4 min)
 node $M/strona.mjs out/malarz/jezioro/obraz.json         # obraz.html: jeden plik, maluje na żywo w przeglądarce
 node $M/odtworz.mjs out/malarz/jezioro/obraz.json --skala 4 --okno 0.2,0.4,0.3,0.2   # detal z bliska
-node --test $M/tests/*.test.mjs                          # testy (ok. 3 s)
+node --test $M/tests/*.test.mjs                          # testy (ok. 6 s)
 ```
 
 `maluj.mjs` zapisuje w `out/malarz/<nazwa>/` (katalog `out/` jest w .gitignore):
@@ -42,16 +44,26 @@ node --test $M/tests/*.test.mjs                          # testy (ok. 3 s)
 | `olej` (domyślny) | 15 000 | ok. 1 min | alla prima: widać pędzel, drobny detal tylko w ważnych miejscach |
 | `impresja` | 11 400 | ok. 45 s | krótkie, grube dotknięcia, żywszy, „rozedrgany” kolor |
 | `etiuda` | 1 200 | ok. 25 s | sam układ plam szerokim pędzlem |
+| `szpachla` | 8 200 | ok. 45 s | farba kładziona nożem: krótkie, proste płaszczyzny, najgrubsza faktura |
+| `punkty` | 18 000 | ok. 1 min | puentylizm: kropki o rozszczepionej barwie, które z daleka zlewają się w kolor wzoru |
 | `kopia` | 62 000 | ok. 1,5 min | wierna kopia aż do linera 000 (łapie nawet spękania werniksu) |
 
-Style suche (definicje w `lib/rysownik.js`; wynik to kreski, nie pociągnięcia pędzla):
+Style na papierze (definicje w `lib/rysownik.js`; wynik to kreski i plamy, nie pociągnięcia pędzla olejnego):
 
 | Styl | Kresek | Czas | Charakter |
 |---|---|---|---|
-| `pastele` | 45–120 tys. | ok. 20–40 s | suche pastele na tonowanym papierze: kryją, żywe kolory, najlepsze do pejzaży i barwnych motywów |
-| `kredki` | 110–145 tys. | ok. 30 s | kredki na jasnym papierze: warstwy szrafu, pigmenty mieszają się przez nakładanie; wychodzi ciemniej i spokojniej niż wzór |
-| `wegiel` | 30–50 tys. | ok. 15 s | węgiel i biała kreda na szarym papierze, sam walor |
-| `olowek` | 60–120 tys. | ok. 20 s | ołówek, szraf krzyżowy |
+| `kredki` | 140–190 tys. | ok. 40 s | kredki na jasnym papierze: warstwy szrafu, pigmenty mieszają się przez nakładanie; trzymają kolor wzoru |
+| `pastele` | 110–175 tys. | ok. 35 s | suche pastele na tonowanym papierze: kryją, żywe kolory, najlepsze do pejzaży i barwnych motywów |
+| `olejne` | 150–180 tys. | ok. 35 s | pastele olejne: tłusty, gęsty, mocno przesadzony kolor na jasnym papierze |
+| `mieszane` | 75–100 tys. | ok. 35 s | technika mieszana na tonowanym papierze: pastel na plamy, kredki na rysunek, węgiel w cieniach, biała kreda w światłach — najczystszy kolor i rysunek ze wszystkich stylów na papierze |
+| `akwarela` | 20–30 tys. | ok. 40 s | lawowania szerokim pędzlem, laserunki, ciemniejsze brzegi plam, granulacja; biel to czysty papier, spod farby prześwituje szkic |
+| `wegiel` | 17–50 tys. | ok. 20 s | węgiel i biała kreda na szarym papierze, sam walor |
+| `olowek` | 60–120 tys. | ok. 25 s | ołówek, szraf krzyżowy |
+| `szkic` | 10–15 tys. | ok. 15 s | szybki szkic: pewny kontur i lekki szraf tylko w cieniach |
+| `tusz` | 20–60 tys. | ok. 20 s | piórko: kontur, potem szraf w trzech kierunkach; ton robi gęstość kresek, jasne partie zostają papierem |
+
+`przeglad.mjs <wzór>` maluje wzór we wszystkich stylach naraz i składa arkusz z podpisami — najszybszy
+sposób wyboru stylu do tematu (`--style a,b,c` zawęża, prace zostają w podkatalogach gotowe do filmu).
 
 `--szczegol 1.5` mnoży liczbę pociągnięć. Style suche biorą `--papier r,g,b` (kolor arkusza) zamiast
 `--grunt`; `--skup` i `--detal` ich nie dotyczą — rysownik sam idzie za rysunkiem wzoru. Styl to dane: etapy (pędzel, szerokości, długości,
@@ -80,20 +92,31 @@ liczba), cechy pędzla (włosie, suchość, smugi), światło, ewentualnie `kolo
    Pigment przezroczysty mnoży kolor pod spodem (żółta kredka na błękitnej daje zieleń), kryjący
    go zasłania; każde narzędzie (`olowek`, `kredka`, `wegiel`, `pastel`, `olejna`, `tusz`, `biel`,
    `palec` do rozcierania) ma własne proporcje. Ślad to ścieżka z naciskiem: gładka krzywa przez
-   punkty, drżenie ręki, lżejsze wejście i oderwanie, falowanie nacisku.
+   punkty, drżenie ręki, lżejsze wejście i oderwanie, falowanie nacisku. **Farba wodna** (`akwarela`,
+   `lawowanie`) działa inaczej: nacisk to ilość pigmentu w wodzie, plama ma równy ton, ciemniejszy
+   brzeg (pigment spływa do krawędzi), granulację w dolinach papieru i łagodne zacieki; kolejne
+   plamy przeświecają przez siebie jak laserunki, a `lawowanie` ma brzeg rozpływający się w papier.
 6. **Rysownik** (`lib/rysownik.js`) — szkic ołówkiem po krawędziach wzoru → kredki dobrane do wzoru
-   (kolory możliwie różne, mała plama czystego koloru dostaje własną kredkę) → rundy szrafu
-   (podkład bokiem grafitu, druga warstwa pod innym kątem, kreska po formie, dociemnienie, detal)
-   → kontury kolorem miejscowym i światła bielą. Przed każdą rundą rysownik patrzy na prawdziwą
-   kartkę i liczy dla każdej kredki mapę tonu; w danym miejscu rysuje tylko ta, która najlepiej
-   trafia w kolor, a nacisk kreski idzie za mapą.
+   (kolory możliwie różne, mała plama czystego koloru dostaje własną kredkę; kredka przezroczysta to
+   pigment gęstszy od koloru, który ma dać) → rundy szrafu od szerokiego podkładu do detalu → kontury
+   i światła bielą. Przed każdą rundą rysownik patrzy na prawdziwą kartkę i dla każdej kredki liczy
+   mapę tonu. O miejsce wygrywa **jedna** kredka: ta, która sama, warstwa po warstwie, doszłaby
+   najbliżej wzoru (kolor miejscowy), a nie ta, która od razu najbardziej przyciemnia. Pigment
+   przezroczysty nigdy nie schodzi poniżej wzoru w żadnym kanale (nie da się go cofnąć), błąd barwy
+   liczy osobno odcień, a po każdej rundzie rysownik sprawdza, ile z planu naprawdę zostało na
+   papierze, i w następnej prowadzi rękę lżej albo mocniej. Runda może mieć własne narzędzie
+   (technika mieszana), jedną barwę (węgiel w cieniach), własną odległość patrzenia (`rozmycie`:
+   akwarela zaczyna od dużych plam widzianych z daleka) albo stały nacisk (`staly`: tusz).
 7. **Pracownia** (`pracownia/`) — strona, która maluje obraz jako funkcję czasu tym samym
    pędzlem: pędzel rysowany włos po włosie, lupa ×4, paleta z farbami (skupiska kolorów
    pociągnięć) i śladami mieszania, lista pędzli, licznik i 12 bajtów bieżącego pociągnięcia.
-   Dla rysunków: ołówek albo pałeczka w kadrze, piórnik z użytymi kredkami zamiast palety.
+   Dla rysunków: ołówek albo pałeczka w kadrze, piórnik z użytymi kredkami zamiast palety; dla
+   akwareli pędzel i kasetka z kostkami farb.
    Kadr jest pionowy (1080×1920), a dla prac szerszych niż 1,2:1 sam przechodzi w poziomy
    (1920×1080: praca z lewej, narzędzia w kolumnie z prawej); `--uklad pion|poziom` wymusza.
-   `film.mjs` zrzuca klatki przez Chromium i koduje MP4; `strona.mjs` pakuje pracownię i obraz
+   `film.mjs` zrzuca klatki przez Chromium i koduje MP4; z `--dzwiek` dokleja ścieżkę dźwiękową
+   (`lib/dzwiek.js`: szum w trzech pasmach sterowany prędkością czubka, naciskiem i rodzajem
+   narzędzia — bez próbek, powtarzalny); `strona.mjs` pakuje pracownię i obraz
    do jednego pliku HTML (bez sieci i grafik; spacja = pauza, R = od nowa).
 
 ## Procedura (zawsze w tej kolejności)
@@ -102,8 +125,10 @@ liczba), cechy pędzla (włosie, suchość, smugi), światło, ewentualnie `kolo
    słońce) i podaj go przez `--skup`. Bez tego twarz dostaje tyle uwagi co tło.
 2. `maluj.mjs` → **obejrzyj `porownanie.png`** i wycinek twarzy/detalu przez
    `odtworz.mjs --skala 3 --okno …`. Kryterium: z daleka obraz, z bliska pociągnięcia.
-3. Dobierz styl do tematu: portret/klasyka → `olej` albo `kopia`; pejzaż, kwiaty → `impresja`;
-   plakatowa prostota → `etiuda`. Zły wynik zwykle naprawia `--skup`, nie więcej pociągnięć.
+3. Dobierz styl do tematu: portret/klasyka → `olej` albo `kopia`; pejzaż, kwiaty → `impresja`,
+   `szpachla`, `akwarela`; plakatowa prostota → `etiuda`; barwny motyw „jak z ręki” → `mieszane`,
+   `pastele`, `kredki`; rysunek → `olowek`, `szkic`, `tusz`, `wegiel`. Gdy nie wiadomo —
+   `przeglad.mjs` i wybór z arkusza. Zły wynik zwykle naprawia `--skup`, nie więcej pociągnięć.
 4. `film.mjs --arkusz` → obejrzyj 6 klatek (czy nic się nie nakłada, czy tytuł się mieści),
    dopiero potem pełny film; na koniec `ffprobe` i 2–3 klatki z MP4.
 5. Tytuł i autor: `--tytul "Dziewczyna z perłą" --autor "wg Vermeera"` (idą na planszę filmu).
@@ -148,8 +173,9 @@ r.etap('Błękit', 'kredka').szraf(ton, 'kredka', [50, 90, 190], { kat: -0.95 })
 const { naglowek, bajty } = r.obraz();      // writeFileSync('obraz.json', doTekstu(naglowek, bajty))
 ```
 
-`kreska(narzedzie, kolor, [[x, y, nacisk], …], szer?)` to jeden ruch ręki; `szraf(ton, narzedzie, kolor,
-{ kat, odstep, dl, nacisk, co, kierunek })` kładzie równoległe kreski tam, gdzie funkcja `ton` jest dodatnia
+`kreska(narzedzie, kolor, [[x, y, nacisk], …], szer?)` to jeden ruch ręki (także plama akwareli: narzędzie
+`akwarela` albo `lawowanie`, szerokość np. 20, nacisk = ilość pigmentu); `szraf(ton, narzedzie, kolor,
+{ kat, odstep, dl, nacisk, co, kierunek, staly, poprzek })` kładzie równoległe kreski tam, gdzie funkcja `ton` jest dodatnia
 (nierówny odstęp, kąt, długość i łuk — ręka nie jest liniałem). Ciemniej = więcej warstw pod innym
 kątem, nie mocniejsza kreska. `r.kartka.C` to bieżący stan kartki (do pętli „spójrz i popraw”).
 
@@ -180,6 +206,9 @@ wielu poprawek „na oko” (render → obejrzyj → popraw) — do pełnych kom
   osi (`cos x + cos y`).
 - **Tempo filmu:** czas pociągnięcia ∝ √(długość × szerokość); przy wykładniku 0,75 podmalówka
   zjadała połowę filmu i obraz „pojawiał się” dopiero pod koniec.
+- **Puentylizm:** odchylenie barwy kropki dodane przed oceną kandydata malarz po prostu odsiewa
+  (wybiera kropki najmniej odchylone) albo — gdy zależy tylko od numeru — odrzuca większość prób.
+  Kropka jest więc wybierana w kolorze wzoru, a odchylenie dostaje dopiero na płótnie.
 - **RMSE to nie jakość.** `kopia` na ostrej reprodukcji ma ok. 3–4 (bo wzór ma spękania),
   `olej` 5–7 — i wygląda bardziej malarsko. Patrz na obraz, nie na liczbę.
 - Etap może położyć mniej pociągnięć, niż zapisano (gdy żadne już nie poprawia obrazu) — to
@@ -202,16 +231,38 @@ wielu poprawek „na oko” (render → obejrzyj → popraw) — do pełnych kom
     i rysunku — rysunek wyraźnie ciemniejszy znaczy, że pigmentu jest za dużo;
   - ostra runda detalu (porównanie bez rozmycia) pomaga pastelom, a kredkom szkodzi: gonią ziarno
     papieru i liczba kresek rośnie trzykrotnie bez zysku;
+  - wybór kredki według natychmiastowego zysku bierze najciemniejszą (granat na zielonej łące), a ta
+    zjada zapas na właściwą barwę — kolory szarzeją (nasycenie 58% wzoru). Wygrywać ma kredka, która
+    sama doszłaby najbliżej wzoru, i żaden kanał nie może zejść poniżej wzoru (teraz 90–100%);
+  - plan a kartka to dwie rzeczy: szraf ma przerwy i zakładki, więc runda kładzie 25–100% tego, co
+    zaplanowano. Bez sprawdzania po rundzie rysunek wychodzi raz za jasny, raz za ciemny;
+  - paleta może zwrócić tę samą kredkę kilka razy (wzór o dwóch–trzech barwach): każda kopia
+    rysowała to samo miejsce i plama wychodziła prawie czarna. Paleta jest bez powtórzeń, a remis
+    wygrywa pierwsza kredka;
+  - style jednobarwne muszą rysować z waloru wzoru, nie z koloru: inaczej „nie schodź poniżej wzoru”
+    zatrzymuje ołówek na najjaśniejszym kanale i rysunek blaknie;
+  - akwarela cienkim pędzlem wszędzie wygląda jak flamaster. Najpierw duże, miękkie lawowania
+    (rysownik patrzy z daleka: `rozmycie` 8 → 3), cienki pędzel tylko tam, gdzie wzór ma rysunek;
+    ciemniejszy brzeg plamy ma sens dla szerokich plam, nie dla kresek (skalowany szerokością);
+  - ciemny brzeg plamy liczony na każdym odcinku śladu daje łuski na łączeniach — brzeg tylko na
+    obrysie plamy; szeroka plama przezroczystej farby musi brać ton z całej szerokości (`poprzek`),
+    bo inaczej wjeżdża w jasne miejsca obok swojej osi;
+  - w tuszu jasne tony trzeba oddać papierowi (`krzywa`), inaczej niebo dostaje gęsty szraf;
   - część śladu rysowana w filmie nie może nachodzić na poprzednią (ziarno już zalepione dałoby
     więcej pigmentu niż w całości) — odcinki dzieli się bez zakładek.
 
 ## Ograniczenia
 
-- Kredki (pigment przezroczysty) nie rozjaśnią tego, co już położone: rysunek wychodzi ciemniejszy
-  i mniej nasycony niż wzór; do jaskrawych motywów lepsze są `pastele`.
-- Malarz nie „rozumie” tematu: twarz trzeba mu wskazać (`--skup`). Farby mieszają się jak
+- Pigment przezroczysty (kredki, akwarela) nie rozjaśni tego, co już położone, a na białym papierze
+  bardzo ciemne tło wymaga wielu warstw: ciemne obrazy wychodzą kredkami o 10–15 poziomów jaśniej.
+  Do ciemnych i jaskrawych motywów lepsze są `pastele` i `mieszane`.
+- Akwarela to plamy kładzione „mokre na suche”: nie ma prawdziwego rozpływania mokre w mokre ani
+  wypłukiwania; `lawowanie` udaje je miękkim brzegiem. Przy granicach kształtów zostają wąskie
+  prześwity papieru (jak w prawdziwej akwareli malowanej bez maskowania).
+- Malarz nie „rozumie” tematu: twarz trzeba mu wskazać (`--skup`). Farby olejne mieszają się jak
   kolory RGB (krycie), nie jak pigmenty; nie ma rozcierania mokrej farby.
-- Film bez dźwięku. Czas: malowanie 0,5–1,5 min, film 34 s ≈ 2,5 min na 4 rdzeniach.
+- Dźwięk filmu jest syntetyczny (filtrowany szum w rytm ruchu), bez muzyki i lektora; domyślnie
+  wyłączony. Czas: malowanie 0,3–1,5 min, film 34 s ≈ 2–2,5 min na 4 rdzeniach.
 - Wzoru (zdjęcia) nie ma w `obraz.json` — zostaje tylko w `out/…/wzor.png`. Reprodukcje
   cudzych dzieł bierz z domeny publicznej.
 

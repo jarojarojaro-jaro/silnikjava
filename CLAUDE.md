@@ -37,9 +37,10 @@ silnika z `src/` i jego zasad rysownika. Instrukcja i pułapki: jego `SKILL.md`.
 ## Inne narzędzie: malarz (obrazy malowane i rysowane kodem)
 
 `.claude/skills/malarz/` (skill `malarz`) to osobny pipeline w czystym JS (Node, bez zależności):
-wzór (zdjęcie albo motyw z kodu) → lista pociągnięć pędzla albo kresek narzędzi suchych (kredki,
-pastele, węgiel, ołówek) → podglądy PNG i film z pracowni
-(1080×1920 albo 1920×1080). Nie używa silnika z `src/` i jego zasad rysownika. Instrukcja, style i pułapki:
+wzór (zdjęcie albo motyw z kodu) → lista pociągnięć pędzla (olej, impresja, szpachla, puentylizm…)
+albo kresek i plam na papierze (kredki, pastele, węgiel, ołówek, tusz, akwarela, technika mieszana)
+→ podglądy PNG, arkusz wszystkich stylów (`przeglad.mjs`) i film z pracowni (1080×1920 albo
+1920×1080, opcjonalnie z dźwiękiem). Nie używa silnika z `src/` i jego zasad rysownika. Instrukcja, style i pułapki:
 jego `SKILL.md`; testy: `node --test .claude/skills/malarz/tests/*.test.mjs`.
 
 ## Repozytorium
