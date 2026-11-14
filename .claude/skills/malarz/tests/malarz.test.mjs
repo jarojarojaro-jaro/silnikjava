@@ -16,6 +16,7 @@ import { renderuj } from '../lib/render.js';
 import { Reka } from '../lib/reka.js';
 import { namaluj, fbm, pasmo } from '../lib/szkic.js';
 import { zapiszPNG } from '../lib/grafika.js';
+import { szelest, wav } from '../lib/dzwiek.js';
 
 const suma = (a) => a.reduce((s, v) => s + v, 0);
 // wzór testowy: ciepła lewa połowa, zimna prawa, jasne koło pośrodku
@@ -357,6 +358,23 @@ test('rysownik: technika mieszana używa kilku narzędzi', () => {
   for (let i = 0; i < ind.length; i++) uzyte.add(odczytajSlad(m.bajty, ind[i]).nazwa);
   assert.ok(uzyte.has('pastel') && uzyte.has('kredka') && uzyte.size >= 3, `narzędzia: ${[...uzyte]}`);
   assert.ok(new Set(m.naglowek.etapy.map((e) => e.narzedzie)).size >= 3);
+});
+
+test('dźwięk: cisza, gdy narzędzie stoi; szelest w rytm ruchu; ołówek brzmi wyżej niż pędzel', () => {
+  const HZ = 100, sek = 2, ruch = (klasa) => { const r = new Array(HZ * sek * 4).fill(0); for (let k = HZ; k < HZ * sek; k++) { r[k * 4] = 600; r[k * 4 + 1] = 0.8; r[k * 4 + 2] = 6; r[k * 4 + 3] = klasa; } return r; };
+  const moc = (a, od, doo) => { let s = 0; for (let i = od; i < doo; i++) s += a[i] * a[i]; return Math.sqrt(s / (doo - od)); };
+  const p = szelest(ruch(1), HZ), sr = 44100, od = Math.round(sr * 1.1);
+  assert.equal(p.length, sek * sr);
+  assert.ok(moc(p, 0, Math.round(sr * 0.9)) < 1e-4, 'pierwsza sekunda (narzędzie stoi) jest cicha');
+  assert.ok(moc(p, od, sr * 2) > 0.02, 'druga sekunda (narzędzie rysuje) szeleści');
+  let szczyt = 0; for (const v of p) szczyt = Math.max(szczyt, Math.abs(v));
+  assert.ok(Math.abs(szczyt - 0.5) < 1e-3, 'szczyt na zadanym poziomie');
+  assert.deepEqual(szelest(ruch(1), HZ), p, 'ten sam ruch = ten sam dźwięk');
+  const przejscia = (a) => { let n = 0; for (let i = od + 1; i < sr * 2; i++) if ((a[i] > 0) !== (a[i - 1] > 0)) n++; return n; };   // im więcej, tym wyższy dźwięk
+  assert.ok(przejscia(p) > przejscia(szelest(ruch(0), HZ)) * 1.5, 'ołówek wyżej niż pędzel');
+  assert.equal(szelest(new Array(HZ * 4).fill(0), HZ).every((v) => v === 0), true, 'bez ruchu sama cisza');
+  const w = wav(p, sr);
+  assert.equal(w.toString('ascii', 0, 4), 'RIFF'); assert.equal(w.readUInt32LE(24), sr); assert.equal(w.length, 44 + p.length * 2);
 });
 
 // ---- przypadki brzegowe (z recenzji) -------------------------------------------------------------

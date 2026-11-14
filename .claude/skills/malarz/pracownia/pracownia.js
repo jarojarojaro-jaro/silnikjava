@@ -92,7 +92,7 @@ function silnikRysunku(n, buf, S) {
 
 export async function pracownia(canvas) {
   const tekst = window.OBRAZ ?? await (await fetch(q.get('obraz'))).text();
-  const { naglowek: n, bajty: buf } = zTekstu(tekst), RYS = n.rodzaj === 'rysunek';
+  const { naglowek: n, bajty: buf } = zTekstu(tekst), RYS = n.rodzaj === 'rysunek', MOKRY = RYS && n.etapy.some((e) => NARZEDZIA[e.narzedzie]?.mokre);
   const CZAS = Number(q.get('czas') ?? 30), KONIEC = Number(q.get('koniec') ?? 3.5), JAK = Number(q.get('jakosc') ?? (q.has('film') ? 2 : 1));
   // dwa układy kadru: pionowy 1080×1920 (obraz u góry, narzędzia pod nim) i poziomy 1920×1080
   // (obraz z lewej, narzędzia w kolumnie z prawej) — poziomy sam się włącza dla prac panoramicznych
@@ -330,7 +330,7 @@ export async function pracownia(canvas) {
     g.textAlign = 'center'; g.textBaseline = 'alphabetic';
     g.fillStyle = '#eadcbd'; g.font = `italic ${L.tytul[2] * u}px Caladea, Georgia, serif`; g.fillText(n.tytul, L.tytul[0] * u, L.tytul[1] * u, L.tytul[5] * u);
     g.fillStyle = '#8f8676'; g.font = `${L.tytul[4] * u}px Inter, sans-serif`;
-    g.fillText(`${n.autor ? n.autor + '  ·  ' : ''}${RYS ? 'rysowane kodem, kreska po kresce' : 'malowane kodem, pociągnięcie po pociągnięciu'}`, L.tytul[0] * u, L.tytul[3] * u, L.tytul[5] * u);
+    g.fillText(`${n.autor ? n.autor + '  ·  ' : ''}${MOKRY ? 'malowane kodem, plama po plamie' : RYS ? 'rysowane kodem, kreska po kresce' : 'malowane kodem, pociągnięcie po pociągnięciu'}`, L.tytul[0] * u, L.tytul[3] * u, L.tytul[5] * u);
 
     // obraz: cień na ścianie, bok podobrazia, płótno
     g.save();
@@ -371,7 +371,7 @@ export async function pracownia(canvas) {
     const [sx, sw, sy] = L.stopka;
     g.fillText(`${tys(nr)}`, sx, sy);
     const wl = g.measureText(tys(nr)).width;
-    g.fillStyle = '#7d7566'; g.font = '20px Inter, sans-serif'; g.fillText(` / ${tys(N)} ${E.jednostka}  ·  ${E.narzedzie(ie, o)}`, sx + wl, sy);
+    g.fillStyle = '#7d7566'; g.font = '20px Inter, sans-serif'; g.fillText(` / ${tys(N)} ${MOKRY ? 'pociągnięć' : E.jednostka}  ·  ${E.narzedzie(ie, o)}`, sx + wl, sy);
     const q0 = E.rekord(Math.min(N - 1, nr - 1)); let hex = '';
     for (let k = 0; k < BAJTY; k++) hex += buf[q0 + k].toString(16).padStart(2, '0').toUpperCase() + (k < BAJTY - 1 ? ' ' : '');
     g.textAlign = 'right'; g.fillStyle = '#6f685b'; g.font = '17px "JetBrains Mono", monospace'; g.fillText(hex, sx + sw, POZ ? sy - 34 : sy);     // w wąskiej kolumnie bajty idą wiersz wyżej
@@ -380,8 +380,24 @@ export async function pracownia(canvas) {
     g.restore();
   }
 
+  /**
+   * Ruch narzędzia do ścieżki dźwiękowej: co 1/hz s cztery liczby — prędkość czubka (jedn./s), nacisk 0..1,
+   * szerokość śladu, klasa narzędzia (0 pędzel olejny, 1 ołówek/kredka/piórko, 2 węgiel/pastel, 3 akwarela, 4 palec).
+   */
+  function ruch(hz) {
+    const n = Math.ceil(CALY * hz), out = new Array(n * 4).fill(0); let px = 0, py = 0, byl = false;
+    const klasa = (nz) => (!RYS ? 0 : NARZEDZIA[nz]?.mokre ? 3 : nz === 'palec' ? 4 : nz === 'wegiel' || nz === 'pastel' || nz === 'olejna' ? 2 : 1);
+    for (let k = 0; k < n; k++) {
+      const tp = k / hz - WSTEP; if (tp < 0 || tp >= CZAS) { byl = false; continue; }
+      const o = pedzelW(tp);
+      out[k * 4] = byl ? Math.hypot(o.x - px, o.y - py) * hz : 0; out[k * 4 + 1] = o.nacisk; out[k * 4 + 2] = o.wid; out[k * 4 + 3] = klasa(o.rodzaj);
+      px = o.x; py = o.y; byl = true;
+    }
+    return out;
+  }
+
   odNowa();
-  return { klatka, czas: CALY, canvas };
+  return { klatka, czas: CALY, canvas, ruch };
 }
 
 const canvas = document.getElementById('kadr');
