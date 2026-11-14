@@ -121,7 +121,8 @@ export function kontury(gray, W, H, maks = 2400, minDl = 9) {
       if (x < 1 || y < 1 || x >= W - 1 || y >= H - 1) break;
       const i = (y | 0) * W + (x | 0);
       if (G[i] < lo || zaj[i]) break;
-      let nx = tx[i], ny = ty[i]; if (nx * dx + ny * dy < 0) { nx = -nx; ny = -ny; }
+      let nx = tx[i], ny = ty[i]; if (nx === 0 && ny === 0) break;         // płaskie pole: nie ma dokąd iść
+      if (nx * dx + ny * dy < 0) { nx = -nx; ny = -ny; }
       dx = nx; dy = ny; pts.push([x, y, Math.min(1, (G[i] - lo) / (top - lo))]);
     }
     return pts;

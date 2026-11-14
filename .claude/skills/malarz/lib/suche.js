@@ -69,7 +69,6 @@ export function Kartka(W, H, S, papier = {}) {
   function sciezka(nz, szer, pk, seed) {
     const n = pk.length / 3, out = [];
     const P = (i, c) => pk[Math.max(0, Math.min(n - 1, i)) * 3 + c];
-    let dl = 0; for (let i = 1; i < n; i++) dl += Math.hypot(P(i, 0) - P(i - 1, 0), P(i, 1) - P(i - 1, 1));
     const krok = Math.max(0.6, szer * 0.45), z = (seed * 37) % 9973;
     let s = 0, px = P(0, 0), py = P(0, 1);
     for (let i = 0; i < Math.max(1, n - 1); i++) {
@@ -82,7 +81,7 @@ export function Kartka(W, H, S, papier = {}) {
         out.push(x, y, P(i, 2) + (P(i + 1, 2) - P(i, 2)) * t, s);
       }
     }
-    const k = out.length / 4, res = new Float32Array(k * 3), cal = Math.max(1e-6, s || dl);
+    const k = out.length / 4, res = new Float32Array(k * 3), cal = Math.max(1e-6, s);
     for (let i = 0; i < k; i++) {
       const a = Math.max(0, i - 1) * 4, b = Math.min(k - 1, i + 1) * 4;
       let tx = out[b] - out[a], ty = out[b + 1] - out[a + 1]; const tl = Math.hypot(tx, ty) || 1; tx /= tl; ty /= tl;

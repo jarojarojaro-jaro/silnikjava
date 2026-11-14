@@ -3,7 +3,7 @@
 //
 // Wszystko jest w jednostkach roboczych (obraz ma W × H jednostek), więc pociągnięcie to
 // mały kształt wektorowy: można je zrasteryzować w dowolnej skali S (piksele na jednostkę)
-// albo w dowolnym oknie obrazu (lupa).
+// i odtworzyć od dowolnego miejsca listy.
 //
 // Pociągnięcie: środek (x, y), kierunek ang, długość len, szerokość wid, wygięcie bend
 // (ułamek długości, o który grzbiet odchodzi w bok — obrót nadgarstka), krycie op,
@@ -65,18 +65,13 @@ function wlosie(seed, wid) {
 /**
  * Pędzel dla obrazu W × H jednostek w skali S px na jednostkę.
  * @param {number} W @param {number} H @param {number} S
- * @param {{x:number,y:number,w:number,h:number}} [okno] rasteryzuj tylko to okno (px)
  * @param {{wlosie?:number, suchosc?:number, smugi?:number}} [cechy] siła włosia, suchość, smugi odcienia
  */
-export function Pedzel(W, H, S, okno, cechy = {}) {
-  let ox = okno ? okno.x : 0, oy = okno ? okno.y : 0;
-  const PW = okno ? okno.w : Math.round(W * S), PH = okno ? okno.h : Math.round(H * S);
+export function Pedzel(W, H, S, cechy = {}) {
+  const PW = Math.round(W * S), PH = Math.round(H * S);
   const MA = new Float32Array(PW * PH), MS = new Float32Array(PW * PH), MR = new Float32Array(PW * PH);
   const kWl = cechy.wlosie ?? 1, kSu = cechy.suchosc ?? 1, kSm = cechy.smugi ?? 1;
   const o = { PW, PH, S, MA, MS, MR, x0: 0, y0: 0, w: 0, h: 0, grubosc: 0 };
-
-  /** Te same bufory robocze dla innej skali / początku okna. */
-  o.widok = (S2, x, y) => { S = S2; ox = x; oy = y; o.S = S2; };
 
   /**
    * Rasteryzuje pociągnięcie do maski: krycie MA, odcień MS, faktura MR (prostokąt x0,y0,w,h).
@@ -90,10 +85,10 @@ export function Pedzel(W, H, S, okno, cechy = {}) {
     const ex = Math.abs(c) * wzdluz + Math.abs(s) * bok, ey = Math.abs(s) * wzdluz + Math.abs(c) * bok;
     let x0 = Math.floor((x - ex) * S), x1 = Math.ceil((x + ex) * S);
     let y0 = Math.floor((y - ey) * S), y1 = Math.ceil((y + ey) * S);
-    if (x0 < ox) x0 = ox; if (y0 < oy) y0 = oy;
-    if (x1 > ox + PW) x1 = ox + PW; if (y1 > oy + PH) y1 = oy + PH;
+    if (x0 < 0) x0 = 0; if (y0 < 0) y0 = 0;
+    if (x1 > PW) x1 = PW; if (y1 > PH) y1 = PH;
     const w = x1 - x0, h = y1 - y0;
-    o.x0 = x0 - ox; o.y0 = y0 - oy; o.w = w; o.h = h;
+    o.x0 = x0; o.y0 = y0; o.w = w; o.h = h;
     if (w <= 0 || h <= 0) { o.w = o.h = 0; return 0; }
     const K = KSZTALT[kind], wl = gladko(1.5, 7, wid) * kWl;
     if (wl > 0) wlosie(seed, wid);

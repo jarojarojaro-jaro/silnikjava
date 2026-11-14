@@ -43,7 +43,7 @@ export function Rysunek(o) {
   let ile = 0, biezacy = null;
   const zamknij = () => { if (biezacy && ile > (etapy.at(-1)?.koniec ?? 0)) { biezacy.koniec = ile; etapy.push(biezacy); } biezacy = null; };
   const api = {
-    W: o.W, H: o.H, kartka, rnd,
+    kartka,
     get ile() { return ile; },
     /** Zaczyna etap (pozycja na liście w filmie): nazwa i narzędzie, którym się w nim głównie rysuje. */
     etap(nazwa, narzedzie) { zamknij(); biezacy = { nazwa, narzedzie }; return api; },
@@ -53,11 +53,15 @@ export function Rysunek(o) {
     kreska(narzedzie, kolor, punkty, szer) {
       const nz = NARZEDZIA[narzedzie]; if (!nz) throw new Error(`nieznane narzędzie: ${narzedzie}`);
       if (!biezacy) api.etap('Rysunek', narzedzie);
-      const n = Math.min(255, punkty.length); if (n < 2) return api;
+      // rekord mieści 255 punktów: gęstsza lista jest równo przerzedzana (krzywa i tak je wygładza)
+      if (punkty.length > 255) punkty = Array.from({ length: 255 }, (_, i) => punkty[Math.round(i * (punkty.length - 1) / 254)]);
+      const n = punkty.length; if (n < 2) return api;
+      const bajt = (v) => (Number.isFinite(v) ? Math.max(0, Math.min(255, Math.round(v))) : 0);
       const b = new Uint8Array(8 + 5 * n), pk = new Float32Array(n * 3), wc = Kod.wq(szer ?? nz.szer), seed = ziarnoSladu(ile);
-      b[0] = NAZWY.indexOf(narzedzie); b[1] = kolor[0]; b[2] = kolor[1]; b[3] = kolor[2]; b[4] = wc; b[5] = seed & 255; b[6] = seed >> 8; b[7] = n;
+      b[0] = NAZWY.indexOf(narzedzie); b[1] = bajt(kolor[0]); b[2] = bajt(kolor[1]); b[3] = bajt(kolor[2]); b[4] = wc; b[5] = seed & 255; b[6] = seed >> 8; b[7] = n;
       for (let i = 0, p = 8; i < n; i++, p += 5) {
-        const x = Kod.xq(punkty[i][0]), y = Kod.xq(punkty[i][1]), pr = Math.max(0, Math.min(255, Math.round((punkty[i][2] ?? 0.6) * 255)));
+        if (!Number.isFinite(punkty[i][0]) || !Number.isFinite(punkty[i][1])) throw new Error(`kreska: punkt ${i} nie ma współrzędnych (${punkty[i]})`);
+        const x = Kod.xq(punkty[i][0]), y = Kod.xq(punkty[i][1]), pr = bajt((punkty[i][2] ?? 0.6) * 255);
         b[p] = x & 255; b[p + 1] = x >> 8; b[p + 2] = y & 255; b[p + 3] = y >> 8; b[p + 4] = pr;
         pk[i * 3] = Kod.xd(x); pk[i * 3 + 1] = Kod.xd(y); pk[i * 3 + 2] = pr / 255;
       }

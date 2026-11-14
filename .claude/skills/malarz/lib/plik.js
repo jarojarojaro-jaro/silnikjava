@@ -9,7 +9,9 @@ import { BAJTY } from './pedzel.js';
  * @param {Uint8Array} bajty rekordy pociągnięć
  */
 export function doTekstu(naglowek, bajty) {
-  const b64 = typeof Buffer !== 'undefined' ? Buffer.from(bajty).toString('base64') : btoa(String.fromCharCode(...bajty));
+  let b64;
+  if (typeof Buffer !== 'undefined') b64 = Buffer.from(bajty).toString('base64');
+  else { let t = ''; for (let i = 0; i < bajty.length; i += 8192) t += String.fromCharCode(...bajty.subarray(i, i + 8192)); b64 = btoa(t); }   // w kawałkach: duża lista przepełniłaby stos
   const rys = naglowek.rodzaj === 'rysunek';
   return JSON.stringify({ format: 'malarz/1', ...naglowek, ...(rys ? { slady: b64 } : { ile: bajty.length / BAJTY, pociagniecia: b64 }) });
 }

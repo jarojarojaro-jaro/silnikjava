@@ -5,12 +5,19 @@ import { spawnSync } from 'node:child_process';
 import { deflateSync } from 'node:zlib';
 import { writeFileSync } from 'node:fs';
 
-/** Rozmiar obrazu w pikselach (ffprobe). */
+/**
+ * Rozmiar obrazu w pikselach tak, jak go zdekoduje ffmpeg: zdjęcie obrócone znacznikiem EXIF
+ * (telefon trzymany pionowo) ma zamienioną szerokość z wysokością.
+ */
 export function rozmiar(plik) {
-  const r = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', plik], { encoding: 'utf8' });
+  const r = spawnSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-read_intervals', '%+#1', '-show_entries',
+    'frame=width,height:frame_side_data=rotation:stream=width,height:stream_side_data=rotation', '-of', 'json', plik], { encoding: 'utf8' });
   if (r.status !== 0) throw new Error(`nie da się odczytać obrazu: ${plik}\n${r.stderr}`);
-  const [w, h] = r.stdout.trim().split(',').map(Number);
-  return { w, h };
+  const o = JSON.parse(r.stdout), s = o.streams?.[0];
+  if (!s?.width) throw new Error(`plik nie zawiera obrazu: ${plik}`);
+  // obrót bywa zapisany przy klatce (JPEG z EXIF) albo przy strumieniu (film z telefonu)
+  const kat = [...(o.frames?.[0]?.side_data_list ?? []), ...(s.side_data_list ?? [])].find((d) => d.rotation !== undefined)?.rotation ?? 0;
+  return Math.abs(Number(kat)) % 180 === 90 ? { w: s.height, h: s.width } : { w: s.width, h: s.height };
 }
 
 /**

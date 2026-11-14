@@ -275,3 +275,43 @@ test('rysownik: każdy styl suchy zbliża kartkę do wzoru i jest powtarzalny', 
   }
   assert.deepEqual(rysuj({ W, H, cel, styl: 'kredki' }).obraz().bajty, rysuj({ W, H, cel, styl: 'kredki' }).obraz().bajty);
 });
+
+// ---- przypadki brzegowe (z recenzji) -------------------------------------------------------------
+import { argumenty } from '../lib/argumenty.js';
+
+test('argumenty: przełącznik nie zjada pliku, opcja bez wartości to błąd', () => {
+  const a = argumenty(['--arkusz', 'obraz.json', '--czas', '40', '--skup', '1,2', '--skup', '3,4'], ['arkusz']);
+  assert.equal(a.plik, 'obraz.json'); assert.equal(a.opt('arkusz'), true); assert.equal(a.opt('czas'), '40');
+  assert.deepEqual(a.wiele('skup'), ['1,2', '3,4']); assert.equal(a.opt('brak', 7), 7); assert.deepEqual(a.wiele('brak'), []);
+  assert.throws(() => argumenty(['x.json', '--styl', '--tytul', 'T']), /wymaga wartości/);
+  assert.throws(() => argumenty(['x.json', '--out']), /wymaga wartości/);
+});
+
+test('kreska: zły nacisk, za dużo punktów i kolor spoza zakresu nie psują zapisu', () => {
+  const r = Rysunek({ W: 400, H: 60 });
+  r.kreska('kredka', [300, -20, 127.6], [[10, 30, NaN], [60, 30, 0.8], [110, 30, 2]]);
+  r.kreska('olowek', [60, 60, 70], Array.from({ length: 400 }, (_, i) => [5 + i * 0.95, 45, 0.8]));
+  const { naglowek, bajty } = r.obraz(), ind = indeks(bajty), a = odczytajSlad(bajty, ind[0]), b = odczytajSlad(bajty, ind[1]);
+  assert.deepEqual(a.kol, [255, 0, 128]); assert.equal(a.pk[2], 0); assert.equal(a.pk[8], 1);
+  assert.equal(b.pk.length / 3, 255); assert.ok(Math.abs(b.pk[254 * 3] - (5 + 399 * 0.95)) < 0.05, 'długa kreska sięga do końca');
+  const im = renderuj(naglowek, bajty, 1); let maxd = 0;
+  for (let i = 0; i < r.kartka.C.length / 3; i++) maxd = Math.max(maxd, Math.abs(im.px[i * 4] - Math.round(r.kartka.C[i * 3])));
+  assert.ok(maxd <= 1, `kartka robocza i odtworzenie różnią się o ${maxd}`);
+  assert.throws(() => r.kreska('kredka', [0, 0, 0], [[NaN, 1, 1], [2, 2, 1]]), /współrzędnych/);
+});
+
+test('z ręki i proporcje: wartości poza rekordem są zgłaszane, nie obcinane po cichu', () => {
+  const r = Reka({ W: 600, H: 894 });
+  assert.throws(() => r.pociagnij({ x: 300, y: 400, dlugosc: 500, szerokosc: 40, kolor: [0, 0, 0] }), /najwyżej/);
+  assert.throws(() => r.pociagnij({ x: 300, y: NaN, dlugosc: 50, szerokosc: 40, kolor: [0, 0, 0] }), /liczbami/);
+  r.pociagnij({ x: 300, y: 400, dlugosc: 100, szerokosc: 40, kolor: [255.6, 300, -5] });
+  const s = odczytaj(r.obraz().bajty, 0); assert.deepEqual([s.r, s.g, s.b], [255, 255, 0]);
+  assert.throws(() => rozmiarRoboczy(8), /zakresem/); assert.throws(() => rozmiarRoboczy(NaN), /zakresem/);
+  assert.ok(rozmiarRoboczy(7).W < 1980);
+});
+
+test('kontury: na płaskim wzorze linia nie stoi w miejscu', () => {
+  const W = 80, H = 60, g = new Float32Array(W * H).fill(100);
+  for (let y = 20; y < 40; y++) for (let x = 30; x < 50; x++) g[y * W + x] = 220;       // mały kwadrat na gładkim tle
+  for (const l of kontury(g, W, H)) for (let i = 1; i < l.pts.length; i++) assert.ok(Math.hypot(l.pts[i][0] - l.pts[i - 1][0], l.pts[i][1] - l.pts[i - 1][1]) > 0.2, 'kolejne punkty linii się różnią');
+});

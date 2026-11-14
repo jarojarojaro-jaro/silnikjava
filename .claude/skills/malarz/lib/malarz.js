@@ -31,7 +31,7 @@ export function Malarz(o) {
   const K0 = o.K0 ?? 28, MUT = o.MUT ?? 44, grunt = o.grunt ?? [222, 212, 190];
   const WT = o.wagi ?? new Float32Array(N).fill(1);
   const rnd = Los(o.ziarno ?? 1503);
-  const B = Pedzel(W, H, 1, null, o.cechy), MA = B.MA, MS = B.MS;
+  const B = Pedzel(W, H, 1, o.cechy), MA = B.MA, MS = B.MS;
   const C = plotno(W, H, grunt);
   const gray = szarosc(T, N);
   const POLA = [kierunki(gray, W, H, 1.2), kierunki(gray, W, H, 3), kierunki(gray, W, H, 8)];
@@ -203,5 +203,5 @@ export function Malarz(o) {
     return out;
   }
 
-  return { W, H, C, WT, etap, rmse, bajty, konce, get ile() { return rekordy.length; } };
+  return { C, etap, rmse, bajty, konce, get ile() { return rekordy.length; } };
 }

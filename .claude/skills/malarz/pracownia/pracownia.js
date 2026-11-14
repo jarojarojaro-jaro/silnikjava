@@ -7,7 +7,8 @@
 // koniec=3.5 (s na gotowy obraz), uklad=pion|poziom (domyślnie wg proporcji pracy), jakosc (nadpróbkowanie obrazu: 2 w filmie, 1 na żywo), szer=1080,
 // film=1 (bez pętli: klatki zamawia film.mjs). Na żywo: spacja = pauza, R = od nowa.
 
-import { Pedzel, odczytaj, plotno, oswietl, BAJTY, RODZAJE } from '../lib/pedzel.js';
+import { Pedzel, odczytaj, plotno, oswietl, BAJTY, RODZAJE, hasz as h01 } from '../lib/pedzel.js';
+import { gladko, lerp } from '../lib/szkic.js';
 import { zTekstu } from '../lib/plik.js';
 import { Kartka, ETYKIETY } from '../lib/suche.js';
 import { indeks, odczytajSlad } from '../lib/rysunek.js';
@@ -15,9 +16,6 @@ import { rysujPedzel, rysujOlowek } from './narzedzie.js';
 
 const WSTEP = 0.9;
 const q = new URLSearchParams(location.search);
-const gladko = (a, b, x) => { x = (x - a) / (b - a); return x <= 0 ? 0 : x >= 1 ? 1 : x * x * (3 - 2 * x); };
-const lerp = (a, b, t) => a + (b - a) * t;
-const h01 = (n) => { n = Math.imul(n ^ (n >>> 15), 0x2c1b3c6d); n = Math.imul(n ^ (n >>> 12), 0x297a2d39); return ((n ^ (n >>> 15)) >>> 0) / 4294967296; };
 const tys = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
 /** Skupiska kolorów pociągnięć (k-średnich, deterministycznie) → farby na palecie. */
@@ -42,7 +40,7 @@ function farby(buf, N, k = 9) {
 // Dwa silniki o tym samym interfejsie: olej (pociągnięcia pędzla + światło na fakturze)
 // i rysunek (ślady narzędzi suchych na papierze). Reszta pracowni nie wie, który pracuje.
 function silnikOleju(n, buf, S) {
-  const P = Pedzel(n.W, n.H, S, null, n.cechy), PW = P.PW, PH = P.PH, s = {}; let C, Hb;
+  const P = Pedzel(n.W, n.H, S, n.cechy), PW = P.PW, PH = P.PH, s = {}; let C, Hb;
   return {
     N: n.ile, PW, PH, margines: Math.ceil(S) + 2, jednostka: 'pociągnięć',
     waga(i) { odczytaj(buf, i, s); return Math.sqrt(s.len * s.wid); },
@@ -104,7 +102,7 @@ export async function pracownia(canvas) {
     : { pole: { x: 50, y: 196, w: 980, h: 1290 }, tytul: [540, 104, 62, 150, 23, 1000], lupa: [0, 0], paleta: [0, 0], lista: [0, 0], listaWys: 300, stopka: [50, 980, 1888], blat: 1500 };
   const przesun = (d, f) => { g.save(); g.translate(d[0] * u, d[1] * u); f(); g.restore(); };
   const szer = Number(q.get('szer') ?? FW), u = szer / FW;
-  canvas.width = szer; canvas.height = Math.round(FH * u);
+  canvas.width = 2 * Math.round(szer / 2); canvas.height = 2 * Math.round(FH * u / 2);     // parzyste: wymóg kodeka
   const g = canvas.getContext('2d');
   await document.fonts.ready;
 
@@ -113,6 +111,7 @@ export async function pracownia(canvas) {
   const sk = Math.min(pole.w / n.W, pole.h / n.H), dw = n.W * sk, dh = n.H * sk;
   const dx = pole.x + (pole.w - dw) / 2, dy = pole.y + (pole.h - dh) / 2;
   const S = JAK * sk * u, E = RYS ? silnikRysunku(n, buf, S) : silnikOleju(n, buf, S), N = E.N, PW = E.PW, PH = E.PH;
+  if (N === 0) throw new Error('ten obraz nie ma ani jednego pociągnięcia — nie ma czego filmować');
   const img = new ImageData(PW, PH), off = new OffscreenCanvas(PW, PH), og = off.getContext('2d');
 
   // ---- rozkład czasu: szerokie i długie ślady trwają dłużej, pierwsze widać pojedynczo -------
@@ -190,7 +189,7 @@ export async function pracownia(canvas) {
     b.fillStyle = gr; b.fillRect(0, bl, w, h - bl);
   }
   const PAL = E.kolory(), PX = 548, PY = 1672;
-  const kupki = PAL.map(({ c }, j) => { const a = Math.PI * (1.08 + 0.84 * (j / (PAL.length - 1))); return { c, x: PX + Math.cos(a) * 172 + 6, y: PY + Math.sin(a) * 98 + 18, r: 21 + 5 * h01(j + 3) }; });
+  const kupki = RYS ? [] : PAL.map(({ c }, j) => { const a = Math.PI * (1.08 + 0.84 * (j / (PAL.length - 1))); return { c, x: PX + Math.cos(a) * 172 + 6, y: PY + Math.sin(a) * 98 + 18, r: 21 + 5 * h01(j + 3) }; });
   const css = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
 
   function rysujPalete(tp, kolor, maluje) {
@@ -373,7 +372,7 @@ export async function pracownia(canvas) {
   }
 
   odNowa();
-  return { klatka, czas: CALY, canvas, naglowek: n };
+  return { klatka, czas: CALY, canvas };
 }
 
 const canvas = document.getElementById('kadr');

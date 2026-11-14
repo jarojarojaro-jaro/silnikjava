@@ -48,12 +48,13 @@ Style suche (definicje w `lib/rysownik.js`; wynik to kreski, nie pociągnięcia 
 
 | Styl | Kresek | Czas | Charakter |
 |---|---|---|---|
-| `pastele` | 45–100 tys. | ok. 20 s | suche pastele na tonowanym papierze: kryją, żywe kolory, najlepsze do pejzaży i barwnych motywów |
+| `pastele` | 45–120 tys. | ok. 20–40 s | suche pastele na tonowanym papierze: kryją, żywe kolory, najlepsze do pejzaży i barwnych motywów |
 | `kredki` | 110–145 tys. | ok. 30 s | kredki na jasnym papierze: warstwy szrafu, pigmenty mieszają się przez nakładanie; wychodzi ciemniej i spokojniej niż wzór |
 | `wegiel` | 30–50 tys. | ok. 15 s | węgiel i biała kreda na szarym papierze, sam walor |
 | `olowek` | 60–120 tys. | ok. 20 s | ołówek, szraf krzyżowy |
 
-`--szczegol 1.5` mnoży liczbę pociągnięć. Styl to dane: etapy (pędzel, szerokości, długości,
+`--szczegol 1.5` mnoży liczbę pociągnięć. Style suche biorą `--papier r,g,b` (kolor arkusza) zamiast
+`--grunt`; `--skup` i `--detal` ich nie dotyczą — rysownik sam idzie za rysunkiem wzoru. Styl to dane: etapy (pędzel, szerokości, długości,
 liczba), cechy pędzla (włosie, suchość, smugi), światło, ewentualnie `kolor` i `wygladz`.
 
 ## Jak to działa
@@ -154,13 +155,13 @@ kątem, nie mocniejsza kreska. `r.kartka.C` to bieżący stan kartki (do pętli 
 ```js
 import { Reka } from './lib/reka.js'; import { doTekstu } from './lib/plik.js'; import { PLASKI, OKRAGLY } from './lib/pedzel.js';
 const r = Reka({ W: 600, H: 894, tytul: 'Jabłko', styl: 'olej' });
-r.etap('Tło', 40, PLASKI).pociagnij({ x: 300, y: 450, kat: 0.3, dlugosc: 500, szerokosc: 110, kolor: [60, 70, 90] });
+r.etap('Tło', 40, PLASKI).pociagnij({ x: 300, y: 450, kat: 0.3, dlugosc: 360, szerokosc: 110, kolor: [60, 70, 90] });
 r.etap('Błysk', 1, OKRAGLY).pociagnij({ x: 280, y: 380, kat: 1.2, dlugosc: 18, szerokosc: 3, wygiecie: 0.2, kolor: [255, 250, 235], krycie: 0.85 });
 const { naglowek, bajty } = r.obraz();      // writeFileSync('obraz.json', doTekstu(naglowek, bajty))
 ```
 
 Jednostki robocze: środek `x`, `y`, `kat` w radianach (0 = w prawo, rośnie w dół),
-`wygiecie` −0,4…0,4. Plik działa z `odtworz.mjs` i `film.mjs` jak każdy inny.
+`wygiecie` −0,4…0,4; długość najwyżej 383, szerokość 145 (tyle mieści rekord). Plik działa z `odtworz.mjs` i `film.mjs` jak każdy inny.
 Z ręki dobrze wychodzą akcenty i proste układy; cały obraz z kilkudziesięciu pociągnięć wymaga
 wielu poprawek „na oko” (render → obejrzyj → popraw) — do pełnych kompozycji lepszy jest motyw.
 

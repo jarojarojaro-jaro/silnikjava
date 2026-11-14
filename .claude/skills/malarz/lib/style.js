@@ -70,6 +70,8 @@ export const STYLE = {
 
 /** Rozmiar roboczy z proporcji wzoru (szer./wys.), o stałym polu. */
 export function rozmiarRoboczy(proporcja) {
+  // środek pociągnięcia mieści się w rekordzie do ok. 1980 jednostek: skrajne panoramy odpadają
+  if (!(proporcja >= 1 / 7 && proporcja <= 7)) throw new Error(`proporcje ${proporcja.toFixed(2)}:1 są poza zakresem (od 1:7 do 7:1)`);
   const W = Math.round(Math.sqrt(POLE * proporcja));
   return { W, H: Math.round(W / proporcja) };
 }

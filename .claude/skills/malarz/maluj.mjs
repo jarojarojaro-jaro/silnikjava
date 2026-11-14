@@ -4,11 +4,13 @@
 //   node maluj.mjs zdjecie.jpg                         # styl „olej”, wynik w out/malarz/zdjecie/
 //   node maluj.mjs zdjecie.jpg --styl kopia            # wierna kopia (62 tys. pociągnięć)
 //   node maluj.mjs zdjecie.jpg --styl impresja --tytul "Zatoka o świcie"
-//   node maluj.mjs motywy/zatoka.js --styl olej        # motyw z wyobraźni (wzór rysuje kod)
+//   node maluj.mjs motywy/jezioro.js --styl olej       # motyw z wyobraźni (wzór rysuje kod)
+//   node maluj.mjs zdjecie.jpg --styl pastele          # rysunek narzędziami suchymi (też: kredki, wegiel, olowek)
 //   node maluj.mjs portret.jpg --skup 0.48,0.30,0.14,0.16,4   # twarz: środek x,y i promienie (ułamki), waga
 //
 // Opcje: --styl, --nazwa, --tytul, --autor, --szczegol 1 (mnożnik liczby pociągnięć), --skup (wiele razy),
 //        --detal 2 (waga drobnego rysunku), --grunt r,g,b | auto, --ziarno 1503, --skala 2 (PNG), --kadr x,y,w,h, --out katalog
+// Style suche: zamiast --grunt jest --papier r,g,b; --skup i --detal ich nie dotyczą (rysownik sam idzie za rysunkiem wzoru).
 // Wynik: obraz.json (pociągnięcia), obraz.png (ze światłem na fakturze), porownanie.png, etapy.png.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -22,12 +24,10 @@ import { doTekstu } from './lib/plik.js';
 import { renderuj } from './lib/render.js';
 import { RODZAJE } from './lib/pedzel.js';
 import { STYLE_SUCHE, rysuj } from './lib/rysownik.js';
+import { zWiersza } from './lib/argumenty.js';
 
-const args = process.argv.slice(2);
-const wzor = args.find((a, i) => !a.startsWith('--') && !(args[i - 1] ?? '').startsWith('--'));
-const opt = (n, d) => { const i = args.indexOf(`--${n}`); return i < 0 ? d : args[i + 1]; };
-const wiele = (n) => args.flatMap((a, i) => (a === `--${n}` ? [args[i + 1]] : []));
-if (!wzor) { console.log('użycie: node maluj.mjs <wzor.jpg | motyw.js> [--styl olej|kopia|impresja|etiuda] [--tytul …] [--skup x,y,rx,ry,waga]'); process.exit(1); }
+const { plik: wzor, opt, wiele } = zWiersza();
+if (!wzor) { console.log(`użycie: node maluj.mjs <wzor.jpg | motyw.js> [--styl ${[...Object.keys(STYLE), ...Object.keys(STYLE_SUCHE)].join('|')}] [--tytul …] [--autor …] [--skup x,y,rx,ry,waga] [--papier r,g,b]`); process.exit(1); }
 
 const stylNazwa = opt('styl', 'olej'), suchy = STYLE_SUCHE[stylNazwa], styl = STYLE[stylNazwa] ?? suchy;
 if (!styl) { console.error(`nieznany styl ${stylNazwa}; dostępne: ${[...Object.keys(STYLE), ...Object.keys(STYLE_SUCHE)].join(', ')}`); process.exit(1); }
@@ -56,19 +56,6 @@ if (styl.wygladz && !motyw) {                       // malarz patrzy na formę, 
     const r = rozmyj(k, W, H, styl.wygladz); for (let i = 0; i < N; i++) cel[i * 3 + c] = r[i];
   }
 }
-const gray = szarosc(cel, N);
-const skupienia = [...(motyw?.SKUPIENIA ?? []), ...wiele('skup').map((s) => { const [x, y, rx, ry, ile] = s.split(',').map(Number); return { x, y, rx, ry, ile: ile ?? 3 }; })];
-const wagi = waznosc(gray, W, H, Number(opt('detal', 2)), skupienia);
-
-let grunt = [222, 212, 190];                       // ciepły gesso
-const g = opt('grunt', motyw?.GRUNT);
-if (g === 'auto') {                                // imprimatura: przygaszony, średni ton wzoru
-  const m = [0, 0, 0]; for (let i = 0; i < N; i++) for (let c = 0; c < 3; c++) m[c] += cel[i * 3 + c] / N;
-  const sz = 0.3 * m[0] + 0.59 * m[1] + 0.11 * m[2];
-  grunt = m.map((v) => Math.round(150 + (v - sz) * 0.55 + (sz - 128) * 0.25));
-} else if (Array.isArray(g)) grunt = g;
-else if (g) grunt = g.split(',').map(Number);
-
 const szczegol = Number(opt('szczegol', 1));
 const wz = new Uint8ClampedArray(N * 3); for (let i = 0; i < N * 3; i++) wz[i] = cel[i];
 // ---- rysowanie narzędziami suchymi (kredki, pastele, węgiel, ołówek) -------------------------
@@ -86,13 +73,26 @@ if (suchy) {
   console.log(`gotowe: ${naglowek.ile} kresek (${(bajty.length / 1024).toFixed(0)} KB), ${((Date.now() - t0) / 1000).toFixed(0)} s → ${out}`);
   process.exit(0);
 }
+const gray = szarosc(cel, N);
+const skupienia = [...(motyw?.SKUPIENIA ?? []), ...wiele('skup').map((s) => { const [x, y, rx, ry, ile] = s.split(',').map(Number); return { x, y, rx, ry, ile: ile ?? 3 }; })];
+const wagi = waznosc(gray, W, H, Number(opt('detal', 2)), skupienia);
+
+let grunt = [222, 212, 190];                       // ciepły gesso
+const g = opt('grunt', motyw?.GRUNT);
+if (g === 'auto') {                                // imprimatura: przygaszony, średni ton wzoru
+  const m = [0, 0, 0]; for (let i = 0; i < N; i++) for (let c = 0; c < 3; c++) m[c] += cel[i * 3 + c] / N;
+  const sz = 0.3 * m[0] + 0.59 * m[1] + 0.11 * m[2];
+  grunt = m.map((v) => Math.round(150 + (v - sz) * 0.55 + (sz - 128) * 0.25));
+} else if (Array.isArray(g)) grunt = g;
+else if (g) grunt = g.split(',').map(Number);
+
 // ---- malowanie ------------------------------------------------------------------------------
 const m = Malarz({ W, H, cel, wagi, grunt, ziarno: Number(opt('ziarno', 1503)), cechy: styl.cechy, kolor: styl.kolor });
 console.log(`${nazwa}: ${W}×${H}, styl ${stylNazwa} (${styl.opis}), grunt ${grunt}`);
 const etapy = [];
 for (const e of styl.etapy) {
   const t = Date.now(), r = m.etap({ ...e, n: Math.round(e.n * szczegol) });
-  etapy.push({ nazwa: e.nazwa, nr: e.nr, pedzel: e.pedzel, w: e.w, koniec: m.ile });
+  etapy.push({ nazwa: e.nazwa, nr: e.nr, pedzel: e.pedzel, koniec: m.ile });
   console.log(`  ${e.nazwa.padEnd(12)} nr ${e.nr.padEnd(3)} ${RODZAJE[e.pedzel].padEnd(10)} ${String(e.w[0]).padStart(4)}–${String(e.w[1]).padEnd(4)} +${String(r.zrobione).padStart(5)}  razem ${String(m.ile).padStart(5)}  rmse ${m.rmse().toFixed(2)}  ${((Date.now() - t) / 1000).toFixed(1)} s`);
 }
 const bajty = m.bajty();

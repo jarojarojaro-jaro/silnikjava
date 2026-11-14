@@ -6,6 +6,9 @@
 import { Kod, KRYCIE, BAJTY, PLASKI } from './pedzel.js';
 import { STYLE } from './style.js';
 
+// tyle mieści rekord pociągnięcia (skala logarytmiczna w jednym bajcie)
+const MAKS_DL = 383, MAKS_SZER = 145;
+
 /**
  * @param {{W:number, H:number, grunt?:number[], tytul?:string, autor?:string, styl?:string}} o
  */
@@ -21,11 +24,14 @@ export function Reka(o) {
      * dlugosc, szerokosc; wygiecie (−0,4..0,4 długości); kolor [r,g,b]; krycie 0..1 (4 stopnie).
      */
     pociagnij({ x, y, kat = 0, dlugosc, szerokosc, wygiecie = 0, kolor, krycie = 1 }) {
+      if (![x, y, kat, dlugosc, szerokosc, wygiecie].every(Number.isFinite)) throw new Error('pociągnięcie: wszystkie wymiary muszą być liczbami');
+      if (dlugosc > MAKS_DL || szerokosc > MAKS_SZER) throw new Error(`pociągnięcie: najwyżej ${MAKS_DL} długości i ${MAKS_SZER} szerokości (jest ${dlugosc} × ${szerokosc})`);
+      const bajt = (v) => (Number.isFinite(v) ? Math.max(0, Math.min(255, Math.round(v))) : 0);
       if (!biezacy) this.etap('Z ręki', '8');
       let oc = 0; for (let k = 1; k < 4; k++) if (Math.abs(KRYCIE[k] - krycie) < Math.abs(KRYCIE[oc] - krycie)) oc = k;
       const pi = Math.PI, a = ((kat % pi) + pi) % pi;
       rek.push([Kod.xq(x), Kod.xq(y), Kod.aq(a), Kod.lq(Math.max(dlugosc, szerokosc * 0.8)), Kod.wq(szerokosc), Kod.bq(wygiecie),
-        Math.round(kolor[0]), Math.round(kolor[1]), Math.round(kolor[2]), oc | (biezacy.pedzel << 2)]);
+        bajt(kolor[0]), bajt(kolor[1]), bajt(kolor[2]), oc | (biezacy.pedzel << 2)]);
       return this;
     },
     /** Nagłówek i bajty do zapisania przez doTekstu(). */

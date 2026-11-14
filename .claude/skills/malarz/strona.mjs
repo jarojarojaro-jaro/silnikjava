@@ -8,18 +8,19 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { zWiersza } from './lib/argumenty.js';
 
 const TU = dirname(fileURLToPath(import.meta.url));
-const args = process.argv.slice(2), plik = args.find((a, i) => !a.startsWith('--') && !(args[i - 1] ?? '').startsWith('--'));
+const { plik, opt } = zWiersza();
 if (!plik) { console.log('użycie: node strona.mjs <obraz.json> [--out plik.html]'); process.exit(1); }
-const out = args.includes('--out') ? args[args.indexOf('--out') + 1] : join(dirname(plik), 'obraz.html');
+const out = opt('out', join(dirname(plik), 'obraz.html'));
 
 /** Moduł ES → wyrażenie zwracające jego eksporty (importy stają się odwołaniami do wcześniejszych modułów). */
 function modul(sciezka) {
   const nazwy = [];
   const kod = readFileSync(join(TU, sciezka), 'utf8').split('\n').map((l) => {
     const imp = /^import \{([^}]+)\} from '.*\/(\w+)\.js';$/.exec(l);
-    if (imp) return `const {${imp[1]}} = M.${imp[2]};`;
+    if (imp) return `const {${imp[1].replace(/ as /g, ': ')}} = M.${imp[2]};`;      // „a as b” → „a: b”
     const wiele = /^export const ((?:\w+ = [\w.-]+, )+\w+ = [\w.-]+);$/.exec(l);
     if (wiele) { for (const m of wiele[1].matchAll(/(\w+) =/g)) nazwy.push(m[1]); return l.slice(7); }
     const jeden = /^export (?:async )?(?:const|function|let) (\w+)/.exec(l);

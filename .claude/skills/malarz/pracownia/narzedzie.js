@@ -3,7 +3,7 @@
 // Oś x biegnie od czubka włosia w górę trzonka. Budowa rysunku (kita → skuwka → trzonek)
 // za src/tool.js z ChetasLua/mona-lisa-js (MIT); tu z dwoma rodzajami włosia i własnym cieniem.
 
-function h01(n) { n = Math.imul(n ^ (n >>> 15), 0x2c1b3c6d); n = Math.imul(n ^ (n >>> 12), 0x297a2d39); return ((n ^ (n >>> 15)) >>> 0) / 4294967296; }
+import { hasz as h01 } from '../lib/pedzel.js';
 
 /**
  * @param {CanvasRenderingContext2D} g
