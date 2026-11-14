@@ -112,6 +112,16 @@ export const STYLE_SUCHE = {
       { nazwa: 'Głębsze cienie', kat: -0.45, odstep: 2.2, dl: [16, 36], co: 5, zysk: 500 },
     ],
   },
+  olejne: {
+    opis: 'pastele olejne na jasnym papierze: tłusty, gęsty kolor i grube kreski',
+    papier: { kolor: [242, 238, 228], ziarno: 0.9 }, narzedzie: 'olejna', barw: 14, nasycenie: 1.3, szkic: 'olowek', akcent: 'olejna', kontury: 0.35, konturSzer: 0.16,
+    rundy: [
+      { nazwa: 'Plamy', kat: -0.9, odstep: 0.8, dl: [34, 76], nacisk: 0.9, co: 9, szer: 1.5 },
+      { nazwa: 'Forma', kat: -0.2, odstep: 0.8, dl: [18, 40], nacisk: 1, co: 6, szer: 0.85 },
+      { nazwa: 'Krawędzią', poForma: true, odstep: 0.9, dl: [8, 20], nacisk: 1.1, co: 3.5, szer: 0.42 },
+      { nazwa: 'Detal', poForma: true, odstep: 0.9, dl: [4, 10], nacisk: 1.1, co: 1.8, szer: 0.24, ostro: true, zysk: 220 },
+    ],
+  },
 };
 
 /**
