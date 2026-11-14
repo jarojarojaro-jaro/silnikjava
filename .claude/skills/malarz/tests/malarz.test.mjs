@@ -157,8 +157,9 @@ test('malarz: rozszczepiona barwa — kropki różnią się odcieniem, średnio 
   const W = 100, H = 80, cel = new Float32Array(W * H * 3); for (let i = 0; i < W * H; i++) cel.set([90, 150, 110], i * 3);
   const m = Malarz({ W, H, cel, K0: 10, MUT: 10, kolor: { rozszczep: 36 } });
   m.etap({ w: [40, 80], lr: [1.2, 2.5], n: 30, pedzel: PLASKI });
-  const szerokie = m.ile, b0 = m.bajty();
-  for (let i = 0; i < szerokie; i++) assert.ok(Math.abs(odczytaj(b0, i).r - 90) < 12, 'podmalówka w kolorze wzoru');
+  const zwykly = Malarz({ W, H, cel, K0: 10, MUT: 10 }); zwykly.etap({ w: [40, 80], lr: [1.2, 2.5], n: 30, pedzel: PLASKI });
+  const szerokie = m.ile;
+  assert.deepEqual(m.bajty(), zwykly.bajty(), 'szerokich pociągnięć rozszczepienie nie dotyczy');
   m.etap({ w: [6, 9], lr: [1, 1.15], n: 400, pedzel: OKRAGLY, pelne: 1, prosto: 1 });
   const b = m.bajty(), r = [], jas = [];
   for (let i = szerokie; i < m.ile; i++) { const s = odczytaj(b, i); r.push(s.r); jas.push(0.3 * s.r + 0.59 * s.g + 0.11 * s.b); }
