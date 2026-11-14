@@ -128,3 +128,49 @@ export function rysujPedzel(g, o) {
   g.fillStyle = gr; kita(); g.fill();
   g.restore();
 }
+
+/**
+ * Narzędzie suche nad rysunkiem: ołówek / kredka (drewno, grafit w kolorze, lakierowany korpus)
+ * albo pałeczka pastelu / węgla. Oś x biegnie od czubka w górę.
+ * @param {object} o x, y, kat, u, kolor, narzedzie (nazwa z NARZEDZIA), w (szerokość śladu px), unies, alfa
+ */
+export function rysujOlowek(g, o) {
+  const { u } = o, unies = o.unies ?? 0, [r, gg, b] = o.kolor, rgb = `${r | 0},${gg | 0},${b | 0}`;
+  const gruby = o.narzedzie === 'pastel' || o.narzedzie === 'wegiel' || o.narzedzie === 'olejna';
+  const hw = gruby ? Math.max(9 * u, Math.min(20 * u, o.w * 0.7)) : 8.5 * u, dl = gruby ? 150 * u : 360 * u;
+  const stozek = gruby ? 0 : 34 * u, grafit = 11 * u;
+  const ksztalt = () => {
+    g.beginPath();
+    if (gruby) g.roundRect(0, -hw, dl, 2 * hw, 3 * u);
+    else { g.moveTo(0, 0); g.lineTo(stozek, -hw); g.lineTo(dl, -hw); g.lineTo(dl, hw); g.lineTo(stozek, hw); g.closePath(); }
+  };
+  g.save(); g.globalAlpha = o.alfa ?? 1;
+  g.save();                                                   // cień
+  g.translate(o.x + (4 + 30 * unies) * u, o.y + (7 + 40 * unies) * u); g.rotate(o.kat + 0.08 + 0.1 * unies);
+  g.filter = `blur(${((5 + 18 * unies) * u).toFixed(1)}px)`; g.fillStyle = `rgba(0,0,0,${0.45 - 0.2 * unies})`; ksztalt(); g.fill();
+  g.restore();
+  g.translate(o.x, o.y); g.rotate(o.kat);
+  let gr = g.createLinearGradient(0, -hw, 0, hw);
+  if (gruby) {                                                // pałeczka: pigment, papierowa opaska, starty czubek
+    gr.addColorStop(0, `rgba(${rgb},1)`); gr.addColorStop(1, `rgb(${(r * 0.6) | 0},${(gg * 0.6) | 0},${(b * 0.6) | 0})`);
+    g.fillStyle = gr; ksztalt(); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.16)'; g.fillRect(0, -hw, dl, hw * 0.45);
+    g.fillStyle = 'rgba(244,236,222,.9)'; g.fillRect(dl * 0.42, -hw, dl * 0.4, 2 * hw);
+    g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(dl * 0.42, hw * 0.4, dl * 0.4, hw * 0.6);
+  } else {
+    const korpus = o.narzedzie === 'olowek' ? [44, 92, 64] : o.narzedzie === 'tusz' ? [28, 28, 34] : o.narzedzie === 'biel' ? [236, 232, 224] : [r, gg, b];
+    gr.addColorStop(0, `rgb(${korpus.map((v) => Math.min(255, v * 1.2 + 30) | 0)})`); gr.addColorStop(0.45, `rgb(${korpus.map((v) => v | 0)})`); gr.addColorStop(1, `rgb(${korpus.map((v) => (v * 0.5) | 0)})`);
+    g.fillStyle = gr; g.fillRect(stozek, -hw, dl - stozek, 2 * hw);
+    g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(stozek, -hw * 0.34, dl - stozek, hw * 0.1); g.fillRect(stozek, hw * 0.3, dl - stozek, hw * 0.1);   // krawędzie sześciokąta
+    gr = g.createLinearGradient(0, -hw, 0, hw);
+    gr.addColorStop(0, '#f0d9b0'); gr.addColorStop(0.5, '#d9b987'); gr.addColorStop(1, '#a8845a');
+    g.fillStyle = gr; g.beginPath(); g.moveTo(grafit, -hw * grafit / stozek); g.lineTo(stozek, -hw);
+    for (let k = 0; k < 3; k++) g.quadraticCurveTo(stozek + 5 * u, -hw + (k + 0.5) * hw * 2 / 3, stozek, -hw + (k + 1) * hw * 2 / 3);   // falista granica lakieru
+    g.lineTo(grafit, hw * grafit / stozek); g.closePath(); g.fill();
+    g.fillStyle = `rgb(${rgb})`; g.beginPath(); g.moveTo(0, 0); g.lineTo(grafit, -hw * grafit / stozek); g.lineTo(grafit, hw * grafit / stozek); g.closePath(); g.fill();
+    g.fillStyle = '#c9a658'; g.fillRect(dl - 30 * u, -hw, 8 * u, 2 * hw);                       // obrączka i końcówka
+    g.fillStyle = `rgb(${korpus.map((v) => (v * 0.7) | 0)})`; g.fillRect(dl - 22 * u, -hw, 22 * u, 2 * hw);
+    g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(stozek, -hw * 0.82, dl - stozek, hw * 0.2);
+  }
+  g.restore();
+}

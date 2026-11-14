@@ -21,6 +21,7 @@ import { rozmiar, wczytaj, zapiszPNG, obok } from './lib/grafika.js';
 import { doTekstu } from './lib/plik.js';
 import { renderuj } from './lib/render.js';
 import { RODZAJE } from './lib/pedzel.js';
+import { STYLE_SUCHE, rysuj } from './lib/rysownik.js';
 
 const args = process.argv.slice(2);
 const wzor = args.find((a, i) => !a.startsWith('--') && !(args[i - 1] ?? '').startsWith('--'));
@@ -28,8 +29,8 @@ const opt = (n, d) => { const i = args.indexOf(`--${n}`); return i < 0 ? d : arg
 const wiele = (n) => args.flatMap((a, i) => (a === `--${n}` ? [args[i + 1]] : []));
 if (!wzor) { console.log('użycie: node maluj.mjs <wzor.jpg | motyw.js> [--styl olej|kopia|impresja|etiuda] [--tytul …] [--skup x,y,rx,ry,waga]'); process.exit(1); }
 
-const stylNazwa = opt('styl', 'olej'), styl = STYLE[stylNazwa];
-if (!styl) { console.error(`nieznany styl ${stylNazwa}; dostępne: ${Object.keys(STYLE).join(', ')}`); process.exit(1); }
+const stylNazwa = opt('styl', 'olej'), suchy = STYLE_SUCHE[stylNazwa], styl = STYLE[stylNazwa] ?? suchy;
+if (!styl) { console.error(`nieznany styl ${stylNazwa}; dostępne: ${[...Object.keys(STYLE), ...Object.keys(STYLE_SUCHE)].join(', ')}`); process.exit(1); }
 const nazwa = opt('nazwa', basename(wzor, extname(wzor)));
 const out = resolve(opt('out', join('out', 'malarz', nazwa)));
 mkdirSync(out, { recursive: true });
@@ -68,8 +69,24 @@ if (g === 'auto') {                                // imprimatura: przygaszony, 
 } else if (Array.isArray(g)) grunt = g;
 else if (g) grunt = g.split(',').map(Number);
 
-// ---- malowanie ------------------------------------------------------------------------------
 const szczegol = Number(opt('szczegol', 1));
+const wz = new Uint8ClampedArray(N * 3); for (let i = 0; i < N * 3; i++) wz[i] = cel[i];
+// ---- rysowanie narzędziami suchymi (kredki, pastele, węgiel, ołówek) -------------------------
+if (suchy) {
+  console.log(`${nazwa}: ${W}×${H}, styl ${stylNazwa} (${suchy.opis})`);
+  const r = rysuj({ W, H, cel, styl: stylNazwa, tytul: opt('tytul', motyw?.TYTUL ?? nazwa), autor: opt('autor', motyw?.AUTOR ?? ''), ziarno: Number(opt('ziarno', 2024)), szczegol, papier: opt('papier') ? { kolor: opt('papier').split(',').map(Number) } : undefined, log: console.log });
+  const { naglowek, bajty } = r.obraz();
+  writeFileSync(join(out, 'obraz.json'), doTekstu(naglowek, bajty));
+  const S = Number(opt('skala', 2)), fin = renderuj(naglowek, bajty, S);
+  zapiszPNG(join(out, 'obraz.png'), fin.px, fin.w, fin.h, 4);
+  const por = obok([{ px: wz, w: W, h: H }, { px: r.kartka.piksele(), w: W, h: H, kanaly: 4 }]);
+  zapiszPNG(join(out, 'porownanie.png'), por.px, por.w, por.h);
+  const et = obok(naglowek.etapy.map((e) => { const k = renderuj(naglowek, bajty, 0.5, { ile: e.koniec }); return { px: k.px, w: k.w, h: k.h, kanaly: 4 }; }), 8);
+  zapiszPNG(join(out, 'etapy.png'), et.px, et.w, et.h);
+  console.log(`gotowe: ${naglowek.ile} kresek (${(bajty.length / 1024).toFixed(0)} KB), ${((Date.now() - t0) / 1000).toFixed(0)} s → ${out}`);
+  process.exit(0);
+}
+// ---- malowanie ------------------------------------------------------------------------------
 const m = Malarz({ W, H, cel, wagi, grunt, ziarno: Number(opt('ziarno', 1503)), cechy: styl.cechy, kolor: styl.kolor });
 console.log(`${nazwa}: ${W}×${H}, styl ${stylNazwa} (${styl.opis}), grunt ${grunt}`);
 const etapy = [];
@@ -87,7 +104,6 @@ const S = Number(opt('skala', 2));
 const fin = renderuj(naglowek, bajty, S);
 zapiszPNG(join(out, 'obraz.png'), fin.px, fin.w, fin.h, 4);
 const plaski = renderuj(naglowek, bajty, 1, { swiatlo: false });
-const wz = new Uint8ClampedArray(N * 3); for (let i = 0; i < N * 3; i++) wz[i] = cel[i];
 const jeden = renderuj(naglowek, bajty, 1);
 const por = obok([{ px: wz, w: W, h: H }, { px: plaski.px, w: W, h: H, kanaly: 4 }, { px: jeden.px, w: W, h: H, kanaly: 4 }]);
 zapiszPNG(join(out, 'porownanie.png'), por.px, por.w, por.h);

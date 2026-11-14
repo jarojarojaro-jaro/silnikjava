@@ -8,7 +8,9 @@
 
 import { Pedzel, odczytaj, plotno, oswietl, BAJTY, RODZAJE } from '../lib/pedzel.js';
 import { zTekstu } from '../lib/plik.js';
-import { rysujPedzel } from './narzedzie.js';
+import { Kartka, ETYKIETY } from '../lib/suche.js';
+import { indeks, odczytajSlad } from '../lib/rysunek.js';
+import { rysujPedzel, rysujOlowek } from './narzedzie.js';
 
 const FW = 1080, FH = 1920, WSTEP = 0.9;
 const q = new URLSearchParams(location.search);
@@ -36,9 +38,62 @@ function farby(buf, N, k = 9) {
   return c;
 }
 
+// Dwa silniki o tym samym interfejsie: olej (pociągnięcia pędzla + światło na fakturze)
+// i rysunek (ślady narzędzi suchych na papierze). Reszta pracowni nie wie, który pracuje.
+function silnikOleju(n, buf, S) {
+  const P = Pedzel(n.W, n.H, S, null, n.cechy), PW = P.PW, PH = P.PH, s = {}; let C, Hb;
+  return {
+    N: n.ile, PW, PH, margines: Math.ceil(S) + 2, jednostka: 'pociągnięć',
+    waga(i) { odczytaj(buf, i, s); return Math.sqrt(s.len * s.wid); },
+    srodek(i) { odczytaj(buf, i, s); return [s.x, s.y]; },
+    odNowa() { C = plotno(PW, PH, n.grunt); Hb = new Float32Array(PW * PH); },
+    kladz(k, a, b) {
+      odczytaj(buf, k, s);
+      P.maluj(C, s.x, s.y, s.ang, s.len, s.wid, s.bend, s.op, s.kind, k, s.r, s.g, s.b, a, b, Hb);
+      return P.w > 0 ? [P.x0, P.y0, P.x0 + P.w, P.y0 + P.h] : null;
+    },
+    pokaz(out, r) { oswietl(C, Hb, PW, PH, S, out, n.swiatlo, r); },
+    slad(i, f, o) {
+      odczytaj(buf, i, s);
+      const qq = 2 * f - 1, a = (f - 0.5) * s.len, bok = s.bend * s.len * 0.5 * (1 - qq * qq), c = Math.cos(s.ang), sn = Math.sin(s.ang);
+      o.x = s.x + a * c - bok * sn; o.y = s.y + a * sn + bok * c; o.kier = s.ang;
+      o.wid = s.wid; o.rodzaj = s.kind; o.r = s.r; o.g = s.g; o.b = s.b;
+    },
+    rekord: (i) => i * BAJTY,
+    narzedzie: (ie) => `pędzel ${RODZAJE[n.etapy[ie].pedzel]}`,
+    kolory: () => farby(buf, n.ile).map((c) => ({ c })),
+  };
+}
+function silnikRysunku(n, buf, S) {
+  const K = Kartka(n.W, n.H, S, n.papier), ind = indeks(buf), s = {};
+  return {
+    N: ind.length, PW: K.PW, PH: K.PH, margines: 0, jednostka: 'kresek',
+    waga(i) { odczytajSlad(buf, ind[i], s); return (s.dl + 6) * Math.sqrt(0.5 + s.szer / 3); },
+    srodek(i) { odczytajSlad(buf, ind[i], s); const m = (s.pk.length / 3) >> 1; return [s.pk[m * 3], s.pk[m * 3 + 1]]; },
+    odNowa() { K.czysc(); },
+    kladz(k, a, b) { odczytajSlad(buf, ind[k], s); K.slad(s.nz, s.kol, s.szer, s.pk, s.seed, a, b, k); return K.x1 > K.x0 ? [K.x0, K.y0, K.x1, K.y1] : null; },
+    pokaz(out, r) { if (r) K.piksele(out, r.x, r.y, r.x + r.w, r.y + r.h); else K.piksele(out); },
+    slad(i, f, o) {
+      odczytajSlad(buf, ind[i], s);
+      const c = K.czubek(s.nz, s.szer, s.pk, s.seed, f);
+      o.x = c.x; o.y = c.y; o.kier = c.kat; o.wid = s.szer; o.rodzaj = s.nazwa; o.r = s.kol[0]; o.g = s.kol[1]; o.b = s.kol[2];
+    },
+    rekord: (i) => ind[i],
+    narzedzie: (ie, o) => ETYKIETY[o.rodzaj],
+    kolory() {                                   // piórnik: kredki w kolejności pierwszego użycia
+      const m = new Map();
+      for (let i = 0; i < ind.length && m.size < 14; i += Math.max(1, Math.floor(ind.length / 3000))) {
+        odczytajSlad(buf, ind[i], s); if (s.nazwa === 'palec') continue;
+        const k = `${s.nazwa}${s.kol}`; if (!m.has(k)) m.set(k, { c: s.kol.slice(), nazwa: s.nazwa });
+      }
+      return [...m.values()];
+    },
+  };
+}
+
 export async function pracownia(canvas) {
   const tekst = window.OBRAZ ?? await (await fetch(q.get('obraz'))).text();
-  const { naglowek: n, bajty: buf } = zTekstu(tekst), N = n.ile;
+  const { naglowek: n, bajty: buf } = zTekstu(tekst), RYS = n.rodzaj === 'rysunek';
   const CZAS = Number(q.get('czas') ?? 30), KONIEC = Number(q.get('koniec') ?? 3.5), JAK = Number(q.get('jakosc') ?? (q.has('film') ? 2 : 1));
   const szer = Number(q.get('szer') ?? FW), u = szer / FW;
   canvas.width = szer; canvas.height = Math.round(FH * u);
@@ -49,21 +104,20 @@ export async function pracownia(canvas) {
   const pole = { x: 50, y: 196, w: 980, h: 1290 };
   const sk = Math.min(pole.w / n.W, pole.h / n.H), dw = n.W * sk, dh = n.H * sk;
   const dx = pole.x + (pole.w - dw) / 2, dy = pole.y + (pole.h - dh) / 2;
-  const S = JAK * sk * u, P = Pedzel(n.W, n.H, S, null, n.cechy), PW = P.PW, PH = P.PH;
-  let C, Hb;
+  const S = JAK * sk * u, E = RYS ? silnikRysunku(n, buf, S) : silnikOleju(n, buf, S), N = E.N, PW = E.PW, PH = E.PH;
   const img = new ImageData(PW, PH), off = new OffscreenCanvas(PW, PH), og = off.getContext('2d');
 
-  // ---- rozkład czasu: szerokie pociągnięcia trwają dłużej, pierwsze widać pojedynczo -------
-  const kum = new Float64Array(N + 1), s = {};
-  for (let i = 0; i < N; i++) { odczytaj(buf, i, s); kum[i + 1] = kum[i] + Math.sqrt(s.len * s.wid) * (1 + 5 * Math.exp(-i / 12)); }
+  // ---- rozkład czasu: szerokie i długie ślady trwają dłużej, pierwsze widać pojedynczo -------
+  const kum = new Float64Array(N + 1);
+  for (let i = 0; i < N; i++) kum[i + 1] = kum[i] + E.waga(i) * (1 + 5 * Math.exp(-i / (RYS ? 40 : 12)));
   for (let i = 0; i <= N; i++) kum[i] *= CZAS / kum[N];
   const ktory = (tp) => { let lo = 0, hi = N - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (kum[m] <= tp) lo = m; else hi = m - 1; } return lo; };
   const etapOd = (i) => { let k = 0; while (k < n.etapy.length - 1 && i >= n.etapy[k].koniec) k++; return k; };
 
-  // gdzie malarz pracował najdrobniej (mediana położeń ostatniego etapu): tam lupa zagląda na koniec
+  // gdzie praca była najdrobniejsza (mediana położeń ostatniego etapu): tam lupa zagląda na koniec
   const detal = (() => {
     const od = n.etapy.length > 1 ? n.etapy[n.etapy.length - 2].koniec : 0, xs = [], ys = [];
-    for (let i = od; i < N; i += Math.max(1, Math.floor((N - od) / 2000))) { odczytaj(buf, i, s); xs.push(s.x); ys.push(s.y); }
+    for (let i = od; i < N; i += Math.max(1, Math.floor((N - od) / 2000))) { const [x, y] = E.srodek(i); xs.push(x); ys.push(y); }
     xs.sort((a, b) => a - b); ys.sort((a, b) => a - b);
     const kw = (t, f) => t[Math.floor(t.length * f)] ?? 0;
     return { x: kw(xs, 0.5) || n.W / 2, y: kw(ys, 0.5) || n.H / 2, rx: (kw(xs, 0.7) - kw(xs, 0.3)) / 2, ry: (kw(ys, 0.7) - kw(ys, 0.3)) / 2 };
@@ -71,38 +125,29 @@ export async function pracownia(canvas) {
 
   // ---- malowanie do chwili t (tylko do przodu; cofnięcie zaczyna od pustego płótna) ------
   let ile = 0, czesc = 0, ostatni = -1;
-  function odNowa() {
-    C = plotno(PW, PH, n.grunt); Hb = new Float32Array(PW * PH); ile = 0; czesc = 0;
-    oswietl(C, Hb, PW, PH, S, img.data, n.swiatlo); og.putImageData(img, 0, 0);
-  }
+  function odNowa() { E.odNowa(); ile = 0; czesc = 0; E.pokaz(img.data); og.putImageData(img, 0, 0); }
   function malujDo(tp) {
     let i = N, f = 0;
     if (tp < CZAS) { i = ktory(tp); f = (tp - kum[i]) / (kum[i + 1] - kum[i]); }
     let x0 = PW, y0 = PH, x1 = 0, y1 = 0;
-    const kladz = (k, a, b) => {
-      odczytaj(buf, k, s);
-      P.maluj(C, s.x, s.y, s.ang, s.len, s.wid, s.bend, s.op, s.kind, k, s.r, s.g, s.b, a, b, Hb);
-      if (P.w > 0) { x0 = Math.min(x0, P.x0); y0 = Math.min(y0, P.y0); x1 = Math.max(x1, P.x0 + P.w); y1 = Math.max(y1, P.y0 + P.h); }
-    };
+    const kladz = (k, a, b) => { const r = E.kladz(k, a, b); if (r) { x0 = Math.min(x0, r[0]); y0 = Math.min(y0, r[1]); x1 = Math.max(x1, r[2]); y1 = Math.max(y1, r[3]); } };
     while (ile < i) { kladz(ile, czesc, 1); ile++; czesc = 0; }
     if (i < N && f > czesc) { kladz(i, czesc, f); czesc = f; }
     if (x1 > x0) {
-      const m = Math.ceil(S) + 2, r = { x: Math.max(0, x0 - m), y: Math.max(0, y0 - m) };
+      const m = E.margines, r = { x: Math.max(0, x0 - m), y: Math.max(0, y0 - m) };
       r.w = Math.min(PW, x1 + m) - r.x; r.h = Math.min(PH, y1 + m) - r.y;
-      oswietl(C, Hb, PW, PH, S, img.data, n.swiatlo, r); og.putImageData(img, 0, 0, r.x, r.y, r.w, r.h);
+      E.pokaz(img.data, r); og.putImageData(img, 0, 0, r.x, r.y, r.w, r.h);
     }
   }
 
-  // ---- gdzie jest pędzel w chwili tp (czysta funkcja czasu) -------------------------------
+  // ---- gdzie jest narzędzie w chwili tp (czysta funkcja czasu) ----------------------------
   const KAT0 = 0.95;                                           // trzonek w prawo w dół, jak w prawej ręce
   function czubek(tp, o) {
     const i = Math.min(N - 1, ktory(Math.max(0, Math.min(CZAS - 1e-6, tp))));
-    odczytaj(buf, i, s);
-    const f = Math.min(1, Math.max(0, (tp - kum[i]) / (kum[i + 1] - kum[i]))), qq = 2 * f - 1;
-    const a = (f - 0.5) * s.len, bok = s.bend * s.len * 0.5 * (1 - qq * qq), c = Math.cos(s.ang), sn = Math.sin(s.ang);
-    o.x = s.x + a * c - bok * sn; o.y = s.y + a * sn + bok * c;
-    o.kat = Math.atan2(Math.sin(KAT0) - 0.35 * sn, Math.cos(KAT0) - 0.35 * c);
-    o.wid = s.wid; o.rodzaj = s.kind; o.r = s.r; o.g = s.g; o.b = s.b; o.i = i; o.f = f; o.trwa = kum[i + 1] - kum[i];
+    const f = Math.min(1, Math.max(0, (tp - kum[i]) / (kum[i + 1] - kum[i])));
+    E.slad(i, f, o);
+    o.kat = Math.atan2(Math.sin(KAT0) - 0.35 * Math.sin(o.kier), Math.cos(KAT0) - 0.35 * Math.cos(o.kier));
+    o.i = i; o.f = f; o.trwa = kum[i + 1] - kum[i];
     return o;
   }
   const A = {}, B2 = {}, D = {}, SKOK = 0.11;
@@ -135,8 +180,8 @@ export async function pracownia(canvas) {
     gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.12, 'rgba(8,6,5,.55)'); gr.addColorStop(1, 'rgba(4,3,3,.82)');
     b.fillStyle = gr; b.fillRect(0, 1500 * u, w, h - 1500 * u);
   }
-  const PAL = farby(buf, N), PX = 548, PY = 1672;
-  const kupki = PAL.map((c, j) => { const a = Math.PI * (1.08 + 0.84 * (j / (PAL.length - 1))); return { c, x: PX + Math.cos(a) * 172 + 6, y: PY + Math.sin(a) * 98 + 18, r: 21 + 5 * h01(j + 3) }; });
+  const PAL = E.kolory(), PX = 548, PY = 1672;
+  const kupki = PAL.map(({ c }, j) => { const a = Math.PI * (1.08 + 0.84 * (j / (PAL.length - 1))); return { c, x: PX + Math.cos(a) * 172 + 6, y: PY + Math.sin(a) * 98 + 18, r: 21 + 5 * h01(j + 3) }; });
   const css = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
 
   function rysujPalete(tp, kolor, maluje) {
@@ -181,6 +226,33 @@ export async function pracownia(canvas) {
     g.restore();
   }
 
+  // piórnik: kredki i pałeczki użyte w rysunku, ta w ręce jest wysunięta
+  function rysujPiornik(kolor, nazwa, rysuje) {
+    g.save(); g.scale(u, u);
+    const x0 = 346, x1 = 760, y0 = 1560, y1 = 1790, k = PAL.length, sz = Math.min(30, (x1 - x0 - 24) / k);
+    g.filter = 'blur(12px)'; g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(x0 + 8, y0 + 40, x1 - x0, y1 - y0 - 20); g.filter = 'none';
+    let gr = g.createLinearGradient(0, y0 + 30, 0, y1);
+    gr.addColorStop(0, '#3a2b20'); gr.addColorStop(1, '#1f1610');
+    g.fillStyle = gr; g.beginPath(); g.roundRect(x0, y0 + 34, x1 - x0, y1 - y0 - 34, 12); g.fill();
+    g.strokeStyle = 'rgba(255,225,170,.18)'; g.lineWidth = 1.5; g.stroke();
+    let naj = 0, nd = 1e9;
+    PAL.forEach((p, j) => { const d = (p.c[0] - kolor[0]) ** 2 + (p.c[1] - kolor[1]) ** 2 + (p.c[2] - kolor[2]) ** 2 + (p.nazwa === nazwa ? 0 : 1e5); if (d < nd) { nd = d; naj = j; } });
+    PAL.forEach((p, j) => {
+      const cx = x0 + 12 + sz * (j + 0.5) + (x1 - x0 - 24 - sz * k) / 2, w = sz * 0.74, gruby = p.nazwa === 'pastel' || p.nazwa === 'wegiel' || p.nazwa === 'olejna';
+      const top = y0 + 52 - (j === naj && rysuje ? 26 : 0) + 8 * h01(j * 7 + 1), dol = y1 - 14;
+      gr = g.createLinearGradient(cx - w / 2, 0, cx + w / 2, 0);
+      gr.addColorStop(0, css(p.c.map((v) => Math.min(255, v * 1.15 + 20)))); gr.addColorStop(0.5, css(p.c)); gr.addColorStop(1, css(p.c.map((v) => v * 0.6)));
+      if (gruby) { g.fillStyle = gr; g.beginPath(); g.roundRect(cx - w / 2, top + 30, w, dol - top - 30, 3); g.fill(); g.fillStyle = 'rgba(245,238,225,.85)'; g.fillRect(cx - w / 2, top + 84, w, 46); }
+      else {
+        g.fillStyle = gr; g.fillRect(cx - w / 2, top + 44, w, dol - top - 44);
+        g.fillStyle = '#e3c9a0'; g.beginPath(); g.moveTo(cx - w / 2, top + 44); g.lineTo(cx - w * 0.14, top + 12); g.lineTo(cx + w * 0.14, top + 12); g.lineTo(cx + w / 2, top + 44); g.closePath(); g.fill();
+        g.fillStyle = css(p.c); g.beginPath(); g.moveTo(cx - w * 0.14, top + 12); g.lineTo(cx, top); g.lineTo(cx + w * 0.14, top + 12); g.closePath(); g.fill();
+      }
+      if (j === naj && rysuje) { g.strokeStyle = 'rgba(255,236,190,.9)'; g.lineWidth = 2; g.beginPath(); g.roundRect(cx - w / 2 - 3, top - 4, w + 6, dol - top + 6, 4); g.stroke(); }
+    });
+    g.restore();
+  }
+
   function rysujLupe(px, py) {
     const X = 172 * u, Y = 1672 * u, R = 132 * u, pow = 4;
     const zr = (2 * R) / (pow * sk * u) * S;                    // bok źródła w pikselach bufora obrazu
@@ -211,8 +283,8 @@ export async function pracownia(canvas) {
       g.globalAlpha = po ? 0.78 : teraz ? 1 : 0.34;
       if (teraz) { g.fillStyle = 'rgba(255,236,190,.09)'; g.beginPath(); g.roundRect(x - 12, y - dy2 / 2 + 2, 262, dy2 - 4, 8); g.fill(); }
       g.fillStyle = teraz ? '#f3e3bd' : '#cbbd9f'; g.font = `600 21px Caladea, Georgia, serif`; g.textAlign = 'left';
-      g.fillText(`No. ${e.nr}`, x, y);
-      g.font = `19px Inter, sans-serif`; g.fillStyle = teraz ? '#efe6d2' : '#a79c87'; g.fillText(e.nazwa, x + 76, y);
+      if (RYS) g.fillText(e.nazwa, x, y);
+      else { g.fillText(`No. ${e.nr}`, x, y); g.font = `19px Inter, sans-serif`; g.fillStyle = teraz ? '#efe6d2' : '#a79c87'; g.fillText(e.nazwa, x + 76, y); }
       g.textAlign = 'right';
       if (po) { g.fillStyle = '#c9a658'; g.font = `600 20px Inter, sans-serif`; g.fillText('✓', x + 246, y); }
       else if (teraz) { g.fillStyle = css(kolor); g.beginPath(); g.arc(x + 236, y, 8, 0, 6.2832); g.fill(); g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 1.2; g.stroke(); }
@@ -242,7 +314,7 @@ export async function pracownia(canvas) {
     g.textAlign = 'center'; g.textBaseline = 'alphabetic';
     g.fillStyle = '#eadcbd'; g.font = `italic ${62 * u}px Caladea, Georgia, serif`; g.fillText(n.tytul, 540 * u, 104 * u);
     g.fillStyle = '#8f8676'; g.font = `${23 * u}px Inter, sans-serif`;
-    g.fillText(`${n.autor ? n.autor + '  ·  ' : ''}malowane kodem, pociągnięcie po pociągnięciu`, 540 * u, 150 * u);
+    g.fillText(`${n.autor ? n.autor + '  ·  ' : ''}${RYS ? 'rysowane kodem, kreska po kresce' : 'malowane kodem, pociągnięcie po pociągnięciu'}`, 540 * u, 150 * u);
 
     // obraz: cień na ścianie, bok podobrazia, płótno
     g.save();
@@ -261,7 +333,7 @@ export async function pracownia(canvas) {
     const lk = gladko(0.3, 2.4, t - WSTEP - CZAS);
     const tk = t - WSTEP - CZAS;                                   // na koniec lupa wolno krąży po detalu
     rysujLupe(lerp(o.x, detal.x + detal.rx * Math.sin(tk * 0.9), lk), lerp(o.y, detal.y - detal.ry * Math.cos(tk * 0.9), lk));
-    rysujPalete(tp, kolor, !gotowe);
+    if (RYS) rysujPiornik(kolor, o.rodzaj, !gotowe); else rysujPalete(tp, kolor, !gotowe);
     rysujListe(ie, kolor, gotowe);
 
     // pędzel: wchodzi z prawej z dołu, maluje, po ostatnim pociągnięciu odchodzi
@@ -269,10 +341,9 @@ export async function pracownia(canvas) {
     if (wyj < 1) {
       const tx = (dx + o.x * sk) * u, ty = (dy + o.y * sk) * u, poza = (1 - wej) + wyj;
       g.save();
-      rysujPedzel(g, {
-        x: tx + poza * 420 * u, y: ty + poza * 520 * u, kat: o.kat, w: Math.max(7 * u, o.wid * sk * u), rodzaj: o.rodzaj, u,
-        nacisk: poza > 0 ? 0 : o.nacisk, unies: Math.min(1, o.unies + poza * 2), kolor, nr: n.etapy[ie].nr, alfa: 1 - wyj,
-      });
+      const wsp = { x: tx + poza * 420 * u, y: ty + poza * 520 * u, kat: o.kat, u, nacisk: poza > 0 ? 0 : o.nacisk, unies: Math.min(1, o.unies + poza * 2), kolor, alfa: 1 - wyj };
+      if (RYS) rysujOlowek(g, { ...wsp, narzedzie: o.rodzaj, w: Math.max(3 * u, o.wid * sk * u) });
+      else rysujPedzel(g, { ...wsp, w: Math.max(7 * u, o.wid * sk * u), rodzaj: o.rodzaj, nr: n.etapy[ie].nr });
       g.restore();
     }
 
@@ -282,8 +353,8 @@ export async function pracownia(canvas) {
     g.textBaseline = 'alphabetic'; g.textAlign = 'left'; g.fillStyle = '#cbbd9f'; g.font = '600 22px Inter, sans-serif';
     g.fillText(`${tys(nr)}`, 50, 1888);
     const wl = g.measureText(tys(nr)).width;
-    g.fillStyle = '#7d7566'; g.font = '20px Inter, sans-serif'; g.fillText(` / ${tys(N)} pociągnięć  ·  pędzel ${RODZAJE[n.etapy[ie].pedzel]}`, 50 + wl, 1888);
-    const q0 = Math.min(N - 1, nr - 1) * BAJTY; let hex = '';
+    g.fillStyle = '#7d7566'; g.font = '20px Inter, sans-serif'; g.fillText(` / ${tys(N)} ${E.jednostka}  ·  ${E.narzedzie(ie, o)}`, 50 + wl, 1888);
+    const q0 = E.rekord(Math.min(N - 1, nr - 1)); let hex = '';
     for (let k = 0; k < BAJTY; k++) hex += buf[q0 + k].toString(16).padStart(2, '0').toUpperCase() + (k < BAJTY - 1 ? ' ' : '');
     g.textAlign = 'right'; g.fillStyle = '#6f685b'; g.font = '17px "JetBrains Mono", monospace'; g.fillText(hex, 1030, 1888);
     g.fillStyle = 'rgba(255,255,255,.08)'; g.fillRect(50, 1902, 980, 3);

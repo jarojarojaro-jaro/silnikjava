@@ -191,3 +191,87 @@ test('PNG: zapisany plik da się odkodować', () => {
   const len = b.readUInt32BE(33), raw = inflateSync(b.subarray(41, 41 + len));
   assert.deepEqual([...raw], [0, 255, 0, 0, 0, 255, 0]);
 });
+
+// ---- narzędzia suche ---------------------------------------------------------------------------
+import { Kartka, NARZEDZIA, NAZWY } from '../lib/suche.js';
+import { Rysunek, indeks, odczytajSlad } from '../lib/rysunek.js';
+import { STYLE_SUCHE, paleta, kontury, rysuj } from '../lib/rysownik.js';
+
+const srednia = (k, x0, y0, x1, y1, c = 0) => { let s = 0, n = 0; for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { s += k.C[(y * k.PW + x) * 3 + c]; n++; } return s / n; };
+
+test('papier: ziarno widać przy lekkim nacisku, mocny nacisk je zalewa', () => {
+  const pokrycie = (p) => {
+    const k = Kartka(80, 40, 2), przed = Float32Array.from(k.C);
+    for (let i = 0; i < 12; i++) k.slad(NARZEDZIA.wegiel, [30, 30, 30], 6, [10, 8 + i * 2, p, 70, 8 + i * 2, p], i + 1);
+    let n = 0, m = 0; for (let y = 24; y < 56; y++) for (let x = 40; x < 120; x++) { m++; if (przed[(y * k.PW + x) * 3] - k.C[(y * k.PW + x) * 3] > 12) n++; }
+    return n / m;
+  };
+  const lekko = pokrycie(0.25), mocno = pokrycie(1);
+  assert.ok(lekko > 0.05 && lekko < 0.75, `lekki nacisk zostawia prześwity papieru (${lekko.toFixed(2)})`);
+  assert.ok(mocno > 0.93 && mocno > lekko + 0.2, `mocny nacisk kryje (${mocno.toFixed(2)})`);
+});
+
+test('pigment: kredka przezroczysta miesza się jak farba, pastel kryje', () => {
+  const k = Kartka(60, 60, 1, { ziarno: 0 });
+  const plama = (nz, kol, y) => { for (let r = 0; r < 2; r++) for (let i = 0; i < 30; i++) k.slad(nz, kol, nz.szer, [5, y + i, 1, 55, y + i, 1], r * 100 + i + y); };
+  plama(NARZEDZIA.kredka, [30, 150, 220], 4); plama(NARZEDZIA.kredka, [250, 220, 40], 4);
+  const [r, g, b] = [0, 1, 2].map((c) => srednia(k, 15, 10, 45, 28, c));
+  assert.ok(g > r + 15 && g > b + 15, `żółta na niebieskiej daje zieleń (${[r, g, b].map(Math.round)})`);
+  plama(NARZEDZIA.pastel, [40, 40, 40], 38); plama(NARZEDZIA.pastel, [250, 240, 230], 38);
+  assert.ok(srednia(k, 15, 44, 45, 58) > 200, 'jasny pastel zakrywa ciemny');
+});
+
+test('ślad: ta sama kreska w kawałkach = w całości; skala nie zmienia rysunku', () => {
+  const pk = [10, 20, 0.7, 40, 12, 0.9, 70, 24, 0.6];
+  const a = Kartka(80, 40, 2), b = Kartka(80, 40, 2);
+  a.slad(NARZEDZIA.kredka, [200, 40, 40], 2, pk, 5);
+  for (const [t0, t1] of [[0, 0.3], [0.3, 0.7], [0.7, 1]]) b.slad(NARZEDZIA.kredka, [200, 40, 40], 2, pk, 5, t0, t1, 77);
+  let maxd = 0; for (let i = 0; i < a.C.length; i++) maxd = Math.max(maxd, Math.abs(a.C[i] - b.C[i]));
+  assert.ok(maxd < 0.5, `różnica ${maxd}`);
+  assert.ok(a.x1 > a.x0 && a.y1 > a.y0, 'prostokąt zmian ustawiony');
+  const ciemn = (S) => { const k = Kartka(80, 40, S); const p0 = srednia(k, 0, 0, k.PW, k.PH, 1); k.slad(NARZEDZIA.wegiel, [30, 30, 30], 6, pk, 5); return p0 - srednia(k, 0, 0, k.PW, k.PH, 1); };
+  assert.ok(Math.abs(ciemn(1) / ciemn(3) - 1) < 0.12, 'tyle samo pigmentu w skali 1 i 3');
+  const c = a.czubek(NARZEDZIA.kredka, 2, pk, 5, 0); assert.ok(Math.hypot(c.x - 10, c.y - 20) < 1.5);
+  a.czysc(); assert.equal(a.C[0], Kartka(80, 40, 2).C[0]);
+});
+
+test('rysunek: kreski i szraf zapisują się i odtwarzają co do piksela', () => {
+  const r = Rysunek({ W: 120, H: 80, tytul: 'T' });
+  r.etap('Szkic', 'olowek').kreska('olowek', [60, 60, 70], [[10, 10, 0.5], [60, 30, 0.9], [110, 12, 0.4]]);
+  const ton = (x) => (x < 60 ? 0.9 : 0);
+  r.etap('Cień', 'kredka').szraf(ton, 'kredka', [40, 80, 200], { kat: -0.9 });
+  const { naglowek, bajty } = r.obraz(), ind = indeks(bajty);
+  assert.equal(ind.length, naglowek.ile); assert.ok(naglowek.ile > 20);
+  assert.deepEqual(naglowek.etapy.map((e) => e.narzedzie), ['olowek', 'kredka']);
+  const s = odczytajSlad(bajty, ind[0]); assert.equal(s.nazwa, 'olowek'); assert.equal(s.pk.length, 9); assert.ok(Math.abs(s.pk[5] - 0.9) < 0.01);
+  const lewa = srednia(r.kartka, 10, 20, 50, 70, 0), prawa = srednia(r.kartka, 75, 40, 115, 70, 0);
+  assert.ok(lewa < prawa - 20, 'szraf tylko tam, gdzie ton > 0');
+  const o = zTekstu(doTekstu(naglowek, bajty)), im = renderuj(o.naglowek, o.bajty, 1);
+  let maxd = 0; for (let i = 0; i < r.kartka.C.length / 3; i++) maxd = Math.max(maxd, Math.abs(im.px[i * 4] - Math.round(r.kartka.C[i * 3])));
+  assert.ok(maxd <= 1, `odtworzenie różni się o ${maxd}`);
+  assert.equal(renderuj(o.naglowek, o.bajty, 1, { ile: 1 }).px[(60 * 120 + 30) * 4] > 200, true, 'po samym szkicu cień jeszcze pusty');
+  assert.throws(() => r.kreska('flamaster', [0, 0, 0], [[0, 0], [1, 1]]));
+});
+
+test('rysownik: paleta łapie małą plamę czystego koloru, kontury idą po krawędzi', () => {
+  const W = 90, H = 60, T = new Float32Array(W * H * 3);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const q = (y * W + x) * 3, c = x > 70 && y > 44 ? [230, 30, 40] : x < 45 ? [200, 200, 205] : [60, 62, 70]; T[q] = c[0]; T[q + 1] = c[1]; T[q + 2] = c[2]; }
+  const p = paleta(T, W * H, 4);
+  assert.ok(p.some((c) => c[0] > 180 && c[1] < 90), 'czerwień ma własną kredkę, choć zajmuje 5% wzoru');
+  assert.ok(p[0][0] > p[3][0], 'od najjaśniejszej');
+  const g = new Float32Array(W * H); for (let i = 0; i < W * H; i++) g[i] = 0.3 * T[i * 3] + 0.59 * T[i * 3 + 1] + 0.11 * T[i * 3 + 2];
+  const l = kontury(g, W, H);
+  assert.ok(l.length >= 1 && l[0].pts.length > 10);
+  assert.ok(l[0].pts.every((q) => Math.abs(q[0] - 45) < 4 || q[1] > 40 || q[0] > 66), 'najmocniejsza linia leży na pionowej krawędzi');
+});
+
+test('rysownik: każdy styl suchy zbliża kartkę do wzoru i jest powtarzalny', () => {
+  const W = 110, H = 80, cel = wzorTestowy(W, H);
+  const blad = (r) => { let s = 0; for (let i = 0; i < W * H * 3; i++) s += (r.kartka.C[i] - cel[i]) ** 2; return Math.sqrt(s / (W * H * 3)); };
+  for (const styl of Object.keys(STYLE_SUCHE)) {
+    const pusty = blad(Rysunek({ W, H, papier: STYLE_SUCHE[styl].papier })), r = rysuj({ W, H, cel, styl });
+    assert.ok(blad(r) < pusty * (STYLE_SUCHE[styl].mono ? 0.9 : 0.62), `${styl}: ${blad(r).toFixed(1)} vs pusta kartka ${pusty.toFixed(1)}`);
+    assert.ok(NAZWY.includes(STYLE_SUCHE[styl].narzedzie) && r.ile > 200);
+  }
+  assert.deepEqual(rysuj({ W, H, cel, styl: 'kredki' }).obraz().bajty, rysuj({ W, H, cel, styl: 'kredki' }).obraz().bajty);
+});

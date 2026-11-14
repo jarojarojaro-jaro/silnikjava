@@ -29,7 +29,7 @@ function modul(sciezka) {
   }).join('\n');
   return `M.${basename(sciezka, '.js')} = (() => {\n${kod}\nreturn { ${nazwy.join(', ')} };\n})();`;
 }
-const kod = ['lib/pedzel.js', 'lib/plik.js', 'pracownia/narzedzie.js', 'pracownia/pracownia.js'].map(modul).join('\n');
+const kod = ['lib/pedzel.js', 'lib/szkic.js', 'lib/pole.js', 'lib/suche.js', 'lib/rysunek.js', 'lib/plik.js', 'pracownia/narzedzie.js', 'pracownia/pracownia.js'].map(modul).join('\n');
 const obraz = readFileSync(plik, 'utf8'), tytul = JSON.parse(obraz).tytul;
 const html = readFileSync(join(TU, 'pracownia/pracownia.html'), 'utf8')
   .replace('<title>Pracownia malarza</title>', () => `<title>${tytul.replace(/[<&]/g, '')}</title>`)

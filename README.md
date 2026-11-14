@@ -485,11 +485,12 @@ Produkcja seryjna mniejszymi modelami: [docs/SKALOWANIE.md](docs/SKALOWANIE.md).
 Gotowe rysunki z Figmy/Inkscape można wczytać przez `svgPath(d)` i animować
 ołówkiem jak każdą inną ścieżkę.
 
-## Malarz — obrazy malowane pędzlem
+## Malarz — obrazy malowane i rysowane kodem
 
 Osobne narzędzie w repozytorium (skill [`malarz`](.claude/skills/malarz/SKILL.md), czysty JS bez
 zależności, niezależny od silnika z `src/`): program patrzy na wzór i maluje go tysiącami
-pociągnięć pędzla — od szerokiego płaskiego do cienkiego okrągłego. Wzorem może być zdjęcie
+pociągnięć pędzla — od szerokiego płaskiego do cienkiego okrągłego — albo rysuje narzędziami
+suchymi (kredki, pastele, węgiel, ołówek) na papierze z ziarnem. Wzorem może być zdjęcie
 albo **motyw z wyobraźni**, czyli obraz opisany funkcją w kodzie (bez żadnego pliku graficznego).
 Wynik to lista pociągnięć (12 bajtów każde), którą można odtworzyć w dowolnej skali i sfilmować.
 
@@ -498,18 +499,24 @@ Wynik to lista pociągnięć (12 bajtów każde), którą można odtworzyć w do
 *Od lewej: „Jezioro o świcie” (motyw z wyobraźni, olej, 15 tys. pociągnięć), kopia „Dziewczyny
 z perłą” Vermeera (62 tys.), kot ze zdjęcia (olej), „Gwiaździsta noc” van Gogha (impresja).*
 
+![Rysunki narzędziami suchymi](docs/img/malarz/rysunki.jpg)
+
+*Narzędzia suche: „Ostatni wieczór lata” (motyw z wyobraźni, pastele, 42 tys. kresek), kot kredkami
+ze zdjęcia, „Wędrowiec nad morzem mgły” Friedricha węglem i białą kredą, „Dziewczyna z perłą” pastelami.*
+
 ![Pracownia: obraz powstaje pociągnięcie po pociągnięciu](docs/img/malarz/pracownia.jpg)
 
 ```bash
 M=.claude/skills/malarz
 node $M/maluj.mjs zdjecie.jpg --styl olej --skup 0.5,0.3,0.15,0.18,3   # obraz → out/malarz/zdjecie/
 node $M/maluj.mjs $M/motywy/jezioro.js                                 # motyw z wyobraźni
+node $M/maluj.mjs $M/motywy/lato.js --styl pastele                     # rysunek pastelami (16:9)
 node $M/film.mjs out/malarz/jezioro/obraz.json                         # film z pracowni 1080×1920
 node $M/strona.mjs out/malarz/jezioro/obraz.json                       # jeden plik HTML, maluje na żywo
 npm run test:malarz
 ```
 
-Style: `olej`, `impresja`, `etiuda`, `kopia`. Jak to działa, procedura i pułapki:
+Style: `olej`, `impresja`, `etiuda`, `kopia` (pędzel) oraz `pastele`, `kredki`, `wegiel`, `olowek` (suche). Jak to działa, procedura i pułapki:
 [SKILL.md](.claude/skills/malarz/SKILL.md). Pomysł za projektem
 [mona-lisa-js](https://github.com/ChetasLua/mona-lisa-js) (MIT), kod napisany od nowa.
 
