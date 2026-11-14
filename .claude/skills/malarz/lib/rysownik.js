@@ -122,6 +122,18 @@ export const STYLE_SUCHE = {
       { nazwa: 'Detal', poForma: true, odstep: 0.9, dl: [4, 10], nacisk: 1.1, co: 1.8, szer: 0.24, ostro: true, zysk: 220 },
     ],
   },
+  mieszane: {
+    opis: 'technika mieszana: pastel na plamy, kredki na rysunek, węgiel w cieniach, biała kreda w światłach',
+    papier: { kolor: [222, 211, 192], ziarno: 1.1 }, narzedzie: 'pastel', barw: 16, moc: 1.4, nasycenie: 1.2, szkic: 'olowek', akcent: 'wegiel', kontury: 0.45, biel: 'pastel',
+    swiatla: [{ poForma: true, szer: 0.28, odstep: 1.3, dl: [6, 18], co: 3, prog: 0.3, zysk: 700 }],
+    rundy: [
+      { nazwa: 'Plamy pastelem', kat: -0.9, odstep: 0.8, dl: [36, 80], nacisk: 0.85, co: 9, szer: 1.2 },
+      { nazwa: 'Pastel krawędzią', kat: -0.2, odstep: 0.85, dl: [16, 38], nacisk: 1, co: 6, szer: 0.55 },
+      { nazwa: 'Kredki', narzedzie: 'kredka', poForma: true, odstep: 0.9, dl: [10, 26], co: 3.5, szer: 0.9, zysk: 40 },
+      { nazwa: 'Kredki, detal', narzedzie: 'kredka', poForma: true, odstep: 0.9, dl: [5, 13], co: 2.2, szer: 0.5, zysk: 90, rysunek: true },
+      { nazwa: 'Węgiel w cieniach', narzedzie: 'wegiel', mono: [30, 28, 30], poForma: true, odstep: 0.9, dl: [8, 20], co: 3.5, szer: 0.28, zysk: 150 },
+    ],
+  },
 };
 
 /**

@@ -335,6 +335,14 @@ test('rysownik: tusz zostawia jasne tony papierowi', () => {
   assert.ok(pap - srednia(t.kartka, 70, 8, 112, 72) > 70, 'ciemna połowa gęsto zaszrafowana');
 });
 
+test('rysownik: technika mieszana używa kilku narzędzi', () => {
+  const W = 120, H = 80;
+  const m = rysuj({ W, H, cel: wzorTestowy(W, H), styl: 'mieszane' }).obraz(), ind = indeks(m.bajty), uzyte = new Set();
+  for (let i = 0; i < ind.length; i++) uzyte.add(odczytajSlad(m.bajty, ind[i]).nazwa);
+  assert.ok(uzyte.has('pastel') && uzyte.has('kredka') && uzyte.size >= 3, `narzędzia: ${[...uzyte]}`);
+  assert.ok(new Set(m.naglowek.etapy.map((e) => e.narzedzie)).size >= 3);
+});
+
 // ---- przypadki brzegowe (z recenzji) -------------------------------------------------------------
 import { argumenty } from '../lib/argumenty.js';
 
