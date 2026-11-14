@@ -327,6 +327,14 @@ test('rysownik: przezroczysty pigment trzyma barwę wzoru i nie przeciemnia', ()
   }
 });
 
+test('rysownik: tusz zostawia jasne tony papierowi', () => {
+  const W = 120, H = 80, cel = new Float32Array(W * H * 3);
+  for (let i = 0; i < W * H; i++) { const c = (i % W) < 60 ? [215, 220, 230] : [50, 45, 60]; cel.set(c, i * 3); }
+  const t = rysuj({ W, H, cel, styl: 'tusz' }), pap = t.kartka.kolor[0];
+  assert.ok(pap - srednia(t.kartka, 8, 8, 50, 72) < 14, 'jasna połowa prawie bez kresek');
+  assert.ok(pap - srednia(t.kartka, 70, 8, 112, 72) > 70, 'ciemna połowa gęsto zaszrafowana');
+});
+
 // ---- przypadki brzegowe (z recenzji) -------------------------------------------------------------
 import { argumenty } from '../lib/argumenty.js';
 

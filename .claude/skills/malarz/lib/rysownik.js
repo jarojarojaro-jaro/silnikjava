@@ -92,6 +92,17 @@ export const STYLE_SUCHE = {
       { nazwa: 'Detal', poForma: true, odstep: 0.9, dl: [5, 14], co: 2.5, szer: 0.13, zysk: 140, rysunek: true },
     ],
   },
+  tusz: {
+    opis: 'piórko i tusz: kontur, potem szraf krzyżowy — ton robi gęstość kresek',
+    papier: { kolor: [250, 247, 239], ziarno: 0.6 }, narzedzie: 'tusz', mono: [24, 22, 27], szkic: 'olowek', akcent: 'tusz',
+    kontury: 1, konturPierwszy: true, konturSzer: 1, konturNacisk: [0.45, 0.55], rozmycie: 2.6, krzywa: [25, 190],
+    rundy: [
+      { nazwa: 'Szraf', kat: -0.9, odstep: 3.4, dl: [14, 34], co: 5, staly: 0.75, zysk: 150 },
+      { nazwa: 'Szraf krzyżowy', kat: 0.55, odstep: 3.2, dl: [12, 28], co: 5, staly: 0.75, zysk: 500 },
+      { nazwa: 'Trzeci kierunek', kat: -0.15, odstep: 3.0, dl: [8, 20], co: 4, staly: 0.8, zysk: 1200 },
+      { nazwa: 'Czerń', poForma: true, odstep: 1.5, dl: [6, 14], co: 3, staly: 1, zysk: 3500 },
+    ],
+  },
 };
 
 /**
