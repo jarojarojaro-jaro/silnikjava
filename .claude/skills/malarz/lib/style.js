@@ -66,6 +66,21 @@ export const STYLE = {
       { nazwa: 'Forma', nr: '14', pedzel: PLASKI, w: [12, 26], lr: [1.3, 5], n: 700, skup: 0.6 },
     ],
   },
+  // szpachla: farba kładziona nożem — proste, krótkie płaszczyzny, gruba faktura, prawie bez włosia
+  szpachla: {
+    opis: 'szpachla: krótkie, proste płaszczyzny gęstej farby, mocna faktura',
+    cechy: { wlosie: 0.35, suchosc: 1.5, smugi: 2.6 },
+    swiatlo: { sila: 1.0, splot: 0.6, polysk: 1.5 },
+    wygladz: 1.6,
+    kolor: { nasycenie: 1.12, drganie: 8 },
+    etapy: [
+      { nazwa: 'Podmalówka', nr: '40', pedzel: PLASKI, w: [60, 118], lr: [1.2, 2.4], n: 100, prosto: 1, pelne: 1 },
+      { nazwa: 'Szeroka szpachla', nr: 'S5', pedzel: PLASKI, w: [24, 52], lr: [1.0, 2.2], n: 420, prosto: 1, pelne: 0.95, rozrzut: 0.5 },
+      { nazwa: 'Szpachla', nr: 'S3', pedzel: PLASKI, w: [11, 24], lr: [1.0, 2.4], n: 1500, prosto: 1, pelne: 0.95, rozrzut: 0.45 },
+      { nazwa: 'Mała szpachla', nr: 'S1', pedzel: PLASKI, w: [5, 11], lr: [1.0, 2.6], n: 3600, prosto: 0.9, pelne: 0.95, rozrzut: 0.4, skup: 0.6 },
+      { nazwa: 'Krawędzią', nr: 'S0', pedzel: PLASKI, w: [2, 5], lr: [2, 6], n: 2600, prosto: 0.9, skup: 1.4 },
+    ],
+  },
 };
 
 /** Rozmiar roboczy z proporcji wzoru (szer./wys.), o stałym polu. */
