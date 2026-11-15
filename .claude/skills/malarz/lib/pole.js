@@ -75,6 +75,53 @@ export function waznosc(gray, W, H, detal = 2, skupienia = []) {
   return wt;
 }
 
+/**
+ * Gdzie w obrazie patrzy człowiek: do dwóch elips (ułamki szer./wys.) do mapy ważności. Bez „rozumienia”
+ * tematu, z trzech prostych wskazówek: kolor odstający od otoczenia (obiekt na tle), barwa skóry
+ * (twarz, dłonie) i lekka przewaga środka kadru. Zwraca [] dla obrazów bez wyraźnego punktu uwagi.
+ * @param {Float32Array} T wzór RGB 0..255 @returns {Array<{x:number,y:number,rx:number,ry:number,ile:number}>}
+ */
+export function punktyUwagi(T, W, H) {
+  // liczone w małej skali (ok. 96 px): chodzi o plamy, nie o detale
+  const k = Math.max(1, Math.round(Math.max(W, H) / 96)), w = Math.floor(W / k), h = Math.floor(H / k), n = w * h;
+  if (w < 12 || h < 12) return [];
+  const kan = [0, 1, 2].map(() => new Float32Array(n)), skora = new Float32Array(n);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    let r = 0, g = 0, b = 0;
+    for (let j = 0; j < k; j++) for (let i = 0; i < k; i++) { const q = ((y * k + j) * W + x * k + i) * 3; r += T[q]; g += T[q + 1]; b += T[q + 2]; }
+    const m = k * k, i = y * w + x; r /= m; g /= m; b /= m; kan[0][i] = r; kan[1][i] = g; kan[2][i] = b;
+    // skóra: czerwień nad zielenią nad błękitem, średnio jasna, niezbyt jaskrawa (reguła z klasycznych detektorów RGB)
+    if (r > 80 && g > 40 && b > 20 && r > g && g > b * 0.9 && r - g > 12 && r - g < 110 && r - b < 170) skora[i] = Math.min(1, (r - g) / 30);
+  }
+  const blisko = kan.map((c) => rozmyj(c, w, h, 1.5)), daleko = kan.map((c) => rozmyj(c, w, h, Math.max(w, h) / 3.5));
+  const S = new Float32Array(n), sk = rozmyj(skora, w, h, 2);
+  let udzialSkory = 0; for (let i = 0; i < n; i++) udzialSkory += skora[i] > 0 ? 1 / n : 0;
+  const wagaSkory = udzialSkory > 0.45 ? 0 : 60;          // „skóra” na pół obrazu to piasek albo drewno, nie twarz
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x, dx = (x + 0.5) / w - 0.5, dy = (y + 0.5) / h - 0.45;
+    const kontrast = Math.hypot(blisko[0][i] - daleko[0][i], blisko[1][i] - daleko[1][i], blisko[2][i] - daleko[2][i]);
+    S[i] = (kontrast + wagaSkory * sk[i]) * Math.exp(-(dx * dx + dy * dy) * 2.2);
+  }
+  const G = rozmyj(S, w, h, Math.max(2, Math.max(w, h) / 24)), out = [];
+  let srednia = 0, szczyt = 0; for (let i = 0; i < n; i++) srednia += G[i] / n;
+  for (let nr = 0; nr < 2; nr++) {
+    let mx = 0, mi = 0; for (let i = 0; i < n; i++) if (G[i] > mx) { mx = G[i]; mi = i; }
+    if (mx <= 1e-6 || mx < srednia * 2.2 || (nr && mx < szczyt * 0.75)) break;   // nic nie odstaje od reszty obrazu
+    if (!nr) szczyt = mx;
+    // plama wokół szczytu: zalewanie do połowy jego wysokości, potem środek ciężkości i rozrzut
+    const w0 = new Uint8Array(n), stos = [mi]; w0[mi] = 1; let sw = 0, sx = 0, sy = 0, sxx = 0, syy = 0;
+    while (stos.length) {
+      const i = stos.pop(), x = i % w, y = (i / w) | 0, g = G[i]; sw += g; sx += g * x; sy += g * y; sxx += g * x * x; syy += g * y * y;
+      for (const [a, b] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const xx = x + a, yy = y + b, j = yy * w + xx; if (xx >= 0 && yy >= 0 && xx < w && yy < h && !w0[j] && G[j] > mx * 0.5) { w0[j] = 1; stos.push(j); } }
+    }
+    const cx = sx / sw, cy = sy / sw, rx = Math.sqrt(Math.max(1, sxx / sw - cx * cx)) * 1.5, ry = Math.sqrt(Math.max(1, syy / sw - cy * cy)) * 1.5;
+    for (let i = 0; i < n; i++) if (w0[i]) G[i] = 0;
+    if (rx / w > 0.4 && ry / h > 0.4) break;                 // „temat” na cały kadr to brak tematu
+    out.push({ x: (cx + 0.5) / w, y: (cy + 0.5) / h, rx: Math.max(0.05, Math.min(0.3, rx / w)), ry: Math.max(0.05, Math.min(0.3, ry / h)), ile: nr ? 1.5 : 2.5 });
+  }
+  return out;
+}
+
 /** Generator losowy z ziarna (mulberry32) + przybliżony rozkład normalny. */
 export function Los(ziarno) {
   let s = ziarno >>> 0;

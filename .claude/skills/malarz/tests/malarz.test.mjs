@@ -10,7 +10,7 @@ import { join } from 'node:path';
 import { inflateSync } from 'node:zlib';
 import { Pedzel, Kod, KRYCIE, BAJTY, PLASKI, KOCI, OKRAGLY, odczytaj, odtworz, plotno, oswietl } from '../lib/pedzel.js';
 import { Malarz } from '../lib/malarz.js';
-import { kierunki, szarosc, waznosc, rozmyj, Los } from '../lib/pole.js';
+import { kierunki, szarosc, waznosc, rozmyj, Los, punktyUwagi } from '../lib/pole.js';
 import { STYLE, rozmiarRoboczy, POLE } from '../lib/style.js';
 import { doTekstu, zTekstu } from '../lib/plik.js';
 import { renderuj } from '../lib/render.js';
@@ -126,6 +126,18 @@ test('pole: kierunek wzdłuż krawędzi, ważność rośnie na rysunku i w skupi
   assert.ok(wt[13 * W + 13] > 3.5, 'skupienie dodaje wagę');
   assert.ok(Math.abs(rozmyj(g, W, H, 2)[10 * W + 5] - 20) < 1e-3);
   const a = Los(7), b = Los(7); assert.equal(a(), b());
+});
+
+test('punkt uwagi: malarz sam znajduje obiekt odstający od tła, na jednolitym obrazie nie zmyśla', () => {
+  const W = 300, H = 200, obraz = (f) => { const T = new Float32Array(W * H * 3); for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) T.set(f(x, y), (y * W + x) * 3); return T; };
+  const tlo = (x, y) => [70 + 10 * Math.sin(x / 9), 80 + 10 * Math.cos(y / 7), 90];
+  const plama = punktyUwagi(obraz((x, y) => (Math.hypot(x - 100, (y - 80) * 1.2) < 26 ? [225, 165, 135] : tlo(x, y))), W, H);   // jasna „twarz” na ciemnym tle
+  assert.ok(plama.length >= 1, 'znaleziony');
+  assert.ok(Math.abs(plama[0].x - 100 / W) < 0.06 && Math.abs(plama[0].y - 80 / H) < 0.08, `środek elipsy na plamie (${plama[0].x.toFixed(2)}, ${plama[0].y.toFixed(2)})`);
+  assert.ok(plama[0].rx < 0.3 && plama[0].ile > 1);
+  assert.deepEqual(punktyUwagi(obraz(() => [120, 130, 140]), W, H), [], 'jednolity obraz nie ma tematu');
+  const wt = waznosc(new Float32Array(W * H).fill(100), W, H, 0, plama);
+  assert.ok(wt[80 * W + 100] > wt[10 * W + 280] + 1, 'elipsa trafia do mapy ważności');
 });
 
 test('style: etapy od szerokiego do wąskiego pędzla, poprawne rodzaje', () => {

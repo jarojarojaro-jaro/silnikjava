@@ -7,6 +7,7 @@
 //   node maluj.mjs motywy/jezioro.js --styl olej       # motyw z wyobraźni (wzór rysuje kod)
 //   node maluj.mjs zdjecie.jpg --styl pastele          # praca na papierze (też: kredki, olejne, mieszane, akwarela, wegiel, olowek, szkic, tusz)
 //   node maluj.mjs portret.jpg --skup 0.48,0.30,0.14,0.16,4   # twarz: środek x,y i promienie (ułamki), waga
+//   (bez --skup malarz sam szuka tematu: obiekt odstający od tła, barwa skóry; --skup brak to wyłącza)
 //
 // Opcje: --styl, --nazwa, --tytul, --autor, --szczegol 1 (mnożnik liczby pociągnięć), --skup (wiele razy),
 //        --detal 2 (waga drobnego rysunku), --grunt r,g,b | auto, --ziarno 1503, --skala 2 (PNG), --kadr x,y,w,h, --out katalog
@@ -18,7 +19,7 @@ import { basename, extname, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { Malarz } from './lib/malarz.js';
 import { STYLE, rozmiarRoboczy } from './lib/style.js';
-import { szarosc, waznosc, rozmyj } from './lib/pole.js';
+import { szarosc, waznosc, rozmyj, punktyUwagi } from './lib/pole.js';
 import { rozmiar, wczytaj, zapiszPNG, obok } from './lib/grafika.js';
 import { doTekstu } from './lib/plik.js';
 import { renderuj } from './lib/render.js';
@@ -74,7 +75,12 @@ if (suchy) {
   process.exit(0);
 }
 const gray = szarosc(cel, N);
-const skupienia = [...(motyw?.SKUPIENIA ?? []), ...wiele('skup').map((s) => { const [x, y, rx, ry, ile] = s.split(',').map(Number); return { x, y, rx, ry, ile: ile ?? 3 }; })];
+const reczne = wiele('skup').filter((s) => s !== 'brak' && s !== 'auto');
+let skupienia = [...(motyw?.SKUPIENIA ?? []), ...reczne.map((s) => { const [x, y, rx, ry, ile] = s.split(',').map(Number); return { x, y, rx, ry, ile: ile ?? 3 }; })];
+if (!skupienia.length && !wiele('skup').includes('brak')) {       // nikt nie wskazał tematu: malarz szuka go sam
+  skupienia = punktyUwagi(cel, W, H);
+  console.log(skupienia.length ? `punkt uwagi (znaleziony sam): ${skupienia.map((q) => `--skup ${[q.x, q.y, q.rx, q.ry].map((v) => v.toFixed(2)).join(',')},${q.ile}`).join('  ')}   (wyłącz: --skup brak)` : 'punkt uwagi: brak wyraźnego tematu, cały obraz równo');
+}
 const wagi = waznosc(gray, W, H, Number(opt('detal', 2)), skupienia);
 
 let grunt = [222, 212, 190];                       // ciepły gesso
