@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- glowa -->
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Szkicownik malarza</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caladea:ital,wght@1,400;1,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  /* Układ: pracownia o zmierzchu — kartka na ciemnej ścianie, pod nią (na szerokim ekranie: obok) blat z narzędziami. */
+  :root {
+    --sciana: #14110f; --blat: #211b16; --wypuklosc: #2c241d; --kreska: #3b3128;
+    --tekst: #eadcbd; --cichy: #9a917f; --mosiadz: #c9a658; --mosiadz-ciemny: #6b5524; --blad: #e08a6a;
+    --pismo: Inter, system-ui, -apple-system, "Segoe UI", sans-serif; --tytul: Caladea, Georgia, "Times New Roman", serif;
+    color-scheme: dark;
+  }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body { background: var(--sciana); color: var(--tekst); font: 14px/1.4 var(--pismo); overflow: hidden; }
+  button, input, textarea { font: inherit; color: inherit; }
+  .sz { height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; padding-block: 10px;
+        padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); box-sizing: border-box; }
+  header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+  .marka { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+  h1 { margin: 0; font: italic 400 24px/1.1 var(--tytul); letter-spacing: .01em; white-space: nowrap; }
+  #ile { color: var(--cichy); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .akcje { display: flex; gap: 6px; flex-wrap: wrap; }
+  .akcje button, .panel button, .plikowy, .panel a.przycisk { background: var(--wypuklosc); border: 1px solid var(--kreska); border-radius: 7px; padding: 7px 12px; cursor: pointer; text-decoration: none; display: inline-block; }
+  .akcje button:hover, .panel button:hover, .plikowy:hover { border-color: var(--mosiadz-ciemny); }
+  .panel a.przycisk { color: var(--tekst); }
+  button:disabled { opacity: .4; cursor: default; }
+  button.glowny { background: var(--mosiadz); color: #1a1408; border-color: var(--mosiadz); font-weight: 600; }
+  :focus-visible { outline: 2px solid var(--mosiadz); outline-offset: 2px; }
+  #pole { min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .stos { position: relative; line-height: 0; box-shadow: 0 14px 34px rgba(0, 0, 0, .65), 0 0 0 3px #1a1512; }
+  #kartka { display: block; touch-action: none; cursor: crosshair; }
+  #kalka { position: absolute; inset: 0; object-fit: cover; opacity: .38; mix-blend-mode: multiply; pointer-events: none; max-width: none; }
+  #wzmianka { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); margin: 0; padding: 5px 12px; border-radius: 99px; background: rgba(20, 17, 15, .82); color: var(--tekst); font-size: 12.5px; line-height: 1.3; white-space: nowrap; pointer-events: none; }
+  body.gra #kartka { cursor: default; }
+  .blat { background: var(--blat); border: 1px solid var(--kreska); border-radius: 10px; padding: 10px 12px; display: grid; gap: 9px; min-width: 0; }
+  .blat section { min-width: 0; display: grid; gap: 5px; }
+  h2 { margin: 0; font: 600 11px/1 var(--pismo); letter-spacing: .09em; text-transform: uppercase; color: var(--cichy); display: flex; align-items: center; gap: 8px; }
+  #probka { width: 34px; height: 8px; border-radius: 4px; border: 1px solid var(--kreska); }
+  .rzad { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 5px; scrollbar-width: thin; }
+  #narzedzia button { flex: none; background: var(--wypuklosc); border: 1px solid var(--kreska); border-radius: 99px; padding: 6px 12px; cursor: pointer; white-space: nowrap; }
+  #narzedzia button[aria-pressed="true"] { background: var(--tekst); color: #1a1408; border-color: var(--tekst); font-weight: 600; }
+  #barwy button { flex: none; width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--blat); box-shadow: 0 0 0 1px var(--kreska); cursor: pointer; padding: 0; }
+  #barwy button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--mosiadz); }
+  #barwy.stala button { opacity: .28; }
+  .wlasna { flex: none; display: inline-flex; align-items: center; gap: 6px; color: var(--cichy); font-size: 12.5px; white-space: nowrap; }
+  .wlasna input { width: 30px; height: 26px; padding: 0; border: 1px solid var(--kreska); border-radius: 6px; background: none; cursor: pointer; }
+  .suwaki { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 16px !important; }
+  .suwaki label { color: var(--cichy); font-size: 12.5px; display: flex; justify-content: space-between; }
+  .suwaki output { color: var(--tekst); font-variant-numeric: tabular-nums; }
+  .suwaki div { display: grid; gap: 2px; min-width: 0; }
+  input[type="range"] { width: 100%; accent-color: var(--mosiadz); margin: 0; }
+  .kalkaS { display: flex !important; flex-wrap: wrap; align-items: center; gap: 8px !important; font-size: 12.5px; color: var(--cichy); }
+  .plikowy { color: var(--tekst); padding: 5px 10px; }
+  .plikowy input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+  .kalkaS button { background: none; border: 1px solid var(--kreska); border-radius: 7px; padding: 5px 10px; cursor: pointer; }
+  #zaslona { position: fixed; inset: 0; background: rgba(8, 6, 5, .72); display: flex; align-items: center; justify-content: center; z-index: 20;
+             padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); box-sizing: border-box; }
+  .panel { background: var(--blat); border: 1px solid var(--kreska); border-radius: 12px; padding: 18px; width: min(460px, 100%); max-height: 100%; overflow-y: auto; display: grid; gap: 12px; box-sizing: border-box; }
+  .panel h3 { margin: 0; font: italic 400 22px/1.1 var(--tytul); }
+  .panel p { margin: 0; color: var(--cichy); font-size: 13px; text-wrap: pretty; }
+  .panel .wybor { display: flex; flex-wrap: wrap; gap: 6px; }
+  .panel .wybor button[aria-pressed="true"] { background: var(--tekst); color: #1a1408; border-color: var(--tekst); font-weight: 600; }
+  .panel .stopka { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+  .panel label.pole { display: grid; gap: 3px; font-size: 12.5px; color: var(--cichy); }
+  .panel input[type="text"], .panel textarea { background: var(--sciana); border: 1px solid var(--kreska); border-radius: 7px; padding: 7px 9px; min-width: 0; }
+  .panel textarea { height: 90px; resize: vertical; font: 11px/1.3 ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+  .dwa { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  #podglad { width: 100%; height: auto; border-radius: 4px; box-shadow: 0 0 0 3px #1a1512; }
+  #skopiowano { color: var(--mosiadz); min-height: 1.3em; }
+  code { font: 12px ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--tekst); }
+  @media (min-width: 900px) and (min-height: 520px) {
+    .sz { grid-template-columns: minmax(0, 1fr) 310px; grid-template-rows: auto minmax(0, 1fr); gap: 12px 16px; padding-block: 14px; }
+    header { grid-column: 1 / -1; }
+    .blat { align-self: start; padding: 14px; gap: 14px; }
+    .rzad { flex-wrap: wrap; overflow: visible; padding-bottom: 2px; }
+    .suwaki { grid-template-columns: minmax(0, 1fr); gap: 10px !important; }
+    h1 { font-size: 28px; }
+  }
+  @media (max-width: 480px) { .akcje button { padding: 6px 10px; font-size: 13px; } h1 { font-size: 21px; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<!-- /glowa -->
+</head>
+<body>
+<!-- tresc -->
+<div class="sz">
+  <header>
+    <div class="marka"><h1>Szkicownik malarza</h1><span id="ile"></span></div>
+    <div class="akcje">
+      <button type="button" id="cofnij">Cofnij</button>
+      <button type="button" id="odtworz">Odtwórz</button>
+      <button type="button" id="nowa">Nowa</button>
+      <button type="button" id="zapisz" class="glowny">Zapisz</button>
+    </div>
+  </header>
+  <main id="pole">
+    <div class="stos">
+      <canvas id="kartka" aria-label="Kartka do rysowania"></canvas>
+      <img id="kalka" alt="" hidden>
+      <p id="wzmianka" hidden>Przykład. Dotknij kartki, żeby zacząć własny rysunek</p>
+    </div>
+  </main>
+  <aside class="blat">
+    <section><h2>Narzędzie</h2><div id="narzedzia" class="rzad"></div></section>
+    <section><h2>Kolor <span id="probka"></span></h2>
+      <div class="rzad"><div id="barwy" class="rzad" style="padding:2px;overflow:visible"></div>
+        <label class="wlasna"><input type="color" id="wlasna" value="#2860be" aria-label="Własny kolor">własny</label></div>
+    </section>
+    <section class="suwaki">
+      <div><label for="grubosc">Grubość <output id="gruboscW"></output></label><input type="range" id="grubosc" min="0.5" max="6" step="0.1" value="2"></div>
+      <div><label for="nacisk">Nacisk <output id="naciskW">80%</output></label><input type="range" id="nacisk" min="0.2" max="1" step="0.05" value="0.8"></div>
+    </section>
+    <section class="kalkaS">
+      <label class="plikowy">Podłóż zdjęcie pod kalkę<input type="file" id="kalkaPlik" accept="image/*"></label>
+      <button type="button" id="kalkaWyl" hidden>Zdejmij kalkę</button>
+    </section>
+  </aside>
+</div>
+<div id="zaslona" hidden>
+  <div class="panel" id="panelNowa" hidden>
+    <h3>Nowa kartka</h3>
+    <div class="wybor" id="papiery">
+      <button type="button" data-p="jasny">papier jasny</button><button type="button" data-p="tonowany">tonowany</button>
+      <button type="button" data-p="szary">szary</button><button type="button" data-p="akwarelowy">akwarelowy</button>
+    </div>
+    <div class="wybor" id="formaty">
+      <button type="button" data-f="4:3">4:3</button><button type="button" data-f="16:9">16:9</button>
+      <button type="button" data-f="1:1">kwadrat</button><button type="button" data-f="3:4">pion 3:4</button>
+    </div>
+    <p>Obecny rysunek zniknie. Jeśli chcesz go zachować, najpierw go zapisz.</p>
+    <div class="stopka"><button type="button" data-zamknij>Zostań przy rysunku</button><button type="button" id="zacznij" class="glowny">Zacznij od czystej kartki</button></div>
+  </div>
+  <div class="panel" id="panelZapisz" hidden>
+    <h3>Zapisz rysunek</h3>
+    <img id="podglad" alt="Podgląd rysunku">
+    <p>Obraz: przytrzymaj go palcem (albo kliknij prawym przyciskiem) i wybierz zapisanie.</p>
+    <div class="dwa">
+      <label class="pole">Tytuł<input type="text" id="tytul" maxlength="60" placeholder="Bez tytułu"></label>
+      <label class="pole">Autor<input type="text" id="autor" maxlength="40"></label>
+    </div>
+    <p>Plik rysunku to lista Twoich ruchów ręki. Wklejony do rozmowy albo zapisany jako <code>rysunek.json</code> daje film z pracowni: <code>node film.mjs rysunek.json</code>.</p>
+    <div class="stopka" style="justify-content:flex-start">
+      <button type="button" id="kopiuj" class="glowny">Kopiuj plik rysunku</button>
+      <button type="button" id="wklej">Otwórz plik rysunku…</button>
+    </div>
+    <div class="stopka" id="pobieranie" style="justify-content:flex-start" hidden>
+      <a class="przycisk" id="pobierzPng">Pobierz PNG</a><a class="przycisk" id="pobierzJson">Pobierz rysunek.json</a>
+    </div>
+    <textarea id="tekstPliku" aria-label="Plik rysunku" hidden></textarea>
+    <button type="button" id="otworzWklejony" hidden>Otwórz wklejony</button>
+    <p id="skopiowano" role="status"></p>
+    <div class="stopka"><button type="button" data-zamknij>Wróć do rysowania</button></div>
+  </div>
+</div>
+<!-- /tresc -->
+<script type="module" src="./sam.js"></script>
+</body>
+</html>
