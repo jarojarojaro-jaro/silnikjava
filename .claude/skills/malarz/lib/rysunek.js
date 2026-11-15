@@ -34,6 +34,29 @@ export function odtworzSlady(kartka, bajty, ind, od, doo) {
 }
 
 /**
+ * Zapisuje jeden ślad do rekordu. Punkty są zaokrąglane do tego, co mieści rekord, a lista dłuższa niż
+ * 255 punktów równo przerzedzana (krzywa i tak je wygładza) — zwracane `pk`, `szer` i `kol` to dokładnie
+ * to, co potem odtworzy film, więc tym trzeba rysować.
+ * @param {string} narzedzie @param {number[]} kolor @param {number[][]} punkty [[x, y, nacisk], …] @param {number} [szer] @param {number} seed
+ * @returns {{b:Uint8Array, pk:Float32Array, szer:number, kol:number[], nz:object}|null} null, gdy punktów jest mniej niż 2
+ */
+export function zakodujSlad(narzedzie, kolor, punkty, szer, seed) {
+  const nz = NARZEDZIA[narzedzie]; if (!nz) throw new Error(`nieznane narzędzie: ${narzedzie}`);
+  if (punkty.length > 255) punkty = Array.from({ length: 255 }, (_, i) => punkty[Math.round(i * (punkty.length - 1) / 254)]);
+  const n = punkty.length; if (n < 2) return null;
+  const bajt = (v) => (Number.isFinite(v) ? Math.max(0, Math.min(255, Math.round(v))) : 0);
+  const b = new Uint8Array(8 + 5 * n), pk = new Float32Array(n * 3), wc = Kod.wq(szer ?? nz.szer);
+  b[0] = NAZWY.indexOf(narzedzie); b[1] = bajt(kolor[0]); b[2] = bajt(kolor[1]); b[3] = bajt(kolor[2]); b[4] = wc; b[5] = seed & 255; b[6] = (seed >> 8) & 255; b[7] = n;
+  for (let i = 0, p = 8; i < n; i++, p += 5) {
+    if (!Number.isFinite(punkty[i][0]) || !Number.isFinite(punkty[i][1])) throw new Error(`kreska: punkt ${i} nie ma współrzędnych (${punkty[i]})`);
+    const x = Kod.xq(punkty[i][0]), y = Kod.xq(punkty[i][1]), pr = bajt((punkty[i][2] ?? 0.6) * 255);
+    b[p] = x & 255; b[p + 1] = x >> 8; b[p + 2] = y & 255; b[p + 3] = y >> 8; b[p + 4] = pr;
+    pk[i * 3] = Kod.xd(x); pk[i * 3 + 1] = Kod.xd(y); pk[i * 3 + 2] = pr / 255;
+  }
+  return { b, pk, szer: Kod.wd(wc), kol: [b[1], b[2], b[3]], nz };
+}
+
+/**
  * Rysunek: kartka robocza (skala 1, żeby rysownik widział, co już narysował) + lista śladów.
  * @param {{W:number, H:number, papier?:object, tytul?:string, autor?:string, styl?:string, ziarno?:number}} o
  */
@@ -51,22 +74,10 @@ export function Rysunek(o) {
      * Jedna kreska. punkty: [[x, y, nacisk], …] (nacisk 0..1, domyślnie 0.6); szer domyślnie z narzędzia.
      */
     kreska(narzedzie, kolor, punkty, szer) {
-      const nz = NARZEDZIA[narzedzie]; if (!nz) throw new Error(`nieznane narzędzie: ${narzedzie}`);
+      const z = zakodujSlad(narzedzie, kolor, punkty, szer, ziarnoSladu(ile)); if (!z) return api;
       if (!biezacy) api.etap('Rysunek', narzedzie);
-      // rekord mieści 255 punktów: gęstsza lista jest równo przerzedzana (krzywa i tak je wygładza)
-      if (punkty.length > 255) punkty = Array.from({ length: 255 }, (_, i) => punkty[Math.round(i * (punkty.length - 1) / 254)]);
-      const n = punkty.length; if (n < 2) return api;
-      const bajt = (v) => (Number.isFinite(v) ? Math.max(0, Math.min(255, Math.round(v))) : 0);
-      const b = new Uint8Array(8 + 5 * n), pk = new Float32Array(n * 3), wc = Kod.wq(szer ?? nz.szer), seed = ziarnoSladu(ile);
-      b[0] = NAZWY.indexOf(narzedzie); b[1] = bajt(kolor[0]); b[2] = bajt(kolor[1]); b[3] = bajt(kolor[2]); b[4] = wc; b[5] = seed & 255; b[6] = seed >> 8; b[7] = n;
-      for (let i = 0, p = 8; i < n; i++, p += 5) {
-        if (!Number.isFinite(punkty[i][0]) || !Number.isFinite(punkty[i][1])) throw new Error(`kreska: punkt ${i} nie ma współrzędnych (${punkty[i]})`);
-        const x = Kod.xq(punkty[i][0]), y = Kod.xq(punkty[i][1]), pr = bajt((punkty[i][2] ?? 0.6) * 255);
-        b[p] = x & 255; b[p + 1] = x >> 8; b[p + 2] = y & 255; b[p + 3] = y >> 8; b[p + 4] = pr;
-        pk[i * 3] = Kod.xd(x); pk[i * 3 + 1] = Kod.xd(y); pk[i * 3 + 2] = pr / 255;
-      }
-      kartka.slad(nz, [b[1], b[2], b[3]], Kod.wd(wc), pk, seed);
-      czesci.push(b); ile++;
+      kartka.slad(z.nz, z.kol, z.szer, z.pk, ziarnoSladu(ile));
+      czesci.push(z.b); ile++;
       return api;
     },
     /**

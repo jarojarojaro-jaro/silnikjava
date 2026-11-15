@@ -239,8 +239,8 @@ test('PNG: zapisany plik da się odkodować', () => {
 });
 
 // ---- narzędzia suche ---------------------------------------------------------------------------
-import { Kartka, NARZEDZIA, NAZWY } from '../lib/suche.js';
-import { Rysunek, indeks, odczytajSlad } from '../lib/rysunek.js';
+import { Kartka, NARZEDZIA, NAZWY, ziarnoSladu } from '../lib/suche.js';
+import { Rysunek, indeks, odczytajSlad, zakodujSlad } from '../lib/rysunek.js';
 import { STYLE_SUCHE, paleta, kontury, rysuj } from '../lib/rysownik.js';
 
 const srednia = (k, x0, y0, x1, y1, c = 0) => { let s = 0, n = 0; for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) { s += k.C[(y * k.PW + x) * 3 + c]; n++; } return s / n; };
@@ -420,6 +420,26 @@ test('zdjęcie obrócone znacznikiem EXIF: rozmiar i piksele są takie, jak widz
   assert.deepEqual(rozmiar(jpg), { w: 20, h: 40 }, 'po obrocie zdjęcie jest pionowe');
   const T = wczytaj(jpg, 20, 40), gora = T[(5 * 20 + 10) * 3], dol = T[(34 * 20 + 10) * 3];
   assert.ok(gora > 180 && dol < 80, `lewa (czerwona) strona trafia na górę (${gora.toFixed(0)}, ${dol.toFixed(0)})`);
+});
+
+test('szkicownik: migawka kartki cofa ślad w prostokącie; wspólny zapis śladu = to, co rysuje Rysunek', () => {
+  const k = Kartka(80, 60, 2), m = k.migawka(), pk = [10, 30, 0.9, 70, 30, 0.9];
+  k.slad(NARZEDZIA.pastel, [200, 40, 40], 9, pk, 3);
+  const [x0, y0, x1, y1] = [k.x0, k.y0, k.x1, k.y1], i = (60 * k.PW + 80) * 3;
+  assert.ok(Math.abs(k.C[i] - m.C[i]) > 5, 'ślad jest na kartce');
+  k.przywroc(m, x0, y0, (x0 + x1) / 2, y1);                                  // cofnięta lewa połowa śladu
+  assert.equal(k.C[(60 * k.PW + x0 + 4) * 3], m.C[(60 * k.PW + x0 + 4) * 3]);
+  assert.notEqual(k.C[(60 * k.PW + x1 - 8) * 3], m.C[(60 * k.PW + x1 - 8) * 3]);
+  k.przywroc(m); assert.deepEqual(k.C, m.C); assert.deepEqual(k.F, m.F);
+  const pts = Array.from({ length: 400 }, (_, j) => [5 + j * 0.25, 20 + 10 * Math.sin(j / 30), 0.7]), z = zakodujSlad('kredka', [300, -5, 40.4], pts, 3, 77);
+  assert.equal(z.b[7], 255); assert.deepEqual(z.kol, [255, 0, 40]); assert.equal(z.pk.length, 255 * 3);
+  const s = odczytajSlad(z.b, 0); assert.deepEqual(s.pk, z.pk); assert.equal(s.szer, z.szer); assert.equal(s.seed, 77);
+  assert.equal(zakodujSlad('kredka', [0, 0, 0], [[1, 1, 1]], 2, 1), null);
+  const r = Rysunek({ W: 120, H: 80 }); r.kreska('kredka', [40, 80, 200], [[10, 10, 0.5], [60, 30, 0.9]]);
+  const a = Kartka(120, 80, 1, r.obraz().naglowek.papier), z2 = zakodujSlad('kredka', [40, 80, 200], [[10, 10, 0.5], [60, 30, 0.9]], undefined, ziarnoSladu(0));
+  a.slad(z2.nz, z2.kol, z2.szer, z2.pk, ziarnoSladu(0));
+  assert.deepEqual(a.C, r.kartka.C, 'ślad narysowany ze wspólnego zapisu jest tym samym śladem');
+  assert.deepEqual(r.obraz().bajty, z2.b);
 });
 
 // ---- przypadki brzegowe (z recenzji) -------------------------------------------------------------

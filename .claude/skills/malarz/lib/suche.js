@@ -173,6 +173,13 @@ export function Kartka(W, H, S, papier = {}) {
     o.x0 = X0; o.y0 = Y0; o.x1 = X1; o.y1 = Y1;
     return nr;
   };
+  /** Zapamiętuje stan kartki (kolor i wypełnienie ziarna) — do cofania i do śladu rysowanego na żywo. */
+  o.migawka = () => ({ C: Float32Array.from(C), F: Float32Array.from(F) });
+  /** Przywraca zapamiętany stan w prostokącie pikseli (domyślnie na całej kartce). */
+  o.przywroc = (m, x0 = 0, y0 = 0, x1 = PW, y1 = PH) => {
+    x0 = Math.max(0, x0 | 0); y0 = Math.max(0, y0 | 0); x1 = Math.min(PW, Math.ceil(x1)); y1 = Math.min(PH, Math.ceil(y1));
+    for (let y = y0; y < y1; y++) { const a = y * PW + x0, b = y * PW + x1; C.set(m.C.subarray(a * 3, b * 3), a * 3); F.set(m.F.subarray(a, b), a); }
+  };
   /** Końcówka narzędzia w ułamku f długości śladu: { x, y, kat } (dla filmu). */
   o.czubek = (nz, szer, pk, seed, f) => {
     const p = sciezka(nz, szer, pk, seed), k = p.length / 3, q = Math.min(k - 1, Math.max(0, f * (k - 1))), i = Math.min(k - 2, Math.floor(q)), t = q - i;
