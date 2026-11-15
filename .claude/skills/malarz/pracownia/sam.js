@@ -183,14 +183,24 @@ $('nowa').addEventListener('click', () => { ustawPola(); otworz('panelNowa'); })
 for (const b of $('papiery').children) b.addEventListener('click', () => { papier = b.dataset.p; ustawPola(); });
 for (const b of $('formaty').children) b.addEventListener('click', () => { format = b.dataset.f; ustawPola(); });
 $('zacznij').addEventListener('click', () => { slady = []; przyklad = false; $('wzmianka').hidden = true; nowaKartka(); zapamietaj(); licznik(); zamknij(); });
+// Zapis plików: strona opublikowana jako artefakt nie może sama niczego pobrać — prosi o to gospodarza
+// (widz potwierdza zapis); strona otwarta z dysku pobiera zwyczajnie.
+let zapisGospodarza = null; window.claude?.use?.('downloads').then((d) => { zapisGospodarza = d; });
+const zDysku = location.protocol === 'file:' || location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+const nazwaPliku = () => ($('tytul').value.trim() || 'rysunek').toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/g, '-').replace(/^-|-$/g, '') || 'rysunek';
+async function zapiszPlik(nazwa, dane) {
+  if (zapisGospodarza) {
+    try { await zapisGospodarza.save({ filename: nazwa, data: dane }); $('skopiowano').textContent = `Zapisano ${nazwa}.`; }
+    catch (e) { $('skopiowano').textContent = e?.code === 'declined' ? 'Zapis anulowany.' : 'Tutaj nie da się zapisać pliku. Przytrzymaj obraz albo skopiuj plik rysunku.'; }
+    return;
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(dane); a.download = nazwa; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+$('pobierzPng').addEventListener('click', () => plotno.toBlob((b) => zapiszPlik(`${nazwaPliku()}.png`, b), 'image/png'));
+$('pobierzJson').addEventListener('click', () => zapiszPlik(`${nazwaPliku()}.json`, new Blob([plik()], { type: 'application/json' })));
 $('zapisz').addEventListener('click', () => {
   $('podglad').src = plotno.toDataURL('image/png'); $('skopiowano').textContent = '';
-  if (location.protocol === 'file:' || location.hostname === '127.0.0.1' || location.hostname === 'localhost') {      // strona otwarta z dysku: zwykłe pobieranie działa
-    const nazwa = ($('tytul').value.trim() || 'rysunek').toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/g, '-');
-    $('pobierzPng').href = $('podglad').src; $('pobierzPng').download = `${nazwa}.png`;
-    $('pobierzJson').href = URL.createObjectURL(new Blob([plik()], { type: 'application/json' })); $('pobierzJson').download = `${nazwa}.json`;
-    $('pobieranie').hidden = false;
-  }
+  $('pobieranie').hidden = !(zapisGospodarza || zDysku);
   otworz('panelZapisz');
 });
 $('kopiuj').addEventListener('click', async () => {

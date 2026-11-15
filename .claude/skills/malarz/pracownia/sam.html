@@ -26,9 +26,8 @@
   h1 { margin: 0; font: italic 400 24px/1.1 var(--tytul); letter-spacing: .01em; white-space: nowrap; }
   #ile { color: var(--cichy); font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .akcje { display: flex; gap: 6px; flex-wrap: wrap; }
-  .akcje button, .panel button, .plikowy, .panel a.przycisk { background: var(--wypuklosc); border: 1px solid var(--kreska); border-radius: 7px; padding: 7px 12px; cursor: pointer; text-decoration: none; display: inline-block; }
+  .akcje button, .panel button, .plikowy { background: var(--wypuklosc); border: 1px solid var(--kreska); border-radius: 7px; padding: 7px 12px; cursor: pointer; }
   .akcje button:hover, .panel button:hover, .plikowy:hover { border-color: var(--mosiadz-ciemny); }
-  .panel a.przycisk { color: var(--tekst); }
   button:disabled { opacity: .4; cursor: default; }
   button.glowny { background: var(--mosiadz); color: #1a1408; border-color: var(--mosiadz); font-weight: 600; }
   :focus-visible { outline: 2px solid var(--mosiadz); outline-offset: 2px; }
@@ -139,7 +138,7 @@
   <div class="panel" id="panelZapisz" hidden>
     <h3>Zapisz rysunek</h3>
     <img id="podglad" alt="Podgląd rysunku">
-    <p>Obraz: przytrzymaj go palcem (albo kliknij prawym przyciskiem) i wybierz zapisanie.</p>
+    <p>Gdyby przyciski zapisu poniżej nie były dostępne: przytrzymaj obraz palcem (albo kliknij prawym przyciskiem) i wybierz zapisanie.</p>
     <div class="dwa">
       <label class="pole">Tytuł<input type="text" id="tytul" maxlength="60" placeholder="Bez tytułu"></label>
       <label class="pole">Autor<input type="text" id="autor" maxlength="40"></label>
@@ -150,7 +149,7 @@
       <button type="button" id="wklej">Otwórz plik rysunku…</button>
     </div>
     <div class="stopka" id="pobieranie" style="justify-content:flex-start" hidden>
-      <a class="przycisk" id="pobierzPng">Pobierz PNG</a><a class="przycisk" id="pobierzJson">Pobierz rysunek.json</a>
+      <button type="button" id="pobierzPng">Zapisz obraz (PNG)</button><button type="button" id="pobierzJson">Zapisz plik rysunku</button>
     </div>
     <textarea id="tekstPliku" aria-label="Plik rysunku" hidden></textarea>
     <button type="button" id="otworzWklejony" hidden>Otwórz wklejony</button>

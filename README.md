@@ -493,6 +493,8 @@ pociągnięć pędzla — od szerokiego płaskiego do cienkiego okrągłego — 
 z ziarnem: kredkami, pastelami, węglem, ołówkiem, piórkiem i akwarelą. Wzorem może być zdjęcie
 albo **motyw z wyobraźni**, czyli obraz opisany funkcją w kodzie (bez żadnego pliku graficznego).
 Wynik to lista pociągnięć (12 bajtów każde), którą można odtworzyć w dowolnej skali i sfilmować.
+Jest też **szkicownik** — strona, na której maluje się samemu tymi samymi narzędziami; własny rysunek
+zapisuje się w tym samym formacie, więc też da się go odtworzyć i sfilmować.
 
 ![Obrazy namalowane przez malarza](docs/img/malarz/galeria.jpg)
 
@@ -519,6 +521,7 @@ node $M/maluj.mjs $M/motywy/jezioro.js                                 # motyw z
 node $M/maluj.mjs $M/motywy/lato.js --styl pastele                     # rysunek pastelami (16:9)
 node $M/maluj.mjs $M/motywy/tatry.js --styl akwarela                   # akwarela; też: tusz, szkic, mieszane, olejne
 node $M/przeglad.mjs zdjecie.jpg                                       # wzór we wszystkich stylach na jednym arkuszu
+node $M/strona.mjs --sam                                               # szkicownik: strona, na której malujesz sam tymi samymi narzędziami
 node $M/film.mjs out/malarz/jezioro/obraz.json --dzwiek                # film z pracowni (pion albo poziom), z szelestem narzędzia
 node $M/strona.mjs out/malarz/jezioro/obraz.json                       # jeden plik HTML, maluje na żywo
 npm run test:malarz

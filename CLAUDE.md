@@ -40,7 +40,8 @@ silnika z `src/` i jego zasad rysownika. Instrukcja i pułapki: jego `SKILL.md`.
 wzór (zdjęcie albo motyw z kodu) → lista pociągnięć pędzla (olej, impresja, szpachla, puentylizm…)
 albo kresek i plam na papierze (kredki, pastele, węgiel, ołówek, tusz, akwarela, technika mieszana)
 → podglądy PNG, arkusz wszystkich stylów (`przeglad.mjs`) i film z pracowni (1080×1920 albo
-1920×1080, opcjonalnie z dźwiękiem). Nie używa silnika z `src/` i jego zasad rysownika. Instrukcja, style i pułapki:
+1920×1080, opcjonalnie z dźwiękiem). `strona.mjs --sam` składa szkicownik: stronę, na której człowiek
+maluje sam tymi samymi narzędziami (zapis w tym samym formacie). Nie używa silnika z `src/` i jego zasad rysownika. Instrukcja, style i pułapki:
 jego `SKILL.md`; testy: `node --test .claude/skills/malarz/tests/*.test.mjs`.
 
 ## Repozytorium

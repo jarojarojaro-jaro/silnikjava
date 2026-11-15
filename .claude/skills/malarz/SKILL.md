@@ -1,6 +1,6 @@
 ---
 name: malarz
-description: Silnik malarski w kodzie — maluje i rysuje obrazy tak, jak robi to ręka. „Malarz” kładzie tysiące pociągnięć pędzla (olej, impresjonizm, etiuda, szpachla, puentylizm, wierna kopia), „rysownik” pracuje na papierze z ziarnem (kredki, suche i olejne pastele, węgiel, ołówek, szkic, tusz, akwarela, technika mieszana); wzorem jest zdjęcie albo motyw wymyślony w kodzie, można też rysować z ręki. Do tego film z pracowni (pionowy 1080×1920 albo poziomy 1920×1080, opcjonalnie z szelestem narzędzia), na którym praca powstaje kreska po kresce, i arkusz „ten sam wzór we wszystkich stylach”. Użyj, gdy ktoś prosi o namalowanie albo narysowanie czegoś, obraz ze zdjęcia, „sztukę rysowaną kodem / JavaScriptem”, rysunek wyglądający na ręczny, film z malowania, albo pokazuje projekt w rodzaju mona-lisa-js czy p5.brush. To NIE jest silnik rysowanych filmów z src/ (ręka, lektor) ani skill voxel-ascii — osobne narzędzie w czystym JS (Node, bez zależności).
+description: Silnik malarski w kodzie — maluje i rysuje obrazy tak, jak robi to ręka. „Malarz” kładzie tysiące pociągnięć pędzla (olej, impresjonizm, etiuda, szpachla, puentylizm, wierna kopia), „rysownik” pracuje na papierze z ziarnem (kredki, suche i olejne pastele, węgiel, ołówek, szkic, tusz, akwarela, technika mieszana); wzorem jest zdjęcie albo motyw wymyślony w kodzie, można też rysować z ręki. Do tego film z pracowni (pionowy 1080×1920 albo poziomy 1920×1080, opcjonalnie z szelestem narzędzia), na którym praca powstaje kreska po kresce, arkusz „ten sam wzór we wszystkich stylach” oraz szkicownik — strona, na której człowiek maluje sam tymi samymi narzędziami. Użyj, gdy ktoś prosi o namalowanie albo narysowanie czegoś, obraz ze zdjęcia, „sztukę rysowaną kodem / JavaScriptem”, rysunek wyglądający na ręczny, film z malowania, albo pokazuje projekt w rodzaju mona-lisa-js czy p5.brush. To NIE jest silnik rysowanych filmów z src/ (ręka, lektor) ani skill voxel-ascii — osobne narzędzie w czystym JS (Node, bez zależności).
 ---
 
 # malarz — obraz malowany pędzlem, pociągnięcie po pociągnięciu
@@ -27,6 +27,7 @@ node $M/maluj.mjs $M/motywy/lato.js --styl pastele       # to samo narzędziami 
 node $M/film.mjs out/malarz/jezioro/obraz.json           # film.mp4 (ok. 34 s; pion 1080×1920, panorama 1920×1080)
 node $M/film.mjs out/malarz/jezioro/obraz.json --arkusz  # 6 klatek filmu w jednym PNG
 node $M/film.mjs out/malarz/jezioro/obraz.json --dzwiek  # film ze ścieżką dźwiękową (szelest narzędzia)
+node $M/strona.mjs --sam                                 # szkicownik: strona do samodzielnego malowania → out/malarz/szkicownik.html
 node $M/przeglad.mjs zdjecie.jpg                         # ten sam wzór w 14 stylach na arkuszu z podpisami (ok. 4 min)
 node $M/strona.mjs out/malarz/jezioro/obraz.json         # obraz.html: jeden plik, maluje na żywo w przeglądarce
 node $M/odtworz.mjs out/malarz/jezioro/obraz.json --skala 4 --okno 0.2,0.4,0.3,0.2   # detal z bliska
@@ -65,6 +66,7 @@ Style na papierze (definicje w `lib/rysownik.js`; wynik to kreski i plamy, nie p
 `przeglad.mjs <wzór>` maluje wzór we wszystkich stylach naraz i składa arkusz z podpisami — najszybszy
 sposób wyboru stylu do tematu (`--style a,b,c` zawęża, prace zostają w podkatalogach gotowe do filmu).
 
+`--mokro 0..0.6` ustawia, ile farby spod spodu zabiera pędzel olejny (style mają własne wartości).
 `--szczegol 1.5` mnoży liczbę pociągnięć. Style suche biorą `--papier r,g,b` (kolor arkusza) zamiast
 `--grunt`; `--skup` i `--detal` ich nie dotyczą — rysownik sam idzie za rysunkiem wzoru. Styl to dane: etapy (pędzel, szerokości, długości,
 liczba), cechy pędzla (włosie, suchość, smugi), światło, ewentualnie `kolor` i `wygladz`.
@@ -74,7 +76,9 @@ liczba), cechy pędzla (włosie, suchość, smugi), światło, ewentualnie `kolo
 1. **Pędzel** (`lib/pedzel.js`) — pociągnięcie to 7 liczb + ziarno: środek, kierunek, długość,
    szerokość, wygięcie (obrót nadgarstka), kolor, krycie; do tego rodzaj: płaski (postrzępiony
    koniec), koci język (łuk), okrągły (szpic). Maska liczy korpus, włosie (kępki i pojedyncze
-   włosy), wysychanie farby ku końcowi i fakturę (grubość farby). Wszystko w jednostkach
+   włosy), wysychanie farby ku końcowi i fakturę (grubość farby). **Mokre w mokre** (cecha `mokro`):
+   włosie zabiera kolor, po którym jedzie, więc pociągnięcie zaczyna się czystą farbą, a kończy
+   smugami spodu — przejścia między plamami miękną, obraz przestaje wyglądać jak wycinanka. Wszystko w jednostkach
    roboczych (obraz ma ok. 536 tys. jednostek², np. 600 × 894), więc skala renderu jest dowolna.
 2. **Malarz** (`lib/malarz.js`) — pętla: „gdzie obraz jest najbardziej nie taki i które jedno
    pociągnięcie naprawi najwięcej?”. Mapa błędu ważona mapą ważności → losowe miejsce o dużym
@@ -83,7 +87,9 @@ liczba), cechy pędzla (włosie, suchość, smugi), światło, ewentualnie `kolo
    najlepszego → położenie. Kandydat jest zaokrąglany do rekordu przed oceną, więc film kładzie
    dokładnie to, co malarz ocenił. Deterministyczny (ziarno `--ziarno`).
 3. **Mapa ważności** (`lib/pole.js`) — automatycznie z drobnego rysunku wzoru (`--detal`) plus
-   ręczne skupienia `--skup x,y,rx,ry,waga` (ułamki szerokości i wysokości). Etapy z `skup`
+   skupienia. Gdy nikt ich nie poda, malarz szuka tematu sam (`punktyUwagi`: obiekt odstający
+   kolorem od otoczenia, barwa skóry, lekka przewaga środka kadru) i wypisuje, co znalazł;
+   ręcznie: `--skup x,y,rx,ry,waga` (ułamki szerokości i wysokości), wyłączenie: `--skup brak`. Etapy z `skup`
    kładą drobne pędzle prawie tylko tam — jak malarz: luźne tło, dopracowany punkt uwagi.
 4. **Światło** (`oswietl`) — z grubości farby i splotu płótna liczy delikatny relief oświetlony
    z lewej góry. Kolor ocenia się bez światła; światło jest tylko w podglądzie i filmie.
@@ -122,7 +128,8 @@ liczba), cechy pędzla (włosie, suchość, smugi), światło, ewentualnie `kolo
 ## Procedura (zawsze w tej kolejności)
 
 1. **Obejrzyj wzór** (Read na pliku). Zanotuj, gdzie jest punkt uwagi (twarz, oczy, dłonie,
-   słońce) i podaj go przez `--skup`. Bez tego twarz dostaje tyle uwagi co tło.
+   słońce). Malarz znajduje temat sam i wypisuje elipsę — sprawdź, czy trafił; przy portrecie
+   pewniej podać twarz przez `--skup` (automat łapie obiekt, nie zawsze samą twarz).
 2. `maluj.mjs` → **obejrzyj `porownanie.png`** i wycinek twarzy/detalu przez
    `odtworz.mjs --skala 3 --okno …`. Kryterium: z daleka obraz, z bliska pociągnięcia.
 3. Dobierz styl do tematu: portret/klasyka → `olej` albo `kopia`; pejzaż, kwiaty → `impresja`,
@@ -160,6 +167,22 @@ gór z mgłą, lasy, chata, **odbicie w wodzie przez ponowne wywołanie funkcji 
 sosna). Zasady: najpierw obejrzyj `wzor.png` — pędzel dodaje fakturę, ale nie naprawi
 kompozycji; buduj od tyłu do przodu (niebo → dal → plan środkowy → pierwszy plan); kontrast
 ciepłe/zimne i jeden jasny punkt uwagi; kształty mogą być proste, malarz i tak je „rozmaluje”.
+
+## Szkicownik — człowiek maluje sam
+
+`node strona.mjs --sam` składa `out/malarz/szkicownik.html`: jeden plik, który otwiera się w przeglądarce
+(także na telefonie i tablecie z rysikiem). Te same narzędzia i ta sama kartka co u rysownika: ołówek,
+kredka, węgiel, pastel sucha i olejna, tusz, biel, akwarela, lawowanie, palec do rozcierania; nacisk z
+rysika albo z tempa ręki, grubość, 24 kolory i własny, cofanie (Ctrl+Z), odtwarzanie rysunku ślad po
+śladzie, kalka (zdjęcie pod spodem do odrysowania — nie trafia do rysunku), cztery papiery i formaty.
+Szkic wraca po odświeżeniu strony. „Zapisz” daje PNG i **plik rysunku** w formacie `malarz/1` — taki sam
+jak z `maluj.mjs`, więc `odtworz.mjs rysunek.json --skala 3` renderuje go w dużej skali, a
+`film.mjs rysunek.json --dzwiek` robi z niego film z pracowni. `--sam --artefakt` składa wersję bez
+szkieletu `<html>` (do publikacji jako artefakt; zapis plików idzie wtedy przez gospodarza strony).
+
+Ślad na żywo: przed dotknięciem strona zapamiętuje kartkę (`Kartka.migawka`), a przy każdym ruchu cofa
+zmieniony prostokąt i kładzie cały dotychczasowy ślad od nowa; po oderwaniu ślad jest zaokrąglany do
+rekordu (`zakodujSlad`) i rysowany ostatni raz dokładnie tak, jak odtworzy go film.
 
 ## Rysowanie z ręki narzędziami suchymi
 
@@ -206,6 +229,11 @@ wielu poprawek „na oko” (render → obejrzyj → popraw) — do pełnych kom
   osi (`cos x + cos y`).
 - **Tempo filmu:** czas pociągnięcia ∝ √(długość × szerokość); przy wykładniku 0,75 podmalówka
   zjadała połowę filmu i obraz „pojawiał się” dopiero pod koniec.
+- **Mokre w mokre a film:** to, co pędzel zabiera, zależy od płótna pod pociągnięciem — film kładzie
+  pociągnięcie w kawałkach, więc druga część widziałaby już pierwszą. Zebrany kolor liczy się raz,
+  przed pierwszym kawałkiem, i trzyma do końca pociągnięcia.
+- **`[hidden]` przegrywa z `display: flex`** w arkuszu strony: ukryta zasłona szkicownika łapała
+  wszystkie kliknięcia. Strona ma własne `[hidden] { display: none !important }`.
 - **Puentylizm:** odchylenie barwy kropki dodane przed oceną kandydata malarz po prostu odsiewa
   (wybiera kropki najmniej odchylone) albo — gdy zależy tylko od numeru — odrzuca większość prób.
   Kropka jest więc wybierana w kolorze wzoru, a odchylenie dostaje dopiero na płótnie.
@@ -259,8 +287,12 @@ wielu poprawek „na oko” (render → obejrzyj → popraw) — do pełnych kom
 - Akwarela to plamy kładzione „mokre na suche”: nie ma prawdziwego rozpływania mokre w mokre ani
   wypłukiwania; `lawowanie` udaje je miękkim brzegiem. Przy granicach kształtów zostają wąskie
   prześwity papieru (jak w prawdziwej akwareli malowanej bez maskowania).
-- Malarz nie „rozumie” tematu: twarz trzeba mu wskazać (`--skup`). Farby olejne mieszają się jak
-  kolory RGB (krycie), nie jak pigmenty; nie ma rozcierania mokrej farby.
+- Malarz nie „rozumie” tematu: sam znajduje obiekt odstający od tła albo plamę o barwie skóry, ale
+  u zwierząt i postaci łapie całą sylwetkę, nie twarz — przy portrecie pewniejsze jest `--skup`.
+  Farby olejne mieszają się jak kolory RGB (krycie), nie jak pigmenty; mokre w mokre to zabieranie
+  koloru spod spodu przez włosie, bez rozcierania już położonej farby.
+- Szkicownik maluje narzędziami papierowymi; pędzla olejnego z fakturą w nim nie ma. Pędzel akwarelowy
+  kładzie plamę o stałym tonie na całej długości (nie wysycha po drodze).
 - Dźwięk filmu jest syntetyczny (filtrowany szum w rytm ruchu), bez muzyki i lektora; domyślnie
   wyłączony. Czas: malowanie 0,3–1,5 min, film 34 s ≈ 2–2,5 min na 4 rdzeniach.
 - Wzoru (zdjęcia) nie ma w `obraz.json` — zostaje tylko w `out/…/wzor.png`. Reprodukcje
@@ -272,8 +304,8 @@ Pomysł i układ rozwiązania (pędzel jako maska, rekord 12 bajtów, zachłanny
 z najmniejszych kwadratów, pracownia z lupą i paletą) pochodzą z projektu
 [ChetasLua/mona-lisa-js](https://github.com/ChetasLua/mona-lisa-js) (MIT, © 2026 Chetas Lua),
 który sam powołuje się na wpis Kevina T. Ngo. Kod tutaj jest napisany od nowa i rozszerzony
-(rodzaje pędzli, style, automatyczna mapa ważności, skupianie detalu, wygładzanie wzoru,
-światło na fakturze, motywy z wyobraźni, malowanie z ręki, film pionowy), z zachowaniem
+(rodzaje pędzli, style, automatyczna mapa ważności i punkt uwagi, skupianie detalu, wygładzanie wzoru,
+światło na fakturze, mokre w mokre, motywy z wyobraźni, malowanie z ręki, film pionowy, szkicownik), z zachowaniem
 noty MIT w `LICENCJE.md`. Do części suchej przejrzane zostały: [p5.brush](https://github.com/acamposuribe/p5.brush)
 (ślad jako chmura kropek, krzywe nacisku, szraf z losowością, akwarela), agentowe „umiejętności
 malarskie” (generative-painting-skills, drawn-by-code, pencil-case) i środowisko HuggingEnvs
